@@ -5,6 +5,8 @@ import { PostCard } from '../components/feed/PostCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord, View, User, Sphere } from '../types'; 
 import { getAllImages } from '../services/storageService'; 
+import { getDownloadURL, ref } from 'firebase/storage'; // Added
+import { storage } from '../firebase'; // Added
 
 
 interface FeedPageProps {
@@ -39,19 +41,36 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     try {
       const imagesFromStorage = await getAllImages(); 
       
-      const spherePosts = imagesFromStorage.filter(post => 
+      const sphereRawPosts = imagesFromStorage.filter(post => 
         post.sphereId === activeSphere.id && 
-        (post.isPublishedToFeed === true || post.isPublishedToFeed === undefined) // Show if published or flag is missing (old data)
+        (post.isPublishedToFeed === true || post.isPublishedToFeed === undefined) 
       );
 
-      const allPostsData = spherePosts.map(post => ({
-        ...post,
-        userDescriptions: Array.isArray(post.userDescriptions) ? post.userDescriptions : [],
-        processedByHistory: Array.isArray(post.processedByHistory) ? post.processedByHistory : [],
-        tags: Array.isArray(post.tags) ? post.tags : [],
-        suggestedGeotags: Array.isArray(post.suggestedGeotags) ? post.suggestedGeotags : [],
-        sphereId: post.sphereId || activeSphere.id, 
-      })).sort((a, b) => {
+      const postsWithResolvedUrls = await Promise.all(
+        sphereRawPosts.map(async (post) => {
+          let displayUrl = post.dataUrl;
+          if ((!displayUrl || !displayUrl.startsWith('data:')) && post.filePath) {
+            try {
+              displayUrl = await getDownloadURL(ref(storage, post.filePath));
+            } catch (urlError: any) {
+              console.warn(`FeedPage: Failed to get download URL for post ${post.id} (filePath: ${post.filePath}). Error: ${urlError.message}`);
+              // If downloadURL fails, keep original dataUrl (could be undefined)
+              // PostCard will handle missing image.
+            }
+          }
+          return {
+            ...post,
+            dataUrl: displayUrl, // This will be the downloadURL or original dataUrl
+            userDescriptions: Array.isArray(post.userDescriptions) ? post.userDescriptions : [],
+            processedByHistory: Array.isArray(post.processedByHistory) ? post.processedByHistory : [],
+            tags: Array.isArray(post.tags) ? post.tags : [],
+            suggestedGeotags: Array.isArray(post.suggestedGeotags) ? post.suggestedGeotags : [],
+            sphereId: post.sphereId || activeSphere.id, 
+          };
+        })
+      );
+
+      const allPostsData = postsWithResolvedUrls.sort((a, b) => {
         const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0;
         const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0;
         if (dateB !== dateA) return dateB - dateA;

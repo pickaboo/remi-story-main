@@ -4,12 +4,14 @@ import { ImageRecord } from '../../types';
 import { getAllImages } from '../../services/storageService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Button } from './Button';
+import { getDownloadURL, ref } from 'firebase/storage'; // Added
+import { storage } from '../../firebase'; // Added
 
 interface ImageBankPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImageSelect: (image: ImageRecord) => void;
-  activeSphereId: string; // Added to filter images by sphere
+  activeSphereId: string; 
 }
 
 export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOpen, onClose, onImageSelect, activeSphereId }) => {
@@ -21,16 +23,34 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
     const fetchModalImages = async () => {
       if (isOpen) {
         setIsLoading(true);
-        setSearchTerm(''); // Reset search term when modal opens
+        setSearchTerm(''); 
         try {
-          const allImagesInSphere = (await getAllImages()).filter(img => 
-              (img.storageUrl || img.dataUrl) && // Only images with some form of displayable data
-              img.sphereId === activeSphereId // Filter by active sphere
+          const rawImagesFromDb = (await getAllImages()).filter(img => img.sphereId === activeSphereId);
+
+          const imagesWithDisplayUrls = await Promise.all(
+            rawImagesFromDb.map(async (img) => {
+              if (img.filePath) {
+                try {
+                  const downloadUrl = await getDownloadURL(ref(storage, img.filePath));
+                  return { ...img, dataUrl: downloadUrl }; 
+                } catch (error) {
+                  console.error(`Misslyckades att hämta download URL för ${img.filePath}:`, error);
+                  // Behåll bilden men utan dataUrl om länken misslyckas, den filtreras bort senare
+                  return { ...img, dataUrl: undefined }; 
+                }
+              }
+              // Om ingen filePath, behåll bilden utan dataUrl, den filtreras bort senare
+              return { ...img, dataUrl: img.dataUrl || undefined }; // Behåll befintlig dataUrl om den finns (t.ex. nyligen uppladdad men ej sparad än)
+            })
           );
-          setImages(allImagesInSphere.sort((a,b) => new Date(b.dateTaken || b.id).getTime() - new Date(a.dateTaken || a.id).getTime()));
+          
+          // Filtrera för bilder som faktiskt har en giltig URL att visa
+          const displayableImages = imagesWithDisplayUrls.filter(img => img.dataUrl);
+
+          setImages(displayableImages.sort((a,b) => new Date(b.dateTaken || b.createdAt || 0).getTime() - new Date(a.dateTaken || a.createdAt || 0).getTime()));
         } catch (error) {
           console.error("Error fetching images for picker:", error);
-          setImages([]); // Set to empty on error
+          setImages([]); 
         } finally {
           setIsLoading(false);
         }
@@ -78,33 +98,30 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
             </div>
           ) : filteredImages.length === 0 ? (
             <p className="text-muted-text dark:text-slate-400 text-center py-10">
-              {images.length === 0 ? `Bildbanken för den aktiva sfären är tom.` : "Inga bilder matchar din sökning."}
+              {images.length === 0 ? `Bildbanken för den aktiva sfären är tom eller inga bilder kunde laddas.` : "Inga bilder matchar din sökning."}
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {filteredImages.map((image) => {
-                const displayUrl = image.storageUrl || image.dataUrl;
-                return (
-                  <div
-                    key={image.id}
-                    className="relative group bg-slate-100 dark:bg-slate-700 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden aspect-square cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
-                    onClick={() => onImageSelect(image)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onImageSelect(image);}}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Välj bild: ${image.name}`}
-                  >
-                    {displayUrl ? (
-                      <img src={displayUrl} alt={image.name} className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-600 text-slate-400 dark:text-slate-500 text-xs p-1 text-center">Bild saknas</div>
-                    )}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-2">
-                      <p className="text-xs text-white truncate font-medium" title={image.name}>{image.name}</p>
-                    </div>
+              {filteredImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative group bg-slate-100 dark:bg-slate-700 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden aspect-square cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
+                  onClick={() => onImageSelect(image)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onImageSelect(image);}}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Välj bild: ${image.name}`}
+                >
+                  {image.dataUrl ? ( 
+                    <img src={image.dataUrl} alt={image.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-600 text-slate-400 dark:text-slate-500 text-xs p-1 text-center">Bild saknas</div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-2">
+                    <p className="text-xs text-white truncate font-medium" title={image.name}>{image.name}</p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -54,7 +54,7 @@ export interface Sphere {
 export interface UserDescriptionEntry {
   userId: string;
   description: string;
-  audioRecUrl?: string;
+  audioRecUrl?: string | null; // Allow null
   createdAt: string;
 }
 
@@ -62,26 +62,25 @@ export interface ImageRecord {
   id: string;
   name: string; // Will be "Text Post" or similar if no image
   type: string; // Will be "text/plain" or similar if no image
-  dataUrl?: string; // Optional: Client-side base64 preview, removed before Firestore save
-  storageUrl?: string; // Optional: Firebase Storage download URL
+  dataUrl?: string; // Optional: not present for text/audio-only posts
   dateTaken?: string;
   tags: string[];
-  geminiAnalysis?: string;
+  geminiAnalysis?: string | null; 
   userDescriptions: UserDescriptionEntry[]; 
-  compiledStory?: string; 
+  compiledStory?: string | null; 
   isProcessed: boolean;
-  width?: number; // Optional: not present for text/audio-only posts
-  height?: number; // Optional: not present for text/audio-only posts
+  width?: number | null; // Updated to allow null
+  height?: number | null; // Updated to allow null
   uploadedByUserId?: string;
   processedByHistory: string[];
   suggestedGeotags?: string[]; 
-  aiGeneratedPlaceholder?: string; // Added field for pre-generated AI question
-  filePath?: string; // Added to simulate Firebase Storage file path
+  aiGeneratedPlaceholder?: string | null; 
+  filePath?: string | null; // Updated to allow null
   sphereId: string; 
-  isPublishedToFeed?: boolean; // Added to distinguish between banked images and feed posts
-  exifData?: Record<string, { description: string | number }>; // Parsed EXIF metadata
-  createdAt?: string; // ISO string for creation timestamp
-  updatedAt?: string; // ISO string for last update timestamp
+  isPublishedToFeed?: boolean; 
+  exifData?: Record<string, { description: string | number }> | null; 
+  createdAt?: string; 
+  updatedAt?: string; 
 }
 
 export interface SlideshowProject {
@@ -90,7 +89,7 @@ export interface SlideshowProject {
   imageIds: string[];
   createdAt: string;
   sphereId: string; 
-  projectType: 'slideshow' | 'photoAlbum'; // Added to distinguish project type
+  projectType: 'slideshow' | 'photoAlbum'; 
 }
 
 export interface DiaryEntry {
@@ -98,22 +97,22 @@ export interface DiaryEntry {
   userId: string;
   date: string; // YYYY-MM-DD for the entry date
   content: string;
-  createdAt: string; // ISO string for creation/modification timestamp
-  updatedAt?: string; // ISO string for last update
-  audioRecUrl?: string; // URL for the recorded audio
-  transcribedText?: string; // Text transcribed from audio
+  createdAt: string; 
+  updatedAt?: string; 
+  audioRecUrl?: string | null; // Allow null
+  transcribedText?: string | null; // Allow null
 }
 
 export interface SphereInvitation {
   id: string;
   inviterUserId: string;
-  inviteeEmail: string; // Email of the person being invited
-  inviteeUserId?: string; // User ID of the invitee, set when the invitation is accepted or linked
+  inviteeEmail: string; 
+  inviteeUserId?: string; 
   sphereId: string;
   message?: string;
   status: 'pending' | 'accepted' | 'declined';
-  createdAt: string; // ISO date string
-  respondedAt?: string; // ISO date string
+  createdAt: string; 
+  respondedAt?: string; 
 }
 
 export enum View {

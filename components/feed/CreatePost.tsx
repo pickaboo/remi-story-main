@@ -1,13 +1,16 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../common/Button';
 import { TextArea } from '../common/TextArea';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { generateId, saveImage, getImageById } from '../../services/storageService';
-import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis, GeminiAnalysisResult } from '../../services/geminiService';
+import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../services/geminiService';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
 import { AudioPlayerButton } from '../common/AudioPlayerButton';
 import { ImageBankPickerModal } from '../common/ImageBankPickerModal';
 import ExifReader from 'exifreader'; // Import ExifReader
+import { getDownloadURL, ref } from 'firebase/storage'; 
+import { storage } from '../../firebase'; 
 
 interface CreatePostProps {
   currentUser: User;
@@ -33,18 +36,6 @@ const ImageBankIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5 
  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" /></svg>
 );
 
-const MicIconCreatePost: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-    </svg>
-);
-  
-const StopIconCreatePost: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
-    </svg>
-);
-
 interface ExtractedFileDetails {
   dataUrl: string;
   width: number;
@@ -62,15 +53,21 @@ async function extractImageDetailsFromFile(file: File): Promise<ExtractedFileDet
     reader.readAsDataURL(file);
   });
 
+  // Validate dataUrl format early
+  if (!dataUrl.includes(',')) {
+    console.error("FileReader produced a dataUrl without a comma:", dataUrl.substring(0, 100), "for file:", file.name);
+    throw new Error(`Filen "${file.name}" kunde inte bearbetas korrekt (ogiltigt dataUrl-format från FileReader).`);
+  }
+
   const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
     const img = new Image();
     img.onload = () => resolve({ width: img.width, height: img.height });
-    img.onerror = () => resolve({ width: 0, height: 0 }); // Fallback
+    img.onerror = () => resolve({ width: 0, height: 0 }); 
     img.src = dataUrl;
   });
 
   let parsedExifData: Record<string, { description: string | number }> | undefined = undefined;
-  let imageDateTaken: string = new Date().toISOString().split('T')[0]; // Default to today
+  let imageDateTaken: string = new Date().toISOString().split('T')[0]; 
   const newImageId = generateId(); 
   const filePath = `remi_files/images/${newImageId}/${file.name}`; 
 
@@ -122,20 +119,28 @@ async function extractImageDetailsFromFile(file: File): Promise<ExtractedFileDet
   };
 }
 
-async function getBase64FromUrl(url: string): Promise<{ base64: string; mimeType: string }> {
+async function getBase64FromUrl(url: string, originalMimeType?: string | null): Promise<{ base64Data: string, mimeType: string }> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch image from ${url}: ${response.statusText}`);
+    throw new Error(`Failed to fetch image for analysis: ${response.status} ${response.statusText}`);
   }
   const blob = await response.blob();
-  const mimeType = blob.type;
+  
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
-      const base64String = (reader.result as string).split(',')[1];
-      resolve({ base64: base64String, mimeType });
+      const base64dataUrl = reader.result as string;
+      const parts = base64dataUrl.split(',');
+      if (parts.length < 2 || !parts[1]) {
+          reject(new Error("Invalid base64 data from fetched URL."));
+          return;
+      }
+      const actualMimeType = base64dataUrl.substring(base64dataUrl.indexOf(':') + 1, base64dataUrl.indexOf(';'));
+      resolve({ base64Data: parts[1], mimeType: actualMimeType || originalMimeType || 'image/jpeg' });
     };
-    reader.onerror = reject;
+    reader.onerror = (error) => {
+      reject(error);
+    };
     reader.readAsDataURL(blob);
   });
 }
@@ -144,7 +149,7 @@ async function getBase64FromUrl(url: string): Promise<{ base64: string; mimeType
 export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
   const [postText, setPostText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null); 
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [selectedBankedImageInfo, setSelectedBankedImageInfo] = useState<ImageRecord | null>(null);
   const [showImageBankModal, setShowImageBankModal] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
@@ -154,52 +159,61 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
   const { resetAudio } = audioRecorder; 
 
   const [uploadedFileDetails, setUploadedFileDetails] = useState<ExtractedFileDetails | null>(null);
-  const [aiPlaceholder, setAiPlaceholder] = useState<string>("Vad vill du berätta eller fråga om?");
-
+  const [isProcessingFile, setIsProcessingFile] = useState(false); 
 
   useEffect(() => {
     const loadImage = async () => {
         if (initialImageIdToLoad) {
-          setIsPosting(true); // Show loading indicator
-          const imageToLoad = await getImageById(initialImageIdToLoad);
-          if (imageToLoad && imageToLoad.sphereId === activeSphereId) {
-            setImageFile(null);
-            setUploadedFileDetails(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            resetAudio(); 
-            
-            setSelectedBankedImageInfo(imageToLoad);
-            setImagePreviewUrl(imageToLoad.storageUrl || imageToLoad.dataUrl || null);
-            
-            let prefillText = imageToLoad.aiGeneratedPlaceholder || '';
-            if (!prefillText) {
-                const currentUserDescForBankedImage = imageToLoad.userDescriptions.find(ud => ud.userId === currentUser.id);
-                if (currentUserDescForBankedImage && currentUserDescForBankedImage.description) {
-                    prefillText = currentUserDescForBankedImage.description;
+          setImageFile(null);
+          setUploadedFileDetails(null);
+          setSelectedBankedImageInfo(null);
+          setImagePreviewUrl(null);
+          setPostText('');
+          setError(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          resetAudio();
+
+          try {
+            const imageFromDb = await getImageById(initialImageIdToLoad);
+            if (imageFromDb && imageFromDb.sphereId === activeSphereId) {
+              let dataUrlForPreview = imageFromDb.dataUrl; 
+
+              if ((!dataUrlForPreview || !dataUrlForPreview.startsWith('data:')) && imageFromDb.filePath) {
+                try {
+                  dataUrlForPreview = await getDownloadURL(ref(storage, imageFromDb.filePath));
+                } catch (urlError) {
+                  console.error(`Failed to get download URL for ${imageFromDb.filePath}:`, urlError);
+                  setError(`Kunde inte ladda förhandsgranskning för vald bild (ID: ${initialImageIdToLoad}). Fel vid hämtning av URL.`);
+                  dataUrlForPreview = imageFromDb.dataUrl || undefined; 
                 }
+              }
+              
+              const finalImageToLoad: ImageRecord = {
+                ...imageFromDb,
+                dataUrl: dataUrlForPreview || undefined, 
+              };
+
+              setSelectedBankedImageInfo(finalImageToLoad);
+              setImagePreviewUrl(finalImageToLoad.dataUrl || null);
+
+              let prefillText = finalImageToLoad.aiGeneratedPlaceholder || '';
+              if (!prefillText) {
+                  const currentUserDescForBankedImage = finalImageToLoad.userDescriptions.find(ud => ud.userId === currentUser.id);
+                  if (currentUserDescForBankedImage && currentUserDescForBankedImage.description) {
+                      prefillText = currentUserDescForBankedImage.description;
+                  }
+              }
+              setPostText(prefillText);
+
+            } else if (imageFromDb && imageFromDb.sphereId !== activeSphereId) {
+              setError(`Bilden du valde (ID: ${initialImageIdToLoad}) tillhör en annan sfär och kan inte användas här.`);
+            } else {
+              setError(`Kunde inte ladda den valda bilden (ID: ${initialImageIdToLoad}) från bildbanken.`);
             }
-            setPostText(prefillText);
-            setAiPlaceholder(imageToLoad.aiGeneratedPlaceholder || "Vad får den här bilden dig att tänka på?");
-            setError(null);
-          } else if (imageToLoad && imageToLoad.sphereId !== activeSphereId) {
-            setError(`Bilden du valde (ID: ${initialImageIdToLoad}) tillhör en annan sfär och kan inte användas här.`);
-            setSelectedBankedImageInfo(null);
-            setImagePreviewUrl(null);
-            setUploadedFileDetails(null);
-            setPostText('');
-            setAiPlaceholder("Vad vill du berätta eller fråga om?");
-          } else {
-            setError(`Kunde inte ladda den valda bilden (ID: ${initialImageIdToLoad}) från bildbanken.`);
-            setSelectedBankedImageInfo(null);
-            setImagePreviewUrl(null);
-            setUploadedFileDetails(null);
-            setPostText('');
-            setAiPlaceholder("Vad vill du berätta eller fråga om?");
+          } catch (fetchError: any) {
+            console.error(`Error fetching image ${initialImageIdToLoad}:`, fetchError);
+            setError(`Ett fel uppstod vid hämtning av bild (ID: ${initialImageIdToLoad}). ${fetchError.message}`);
           }
-          setIsPosting(false);
-        } else {
-            // Reset if initialImageIdToLoad is cleared
-            clearImageSelection(true); // Pass true to also clear text and placeholder
         }
     };
     loadImage();
@@ -225,46 +239,36 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
         setImagePreviewUrl(null);
         setSelectedBankedImageInfo(null);
         setUploadedFileDetails(null);
-        setAiPlaceholder("Vad vill du berätta eller fråga om?");
         return;
       }
       setError(null);
       setImageFile(file);
       setSelectedBankedImageInfo(null); 
-      setAiPlaceholder("AI genererar en fråga snart...");
       
+      setIsProcessingFile(true); 
       try {
-        setIsPosting(true); 
         const details = await extractImageDetailsFromFile(file);
         setUploadedFileDetails(details);
-        setImagePreviewUrl(details.dataUrl); 
-        
-        // Generate question for new upload
-        if (details.dataUrl) {
-            const base64Data = details.dataUrl.split(',')[1];
-            const analysis = await analyzeImageWithGemini(base64Data, file.type);
-            if (analysis.description) {
-                const question = await generateEngagingQuestionFromAnalysis(analysis.description);
-                setAiPlaceholder(question);
-            } else {
-                setAiPlaceholder("Vad får den här bilden dig att tänka på?");
-            }
-        }
-
-      } catch (e) {
-        console.error("Error extracting file details or generating question:", e);
-        setError("Kunde inte bearbeta bildfilen eller generera AI-fråga.");
+        setImagePreviewUrl(details.dataUrl);
+      } catch (e: any) { 
+        console.error("Error extracting file details:", e);
+        setError(e.message || "Kunde inte bearbeta bildfilen.");
         setImageFile(null);
         setImagePreviewUrl(null);
         setUploadedFileDetails(null);
-        setAiPlaceholder("Vad vill du berätta eller fråga om?");
       } finally {
-        setIsPosting(false);
+        setIsProcessingFile(false);
       }
     }
   };
 
   const handleBankedImageSelect = async (bankedImage: ImageRecord) => {
+    if (!bankedImage.dataUrl) { 
+        console.error("Image selected from bank is missing dataUrl (should be downloadURL):", bankedImage);
+        setError("Vald bild från banken saknar nödvändig bilddata för förhandsgranskning.");
+        setShowImageBankModal(false);
+        return;
+    }
     if (bankedImage.sphereId !== activeSphereId) {
         setError(`Den valda bilden tillhör en annan sfär (${bankedImage.sphereId}) och kan inte användas i den aktuella sfären (${activeSphereId}).`);
         setShowImageBankModal(false);
@@ -275,280 +279,385 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
     setUploadedFileDetails(null);
     if (fileInputRef.current) fileInputRef.current.value = ''; 
     
-    const fullBankedImage = await getImageById(bankedImage.id); 
-    if (fullBankedImage) { 
-        setImagePreviewUrl(fullBankedImage.storageUrl || fullBankedImage.dataUrl || null);
-        setSelectedBankedImageInfo(fullBankedImage); 
-        let prefillText = fullBankedImage.aiGeneratedPlaceholder || '';
-        if (!prefillText) {
-            const currentUserDescForBankedImage = fullBankedImage.userDescriptions.find(ud => ud.userId === currentUser.id);
-            if (currentUserDescForBankedImage && currentUserDescForBankedImage.description) {
-                prefillText = currentUserDescForBankedImage.description;
-            }
+    setImagePreviewUrl(bankedImage.dataUrl); 
+    setSelectedBankedImageInfo(bankedImage); 
+
+    let prefillText = bankedImage.aiGeneratedPlaceholder || '';
+    if (!prefillText) {
+        const currentUserDescForBankedImage = bankedImage.userDescriptions.find(ud => ud.userId === currentUser.id);
+        if (currentUserDescForBankedImage && currentUserDescForBankedImage.description) {
+            prefillText = currentUserDescForBankedImage.description;
         }
-        setPostText(prefillText);
-        setAiPlaceholder(fullBankedImage.aiGeneratedPlaceholder || "Vad får den här bilden dig att tänka på?");
-        if (!fullBankedImage.storageUrl && !fullBankedImage.dataUrl) {
-             console.warn("Selected banked image is missing storageUrl and dataUrl:", bankedImage.name);
-             setError("Vald bild från banken saknar bilddata.");
-        }
-    } else { 
-        setImagePreviewUrl(bankedImage.storageUrl || bankedImage.dataUrl || null);
-        setSelectedBankedImageInfo(bankedImage);
-        if (!bankedImage.storageUrl && !bankedImage.dataUrl) {
-            console.warn("Selected banked image is missing storageUrl and dataUrl:", bankedImage.name);
-            setError("Vald bild från banken saknar bilddata.");
-        }
-        setPostText(bankedImage.aiGeneratedPlaceholder || '');
-        setAiPlaceholder(bankedImage.aiGeneratedPlaceholder || "Vad får den här bilden dig att tänka på?");
     }
+    setPostText(prefillText);
+    
     setShowImageBankModal(false);
     setError(null);
   };
 
-  const clearImageSelection = (clearAllFields?: boolean) => {
+  const clearImageSelection = () => {
     setImageFile(null);
     setImagePreviewUrl(null);
     setSelectedBankedImageInfo(null);
     setUploadedFileDetails(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    if (clearAllFields) {
-        setPostText('');
-        setAiPlaceholder("Vad vill du berätta eller fråga om?");
-        resetAudio();
-    } else {
-        // Keep text and audio if only image is cleared
-        setAiPlaceholder("Vad vill du berätta eller fråga om?");
+      fileInputRef.current.value = '';
     }
   };
 
-  const handleSubmit = async () => {
-    if (!postText.trim() && !imageFile && !selectedBankedImageInfo && !audioRecorder.audioUrl) {
-      setError('Inlägget kan inte vara tomt. Lägg till text, en bild eller en ljudinspelning.');
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedBankedImageInfo && !imageFile && !postText.trim() && !audioRecorder.audioUrl) {
+      setError('Ett inlägg måste innehålla en bild, text eller en ljudinspelning.');
       return;
     }
-    setIsPosting(true);
-    setError(null);
-    audioRecorder.stopRecording();
-
-    let imageDetailsToSave: Partial<ImageRecord> = {};
-    let finalDataUrl: string | undefined = undefined;
-    let finalStorageUrl: string | undefined = undefined;
-    let finalFilePath: string | undefined = undefined;
-    let finalAiPlaceholder = aiPlaceholder; // Use current AI placeholder
-
-    if (imageFile && uploadedFileDetails) { // New image uploaded
-        finalDataUrl = uploadedFileDetails.dataUrl;
-        finalFilePath = uploadedFileDetails.filePath;
-        imageDetailsToSave = {
-            name: imageFile.name,
-            type: imageFile.type,
-            width: uploadedFileDetails.width,
-            height: uploadedFileDetails.height,
-            dateTaken: uploadedFileDetails.dateTaken,
-            exifData: uploadedFileDetails.exifData,
-        };
-        // Gemini analysis for new uploads
-        if (finalDataUrl && imageDetailsToSave.type) {
-            try {
-                const base64Data = finalDataUrl.split(',')[1];
-                const geminiResult = await analyzeImageWithGemini(base64Data, imageDetailsToSave.type);
-                imageDetailsToSave.geminiAnalysis = geminiResult.description;
-                imageDetailsToSave.suggestedGeotags = geminiResult.geotags;
-                imageDetailsToSave.isProcessed = true;
-                if (geminiResult.description && !postText.trim()) { // Only override placeholder if postText is empty
-                    finalAiPlaceholder = await generateEngagingQuestionFromAnalysis(geminiResult.description);
-                }
-            } catch (geminiError) {
-                console.error("Error during Gemini analysis for new post:", geminiError);
-            }
-        }
-    } else if (selectedBankedImageInfo) { // Using an image from the bank
-        imageDetailsToSave = { // Copy relevant details for the new post
-            name: selectedBankedImageInfo.name,
-            type: selectedBankedImageInfo.type,
-            width: selectedBankedImageInfo.width,
-            height: selectedBankedImageInfo.height,
-            dateTaken: selectedBankedImageInfo.dateTaken || new Date().toISOString().split('T')[0],
-            exifData: selectedBankedImageInfo.exifData,
-            geminiAnalysis: selectedBankedImageInfo.geminiAnalysis,
-            suggestedGeotags: selectedBankedImageInfo.suggestedGeotags,
-            isProcessed: selectedBankedImageInfo.isProcessed,
-        };
-        finalStorageUrl = selectedBankedImageInfo.storageUrl;
-        finalFilePath = selectedBankedImageInfo.filePath;
-        finalDataUrl = undefined; // No dataUrl for banked image, use storageUrl
-        finalAiPlaceholder = selectedBankedImageInfo.aiGeneratedPlaceholder || "Vad får den här bilden dig att tänka på?";
-    } else { // Text/Audio only post
-       imageDetailsToSave = {
-        name: `Inlägg ${new Date().toLocaleDateString('sv-SE')}`,
-        type: audioRecorder.audioUrl ? "audio/webm" : "text/plain",
-        width: undefined,
-        height: undefined,
-        dateTaken: new Date().toISOString().split('T')[0],
-      };
-      finalAiPlaceholder = "Vad handlar den här anteckningen om?";
+    if (!currentUser) {
+      setError('Ingen användare inloggad.');
+      return;
+    }
+     if (!activeSphereId) { 
+      setError('Aktiv sfär är inte definierad. Kan inte skapa inlägg.');
+      return;
     }
 
-    const userDescriptionEntry: UserDescriptionEntry = {
-      userId: currentUser.id,
-      description: postText.trim(),
-      audioRecUrl: audioRecorder.audioUrl || undefined,
-      createdAt: new Date().toISOString(),
-    };
-
-    const newPost: ImageRecord = {
-      id: generateId(),
-      name: imageDetailsToSave.name || "Inlägg",
-      type: imageDetailsToSave.type || "text/plain",
-      width: imageDetailsToSave.width,
-      height: imageDetailsToSave.height,
-      dateTaken: imageDetailsToSave.dateTaken || new Date().toISOString().split('T')[0],
-      exifData: imageDetailsToSave.exifData,
-      storageUrl: finalStorageUrl,
-      dataUrl: finalDataUrl,
-      filePath: finalFilePath,
-      tags: [],
-      geminiAnalysis: imageDetailsToSave.geminiAnalysis,
-      suggestedGeotags: imageDetailsToSave.suggestedGeotags || [],
-      userDescriptions: [userDescriptionEntry],
-      compiledStory: undefined,
-      isProcessed: imageDetailsToSave.isProcessed || false,
-      uploadedByUserId: currentUser.id,
-      processedByHistory: [],
-      aiGeneratedPlaceholder: finalAiPlaceholder,
-      sphereId: activeSphereId,
-      isPublishedToFeed: true,
-      createdAt: new Date().toISOString(),
-    };
+    setIsPosting(true);
+    setError(null);
+    audioRecorder.stopRecording(); 
 
     try {
-      const savedPost = await saveImage(newPost);
-      onPostCreated(savedPost);
+      let analysisResultFromGemini: { description?: string; geotags: string[] } = { description: undefined, geotags: [] };
+      let aiPlaceholderFromGemini: string | undefined | null = undefined; 
+      let finalImageRecord: ImageRecord;
+
+      const currentUserDescEntry: UserDescriptionEntry = {
+        userId: currentUser.id,
+        description: postText.trim(),
+        audioRecUrl: audioRecorder.audioUrl || null,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (selectedBankedImageInfo) {
+        const banked = selectedBankedImageInfo;
+        const newPostId = generateId();
+        
+        // Always perform new analysis if it's an image post from bank
+        if (banked.dataUrl) { 
+            let base64ForAnalysis: string | null = null;
+            let mimeTypeForAnalysis: string | null = null;
+
+            if (banked.dataUrl.startsWith('data:')) {
+                base64ForAnalysis = banked.dataUrl.split(',')[1];
+                mimeTypeForAnalysis = banked.type || 'image/jpeg';
+            } else if (banked.dataUrl.startsWith('http')) {
+                try {
+                    const { base64Data, mimeType } = await getBase64FromUrl(banked.dataUrl, banked.type);
+                    base64ForAnalysis = base64Data;
+                    mimeTypeForAnalysis = mimeType;
+                } catch (fetchErr: any) {
+                    console.error("Failed to fetch and convert banked image URL to base64 for analysis:", fetchErr);
+                    // Proceed without analysis if fetching failed
+                }
+            }
+
+            if (base64ForAnalysis && mimeTypeForAnalysis) {
+                try {
+                    analysisResultFromGemini = await analyzeImageWithGemini(base64ForAnalysis, mimeTypeForAnalysis);
+                    if (analysisResultFromGemini.description && !currentUserDescEntry.description.trim() && !currentUserDescEntry.audioRecUrl) {
+                        aiPlaceholderFromGemini = await generateEngagingQuestionFromAnalysis(analysisResultFromGemini.description);
+                    }
+                } catch (geminiError) {
+                    console.error("Gemini analysis failed for banked image in new post:", geminiError);
+                    // analysisResultFromGemini remains default (empty/undefined)
+                }
+            }
+        }
+        
+        const otherUserDescriptions = banked.userDescriptions.filter(ud => ud.userId !== currentUser.id);
+        const updatedUserDescriptions = [...otherUserDescriptions, currentUserDescEntry];
+
+        finalImageRecord = {
+            id: newPostId,
+            name: banked.name,
+            type: banked.type,
+            dataUrl: banked.dataUrl, 
+            filePath: banked.filePath ?? null,
+            width: banked.width ?? null,
+            height: banked.height ?? null,
+            dateTaken: banked.dateTaken ?? new Date().toISOString().split('T')[0],
+            exifData: banked.exifData ?? null,
+            geminiAnalysis: analysisResultFromGemini.description ?? null,
+            suggestedGeotags: analysisResultFromGemini.geotags ?? [],
+            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? null,
+            userDescriptions: updatedUserDescriptions,
+            tags: [], 
+            compiledStory: null, 
+            isProcessed: !!analysisResultFromGemini.description,
+            processedByHistory: analysisResultFromGemini.description ? [currentUser.id] : [],
+            uploadedByUserId: currentUser.id,
+            sphereId: activeSphereId,
+            isPublishedToFeed: true,
+            createdAt: undefined, 
+            updatedAt: undefined, 
+        };
+
+      } else if (imageFile && imagePreviewUrl && uploadedFileDetails) { 
+        const base64Data = imagePreviewUrl.split(',')[1]; 
+        try {
+            analysisResultFromGemini = await analyzeImageWithGemini(base64Data, imageFile.type);
+            if (analysisResultFromGemini.description && !currentUserDescEntry.description.trim() && !currentUserDescEntry.audioRecUrl) {
+                aiPlaceholderFromGemini = await generateEngagingQuestionFromAnalysis(analysisResultFromGemini.description);
+            }
+        } catch (geminiError) {
+            console.error("Gemini analysis failed for new image upload:", geminiError);
+        }
+        
+        finalImageRecord = {
+            id: generateId(),
+            name: imageFile.name,
+            type: imageFile.type,
+            dataUrl: imagePreviewUrl, 
+            dateTaken: uploadedFileDetails.dateTaken, 
+            exifData: uploadedFileDetails.exifData ?? null, 
+            filePath: uploadedFileDetails.filePath, 
+            tags: [],
+            geminiAnalysis: analysisResultFromGemini.description ?? null,
+            suggestedGeotags: analysisResultFromGemini.geotags ?? [],
+            userDescriptions: [currentUserDescEntry],
+            compiledStory: null,
+            isProcessed: !!analysisResultFromGemini.description,
+            width: uploadedFileDetails.width, 
+            height: uploadedFileDetails.height, 
+            uploadedByUserId: currentUser.id,
+            processedByHistory: analysisResultFromGemini.description ? [currentUser.id] : [],
+            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? null,
+            sphereId: activeSphereId,
+            isPublishedToFeed: true, 
+            createdAt: undefined, 
+            updatedAt: undefined, 
+        };
+      } else { 
+        let postNameText: string;
+        if (postText.trim() && audioRecorder.audioUrl) postNameText = "Textinlägg med ljud";
+        else if (postText.trim()) postNameText = "Textinlägg";
+        else if (audioRecorder.audioUrl) postNameText = "Ljudinspelning";
+        else { 
+            setError('Oväntat fel: Inget innehåll att publicera.');
+            setIsPosting(false);
+            return;
+        }
+        
+        finalImageRecord = {
+            id: generateId(),
+            name: postNameText,
+            type: audioRecorder.audioUrl && !postText.trim() ? "audio/generic" : "text/plain",
+            dataUrl: undefined, 
+            dateTaken: new Date().toISOString().split('T')[0], 
+            tags: [],
+            geminiAnalysis: null,
+            suggestedGeotags: [],
+            userDescriptions: [currentUserDescEntry],
+            compiledStory: null,
+            isProcessed: true, 
+            width: null, 
+            height: null, 
+            uploadedByUserId: currentUser.id,
+            processedByHistory: [],
+            aiGeneratedPlaceholder: null, 
+            filePath: null, 
+            exifData: null, 
+            sphereId: activeSphereId,
+            isPublishedToFeed: true, 
+            createdAt: undefined, 
+            updatedAt: undefined,
+        };
+      }
+
+      const finalRecordForFirestore: Partial<ImageRecord> = { ...finalImageRecord };
+      for (const key in finalRecordForFirestore) {
+        if (finalRecordForFirestore[key as keyof ImageRecord] === undefined && key !== 'createdAt' && key !== 'updatedAt' && key !== 'dataUrl') {
+          (finalRecordForFirestore as any)[key] = null; 
+        }
+      }
+
+      await saveImage(finalRecordForFirestore as ImageRecord); 
+      onPostCreated(finalImageRecord);
+
       setPostText('');
-      setImageFile(null);
-      setImagePreviewUrl(null);
-      setSelectedBankedImageInfo(null);
-      setUploadedFileDetails(null);
-      resetAudio();
-      setAiPlaceholder("Vad vill du berätta eller fråga om?");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (saveError: any) {
-      console.error("Error saving post:", saveError);
-      if (saveError.name === 'QuotaExceededError' || (typeof saveError.message === 'string' && saveError.message.includes('quota'))) {
-        setError("Lagringsutrymmet är fullt. Inlägget kunde inte sparas. Försök frigöra utrymme.");
-      } else {
-        setError("Kunde inte spara inlägget. " + (saveError.message || 'Okänt fel.'));
-      }
+      clearImageSelection();
+      audioRecorder.resetAudio();
+
+    } catch (err: any) {
+      console.error('Error creating post:', err);
+      setError(`Kunde inte skapa inlägget: ${err.message || 'Okänt fel'}. Kontrollera API-nyckel och försök igen.`);
     } finally {
       setIsPosting(false);
     }
   };
 
-  return (
-    <div className="bg-card-bg dark:bg-slate-800 p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
-      <TextArea
-        id="createPostText"
-        placeholder={aiPlaceholder}
-        value={postText}
-        onChange={handleTextChange}
-        className="mb-3 min-h-[80px] max-h-60"
-        rows={3}
-        disabled={isPosting || audioRecorder.isRecording}
-      />
-      
-      {imagePreviewUrl && (
-        <div className="mb-3 relative group">
-          <img src={imagePreviewUrl} alt="Förhandsgranskning" className="rounded-lg max-h-72 w-auto mx-auto shadow-md" />
-          <Button 
-            variant="danger" 
-            size="sm" 
-            onClick={() => clearImageSelection()} 
-            className="!rounded-full !p-1.5 absolute top-2 right-2 opacity-70 group-hover:opacity-100 transition-opacity"
-            title="Ta bort bild"
-            disabled={isPosting}
-          >
-            <TrashIcon className="!mr-0 w-4 h-4" />
-          </Button>
-        </div>
-      )}
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
-      {error && <p className="text-sm text-danger dark:text-red-400 mb-3">{error}</p>}
-      {(audioRecorder.error || audioRecorder.permissionGranted === false || audioRecorder.audioUrl) && (
-          <div className="mb-2 text-xs space-y-0.5">
-              {audioRecorder.permissionGranted === false && !audioRecorder.audioUrl && <p className="text-danger dark:text-red-400">Mikrofonåtkomst nekad.</p>}
-              {audioRecorder.error && <p className="text-danger dark:text-red-400">{audioRecorder.error}</p>}
-              {audioRecorder.audioUrl && (
-                  <div className="flex items-center gap-2">
-                  <span className="text-muted-text dark:text-slate-400">Ljud inspelat för inlägget.</span>
-                  <Button type="button" onClick={() => audioRecorder.resetAudio()} variant="ghost" size="sm" className="!py-0.5 !px-1.5 text-danger border-danger hover:bg-danger/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/10">Ta bort ljud</Button>
-                  </div>
-              )}
+  const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>;
+  const StopIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>;
+
+  const handleResetAudio = () => {
+    audioRecorder.resetAudio();
+  };
+  
+  const canSubmit = !isPosting && !isProcessingFile && (!!selectedBankedImageInfo || !!imageFile || postText.trim() !== '' || !!audioRecorder.audioUrl);
+  
+
+  return (
+    <>
+      <form onSubmit={handleSubmit} className="bg-card-bg dark:bg-slate-800 p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-slate-700 space-y-4">
+        <div className="flex items-center space-x-3">
+          <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
+            {currentUser.initials}
+          </div>
+          <div className="relative flex-grow">
+            <TextArea
+              id="postText"
+              placeholder={`Vad tänker du på, ${currentUser.name.split(' ')[0]}?`}
+              value={postText}
+              onChange={handleTextChange}
+              className="pr-12" 
+              aria-label="Skriv ditt inlägg"
+              disabled={isPosting || isProcessingFile}
+            />
+            {audioRecorder.audioUrl ? (
+              <AudioPlayerButton
+                audioUrl={audioRecorder.audioUrl}
+                ariaLabel="Ljudinspelning för inlägg"
+                buttonSize="sm" 
+                className="!rounded-full !p-2 flex-shrink-0 absolute top-1/2 right-3 -translate-y-1/2"
+              />
+            ) : (
+              <Button
+                type="button"
+                onClick={audioRecorder.isRecording ? audioRecorder.stopRecording : audioRecorder.startRecording}
+                variant={audioRecorder.isRecording ? "danger" : "ghost"}
+                size="sm"
+                className="!rounded-full !px-2 !py-1.5 flex-shrink-0 absolute top-1/2 right-3 -translate-y-1/2"
+                aria-label={audioRecorder.isRecording ? "Stoppa inspelning" : "Spela in ljud"}
+                disabled={isPosting || isProcessingFile || audioRecorder.permissionGranted === false}
+              >
+                {audioRecorder.isRecording ? <StopIcon /> : <MicIcon />}
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <div className="ml-14 -mt-2 space-y-1"> 
+          {audioRecorder.permissionGranted === false && !audioRecorder.audioUrl && <p className="text-xs text-danger dark:text-red-400">Mikrofonåtkomst nekad. Tillåt i webbläsaren.</p>}
+          {audioRecorder.error && <p className="text-xs text-danger dark:text-red-400">{audioRecorder.error}</p>}
+          {audioRecorder.audioUrl && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-text dark:text-slate-400">Ljud inspelat.</span>
+              <Button 
+                type="button" 
+                onClick={handleResetAudio} 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs !py-0.5 !px-1.5 text-danger border-danger hover:bg-danger/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/10"
+              >
+                Ta bort ljud
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {imagePreviewUrl && (
+          <div className="relative group max-h-96 overflow-hidden rounded-lg ml-14"> 
+            <img src={imagePreviewUrl} alt="Förhandsgranskning" className="w-full h-auto object-contain rounded-lg" />
+            <Button 
+                  variant="danger" 
+                  size="sm"
+                  onClick={clearImageSelection}
+                  className="absolute top-2 right-2 opacity-50 group-hover:opacity-100 !rounded-full p-1.5 leading-none"
+                  aria-label="Ta bort bild"
+                  disabled={isPosting || isProcessingFile}
+              >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </Button>
           </div>
         )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            className="hidden"
-            id="postImageUpload"
-            disabled={isPosting}
-          />
+        {error && !audioRecorder.error && <p className="text-sm text-danger dark:text-red-400 mt-2 ml-14">{error}</p>} 
+        {isProcessingFile && <p className="text-sm text-muted-text dark:text-slate-400 mt-2 ml-14">Bearbetar bild...</p>}
+
+
+        <div className="flex justify-between items-center pt-3 border-t border-border-color dark:border-slate-700">
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              className="hidden"
+              id="postImageUpload"
+              disabled={isPosting || isProcessingFile}
+            />
+            {imagePreviewUrl ? (
+              <Button 
+                type="button"
+                variant="danger" 
+                onClick={clearImageSelection}
+                disabled={isPosting || isProcessingFile}
+                aria-label="Ta bort vald bild"
+                title="Ta bort vald bild"
+              >
+                <TrashIcon />
+                Ta bort vald bild
+              </Button>
+            ) : (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={triggerFileInput} 
+                disabled={isPosting || isProcessingFile}
+                aria-label="Ladda upp bild"
+                title="Ladda upp bild från dator"
+              >
+                <UploadIcon />
+                Ladda upp bild
+              </Button>
+            )}
+            
+            {!imagePreviewUrl && ( 
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setShowImageBankModal(true)} 
+                    disabled={isPosting || isProcessingFile}
+                    aria-label="Välj från Bildbank"
+                    title="Välj bild från Bildbanken"
+                >
+                  <ImageBankIcon />
+                  Bildbank
+                </Button>
+            )}
+          </div>
           <Button 
-            variant="ghost" 
-            size="md" 
-            onClick={() => fileInputRef.current?.click()} 
-            disabled={isPosting || !!imagePreviewUrl}
-            title={imagePreviewUrl ? "Bild redan vald (ta bort för att ladda upp ny)" : "Ladda upp bild"}
+              type="submit" 
+              variant="primary" 
+              isLoading={isPosting || isProcessingFile} 
+              disabled={!canSubmit}
+              size="md"
           >
-            <UploadIcon /> <span className="hidden sm:inline">{imageFile ? "Byt Bild" : "Ladda Upp"}</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="md" 
-            onClick={() => setShowImageBankModal(true)} 
-            disabled={isPosting || !!imagePreviewUrl} 
-            title={imagePreviewUrl ? "Bild redan vald (ta bort för att välja från bank)" : "Välj från bildbank"}
-          >
-            <ImageBankIcon /> <span className="hidden sm:inline">Välj från Bank</span>
-          </Button>
-           <Button
-            type="button"
-            onClick={audioRecorder.isRecording ? audioRecorder.stopRecording : audioRecorder.startRecording}
-            variant={audioRecorder.isRecording ? "danger" : "ghost"}
-            size="md"
-            aria-label={audioRecorder.isRecording ? "Stoppa inspelning" : "Spela in ljud"}
-            disabled={isPosting || audioRecorder.permissionGranted === false}
-          >
-            {audioRecorder.isRecording ? <StopIconCreatePost /> : <MicIconCreatePost />}
-             <span className="ml-1.5 hidden sm:inline">{audioRecorder.isRecording ? "Stoppa" : "Spela In"}</span>
+            {isProcessingFile ? 'Bearbetar...' : (isPosting ? 'Publicerar...' : 'Publicera')}
           </Button>
         </div>
-        <Button 
-          variant="primary" 
-          size="lg" 
-          onClick={handleSubmit} 
-          isLoading={isPosting}
-          disabled={!postText.trim() && !imagePreviewUrl && !audioRecorder.audioUrl && !isPosting}
-        >
-          Publicera Inlägg
-        </Button>
-      </div>
-      
-      <ImageBankPickerModal
-        isOpen={showImageBankModal}
-        onClose={() => setShowImageBankModal(false)}
-        onImageSelect={handleBankedImageSelect}
-        activeSphereId={activeSphereId}
-      />
-    </div>
+      </form>
+
+      {showImageBankModal && (
+        <ImageBankPickerModal
+          isOpen={showImageBankModal}
+          onClose={() => setShowImageBankModal(false)}
+          onImageSelect={handleBankedImageSelect}
+          activeSphereId={activeSphereId} 
+        />
+      )}
+    </>
   );
 };

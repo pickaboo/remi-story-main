@@ -35,38 +35,6 @@ const SPHERES_COLLECTION = 'spheres';
 const SPHERE_INVITATIONS_COLLECTION = 'sphereInvitations';
 // USERS_COLLECTION hanteras primärt av authService.ts och userService.ts
 
-// Helper function to recursively remove undefined properties from an object or array.
-const cleanObjectForFirestore = (data: any): any => {
-  if (Array.isArray(data)) {
-    // Process each item in the array. If an item becomes undefined after cleaning, filter it out.
-    return data
-      .map(item => cleanObjectForFirestore(item))
-      .filter(item => item !== undefined);
-  } else if (data !== null && typeof data === 'object' &&
-             !(data instanceof Date) &&
-             !(data instanceof Timestamp) &&
-             data.constructor?.name !== 'FieldValue') { // Check for FieldValue constructor name
-    const cleanedObject: { [key: string]: any } = {};
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = data[key];
-        if (value !== undefined) { // Only process if original value is not undefined
-          const cleanedValue = cleanObjectForFirestore(value); // Recursively clean the value
-          if (cleanedValue !== undefined) { // Only add to new object if cleaned value is not undefined
-            cleanedObject[key] = cleanedValue;
-          }
-        }
-      }
-    }
-    return cleanedObject;
-  }
-  // Return primitives, Date, Timestamp, FieldValue, and null as is.
-  // Undefined values at the top level of the initial 'data' will be handled by the caller's logic
-  // or by the fact that properties with undefined values won't be added to cleanedObject.
-  return data;
-};
-
-
 // --- Helper för ID-generering (kan fortfarande vara användbart) ---
 export const generateId = (): string => {
   // Använd Firestore's egen ID-generering om möjligt, eller en robust UUID-generator
@@ -93,92 +61,43 @@ export const getImageById = async (id: string): Promise<ImageRecord | undefined>
 };
 
 export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
-  const { dataUrl, ...imageDataFromImageParam } = image; 
-  let finalStorageUrl: string | undefined = image.storageUrl; // Keep existing storageUrl if present
+  const { dataUrl, ...imageDataToStore } = image; // dataUrl lagras inte i Firestore
 
-  if (dataUrl && image.filePath) { // dataUrl implies new client-side file or modification needing re-upload
+  // Only attempt to upload if dataUrl is a base64 string AND filePath is provided
+  if (dataUrl && dataUrl.startsWith('data:') && image.filePath) {
     const storageRef = ref(storage, image.filePath);
-    
-    const parts = dataUrl.split(',');
-    if (parts.length !== 2) throw new Error("Invalid dataUrl format for image upload.");
-    
-    const mimeString = parts[0].split(':')[1].split(';')[0];
-    const byteString = atob(parts[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
+    const base64DataParts = dataUrl.split(',');
+    if (base64DataParts.length < 2 || !base64DataParts[1]) {
+        console.error("Invalid base64 dataUrl format despite 'data:' prefix:", dataUrl.substring(0,100));
+        throw new Error("Invalid dataUrl format for image upload.");
     }
-    const blob = new Blob([ab], { type: image.type || mimeString });
-
-    const uploadTask = uploadBytesResumable(storageRef, blob, { contentType: image.type || mimeString });
-
-    await new Promise<void>((resolve, reject) => {
-      uploadTask.on('state_changed',
-        (snapshot: UploadTaskSnapshot) => {
-          // Observe state change events such as progress, pause, and resume
-        },
-        (error) => {
-          console.error("Firebase Storage upload error in saveImage:", error);
-          switch (error.code) {
-            case 'storage/unauthorized':
-              reject(new Error('User does not have permission to access the object. Check Storage Rules.'));
-              break;
-            case 'storage/canceled':
-              reject(new Error('User canceled the upload.'));
-              break;
-            case 'storage/unknown':
-              reject(new Error('Unknown error occurred, inspect error.serverResponse.'));
-              break;
-            default:
-              reject(error);
-          }
-        },
-        async () => { // Changed to async to await getDownloadURL
-          try {
-            finalStorageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve();
-          } catch (downloadUrlError) {
-            console.error("Error getting download URL:", downloadUrlError);
-            reject(downloadUrlError);
-          }
-        }
-      );
-    });
+    const base64Data = base64DataParts[1];
+    await uploadString(storageRef, base64Data, 'base64', { contentType: image.type });
   }
+  // If dataUrl is present but not a base64 string (e.g., it's a downloadURL from ImageBankPicker),
+  // and filePath is present, we assume the file is already in storage and do nothing with dataUrl here.
+  // The dataUrl field is already excluded from imageDataToStore.
+
 
   const docRef = doc(db, IMAGES_COLLECTION, image.id);
-  
-  // Prepare the object for Firestore, removing client-side dataUrl and handling timestamps
-  let dataForFirestore: Omit<ImageRecord, 'dataUrl' | 'createdAt' | 'updatedAt'> & { storageUrl?: string; createdAt?: FieldValue | string, updatedAt?: FieldValue | string } = { 
-    ...imageDataFromImageParam, // Contains all fields from image EXCEPT dataUrl
-    storageUrl: finalStorageUrl, // Add the Firebase Storage URL
+  // Explicitly type saveData to allow for FieldValue for timestamp fields
+  const saveData: Omit<ImageRecord, 'dataUrl' | 'createdAt' | 'updatedAt'> & { createdAt?: FieldValue | string, updatedAt?: FieldValue | string } = { 
+    ...imageDataToStore 
   };
   
-  // Remove dataUrl explicitly if it was part of imageDataFromImageParam (it shouldn't be due to destructuring above, but belt and braces)
-  delete (dataForFirestore as any).dataUrl; 
-  
-  if (!dataForFirestore.createdAt) { 
-    dataForFirestore.createdAt = serverTimestamp();
+  if (!imageDataToStore.createdAt) { 
+    saveData.createdAt = serverTimestamp();
   }
-  dataForFirestore.updatedAt = serverTimestamp(); 
+  saveData.updatedAt = serverTimestamp(); 
 
-  const cleanedDataForFirestore = cleanObjectForFirestore(dataForFirestore);
-
-  await setDoc(docRef, cleanedDataForFirestore, { merge: true });
+  await setDoc(docRef, saveData, { merge: true });
+  // Returnera originalbilden med dataUrl för omedelbar UI-uppdatering.
+  // Men observera att createdAt/updatedAt nu är FieldValues i saveData, inte strängar direkt.
+  // För UI kan det vara bättre att returnera en version med uppskattade tider eller hämta posten på nytt.
   
-  // Return the record as it would be in Firestore (with storageUrl, without dataUrl)
-  const savedImageRecord: ImageRecord = {
-    ...imageDataFromImageParam, // already excludes original dataUrl
-    id: image.id, // ensure id is part of the returned object
-    storageUrl: finalStorageUrl,
-    createdAt: typeof dataForFirestore.createdAt === 'string' 
-                 ? dataForFirestore.createdAt 
-                 : new Date().toISOString(), // If serverTimestamp was used, approximate with current client time
-    updatedAt: new Date().toISOString(), // Approximate client-side for updatedAt
-  };
-  delete (savedImageRecord as any).dataUrl; // Ensure dataUrl is not in the returned object
-  return savedImageRecord;
+  // Return the image but ensure the dataUrl (if it was a downloadURL) is kept for immediate UI use.
+  // The version in Firestore (saveData) correctly omits it.
+  return { ...image, dataUrl: dataUrl }; 
 };
 
 export const deleteImage = async (image: ImageRecord): Promise<void> => {
@@ -187,6 +106,7 @@ export const deleteImage = async (image: ImageRecord): Promise<void> => {
     try {
       await fbDeleteObject(storageRef);
     } catch (error: any) {
+      // Hantera 'storage/object-not-found' om det är okej att filen inte finns
       if (error.code !== 'storage/object-not-found') {
         console.error("Error deleting image file from Firebase Storage:", error);
         throw error;
@@ -221,7 +141,12 @@ export const deleteProject = async (id: string): Promise<void> => {
 };
 
 // --- Diary Entries CRUD ---
+// Notera: Security rules blir viktiga här för att säkerställa att användare bara kan komma åt sina egna entries.
 export const getAllDiaryEntries = async (): Promise<DiaryEntry[]> => {
+  // Detta bör filtreras per användare i en riktig app, antingen här eller via security rules.
+  // const diaryCol = collection(db, DIARY_ENTRIES_COLLECTION);
+  // const snapshot = await getDocs(diaryCol);
+  // return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as DiaryEntry));
   console.warn("getAllDiaryEntries called without user filter. This is insecure without proper rules.");
   return [];
 };
@@ -240,21 +165,22 @@ export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
     updatedAt: serverTimestamp(),
   };
   if (!entry.createdAt) {
-    entryToSave.createdAt = serverTimestamp(); 
+    entryToSave.createdAt = serverTimestamp(); // Använd serverTimestamp om nytt
   } else {
-    entryToSave.createdAt = entry.createdAt; 
+    entryToSave.createdAt = entry.createdAt; // Keep existing string if present
   }
-  await setDoc(docRef, cleanObjectForFirestore(entryToSave), { merge: true });
+  await setDoc(docRef, entryToSave, { merge: true });
 };
 
 export const deleteDiaryEntry = async (id: string, userId: string): Promise<boolean> => {
   const docRef = doc(db, DIARY_ENTRIES_COLLECTION, id);
+  // Verifiera ägandeskap innan radering (kan också hanteras av security rules)
   const docSnap = await getDoc(docRef);
   if (docSnap.exists() && docSnap.data().userId === userId) {
     await fbDeleteDoc(docRef);
     return true;
   }
-  return false; 
+  return false; // Antingen fanns inte dokumentet eller så var användaren inte ägare
 };
 
 // --- Spheres CRUD ---
@@ -272,21 +198,21 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
-  await setDoc(docRef, cleanObjectForFirestore(sphere)); 
+  await setDoc(docRef, sphere); // Inte merge här, antar att det är en ny sfär
 };
 
 
 // --- Sphere Invitations CRUD ---
 export const createSphereInvitation = async (invitationData: Omit<SphereInvitation, 'id' | 'createdAt' | 'status'>): Promise<SphereInvitation> => {
-  const newId = doc(collection(db, SPHERE_INVITATIONS_COLLECTION)).id; 
+  const newId = doc(collection(db, SPHERE_INVITATIONS_COLLECTION)).id; // Firestore auto-genererat ID
   const newInvitation: SphereInvitation = {
     ...invitationData,
     id: newId,
     status: 'pending',
-    createdAt: Timestamp.now().toDate().toISOString(), 
+    createdAt: Timestamp.now().toDate().toISOString(), // Använd Firestore Timestamp för att få ISO string
   };
   const invitationDocRef = doc(db, SPHERE_INVITATIONS_COLLECTION, newId);
-  await setDoc(invitationDocRef, cleanObjectForFirestore(newInvitation));
+  await setDoc(invitationDocRef, newInvitation);
   return newInvitation;
 };
 
@@ -306,22 +232,27 @@ export const updateSphereInvitationStatus = async (invitationId: string, status:
   if (status === 'accepted' && inviteeUserId) {
     updateData.inviteeUserId = inviteeUserId;
   }
-  await setDoc(invitationDocRef, cleanObjectForFirestore(updateData), { merge: true });
+  await setDoc(invitationDocRef, updateData, { merge: true });
   const updatedDocSnap = await getDoc(invitationDocRef);
   return updatedDocSnap.exists() ? ({ id: updatedDocSnap.id, ...updatedDocSnap.data() } as SphereInvitation) : null;
 };
 
 // --- Audio File Upload (Exempel) ---
+// dataUrl är base64-kodad webm-ljud.
 export const uploadAudioFile = async (audioDataUrl: string, userId: string, entryId: string): Promise<string> => {
   const audioBlob = await (await fetch(audioDataUrl)).blob();
   const filePath = `users/${userId}/diary_audio/${entryId}.webm`;
   const storageRef = ref(storage, filePath);
 
+  // uploadBytesResumable är att föredra för större filer och för att hantera progress
   const uploadTask = uploadBytesResumable(storageRef, audioBlob, { contentType: 'audio/webm' });
 
   return new Promise((resolve, reject) => {
     uploadTask.on('state_changed',
       (snapshot: UploadTaskSnapshot) => {
+        // Hantera progress om det behövs
+        // const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        // console.log('Upload is ' + progress + '% done');
       },
       (error) => {
         console.error("Error uploading audio file:", error);

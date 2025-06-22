@@ -8,6 +8,8 @@ import { getAllImages, saveImage, generateId, deleteImage, getSphereById } from 
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { getUserById } from '../services/userService'; // Import for getting user details
 import ExifReader from 'exifreader';
+import { getDownloadURL, ref } from 'firebase/storage'; // Added
+import { storage } from '../firebase'; // Added
 // Removed: import { generateImageBankExportPdf } from '../services/pdfService'; 
 
 interface ImageBankPageProps {
@@ -67,9 +69,9 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ image, onConfir
           Är du helt säker på att du vill permanent radera bilden <strong className="break-all">"{image.name}"</strong> från bildbanken?
         </p>
         <p className="text-sm text-red-500 dark:text-red-400 font-medium">Denna åtgärd kan INTE ångras.</p>
-        {(image.storageUrl || image.dataUrl) && (
+        {image.dataUrl && (
           <div className="my-2 max-h-40 overflow-hidden rounded-md border border-border-color dark:border-slate-600">
-            <img src={image.storageUrl || image.dataUrl} alt={`Förhandsgranskning av ${image.name}`} className="w-full h-full object-contain" />
+            <img src={image.dataUrl} alt={`Förhandsgranskning av ${image.name}`} className="w-full h-full object-contain" />
           </div>
         )}
       </div>
@@ -197,16 +199,40 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
     setIsLoadingBankView(true);
     setBankViewError(null);
     try {
-      const allImagesFromStorage = await getAllImages(); 
-      // Show all images for the sphere that have storageUrl or dataUrl (for recently uploaded previews not yet fully processed)
-      const allSphereImages = allImagesFromStorage.filter(
-        (img) => img.sphereId === activeSphere.id && (img.storageUrl || img.dataUrl)
+      const allRawImagesFromStorage = await getAllImages();
+      const sphereRawImages = allRawImagesFromStorage.filter(
+        (img) => img.sphereId === activeSphere.id
+      );
+
+      const imagesWithDisplayUrls = await Promise.all(
+        sphereRawImages.map(async (img) => {
+          // If dataUrl is already a valid displayable URL (base64 or http/s), use it.
+          if (img.dataUrl && (img.dataUrl.startsWith('data:') || img.dataUrl.startsWith('http'))) {
+            return img;
+          }
+          // If no usable dataUrl but filePath exists, fetch downloadURL.
+          if (img.filePath) {
+            try {
+              const downloadUrl = await getDownloadURL(ref(storage, img.filePath));
+              return { ...img, dataUrl: downloadUrl };
+            } catch (error) {
+              console.error(`Failed to get download URL for ${img.filePath} in ImageBankPage:`, error);
+              // Return image without dataUrl if fetch fails, will be filtered out.
+              return { ...img, dataUrl: undefined }; 
+            }
+          }
+          // If no filePath and no usable dataUrl, it's not displayable.
+          return { ...img, dataUrl: undefined };
+        })
       );
       
-      setBankedImagesInViewMode(allSphereImages.sort((a,b) => {
+      // Filter for images that actually have a dataUrl to display
+      const displayableSphereImages = imagesWithDisplayUrls.filter(img => img.dataUrl);
+      
+      setBankedImagesInViewMode(displayableSphereImages.sort((a,b) => {
         const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
         const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-        return dateB - dateA;
+        return dateB - dateA; // Sort descending by date
       }));
     } catch (e: any) {
       console.error("[ImageBankPage] Error fetching images for bank view:", e);
@@ -340,26 +366,27 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
           id: generateId(), // Generate a new final ID for the stored record
           name: preview.file.name,
           type: preview.file.type,
-          dataUrl: preview.dataUrl, // This will be used for upload, then removed before Firestore save
+          dataUrl: preview.dataUrl,
           dateTaken: preview.dateTaken, 
           tags: [],
-          geminiAnalysis: undefined,
           userDescriptions: [],
-          compiledStory: undefined,
           isProcessed: false, 
           width: preview.width,
           height: preview.height,
           uploadedByUserId: currentUser.id,
           processedByHistory: [],
           suggestedGeotags: [],
-          aiGeneratedPlaceholder: undefined,
-          filePath: preview.filePath, // Use filePath from preview
+          filePath: preview.filePath, 
           sphereId: activeSphere.id,
           isPublishedToFeed: false, 
-          exifData: preview.exifData,
-          createdAt: new Date().toISOString(), // Initialize createdAt
+          createdAt: new Date().toISOString(),
+          // Explicitly set optional fields that might otherwise be undefined to null
+          geminiAnalysis: null, 
+          compiledStory: null, 
+          aiGeneratedPlaceholder: null, 
+          exifData: preview.exifData || null, // if preview.exifData is undefined, use null
         };
-        await saveImage(newImageRecord); // saveImage now handles storageUrl and removes dataUrl for Firestore
+        await saveImage(newImageRecord);
         savedCount++;
       } catch (e: any) {
         console.error("Error saving one of the uploaded images:", e);
@@ -382,7 +409,7 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
       }
     } else if (savedCount > 0) { 
       setImagesToUpload([]); 
-      setImageBankView('view'); // Navigates back, which will trigger a fetch in useEffect
+      setImageBankView('view'); 
     } else if (savedCount === 0 && !localUploadError) { 
       setUploadError("Inga bilder kunde sparas (okänt fel eller tom kö).");
     }
@@ -422,14 +449,9 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
         const updatedDateTaken = newDateString ? new Date(newDateString).toISOString().split('T')[0] : undefined;
         const updatedImage = { ...imageToUpdate, dateTaken: updatedDateTaken };
         
-        // If dataUrl is present (e.g., from a recent upload not yet fully stripped for Firestore),
-        // pass it along so saveImage can use it for potential re-upload if needed,
-        // but saveImage will still prioritize storageUrl and remove dataUrl for Firestore.
         await saveImage(updatedImage);
-        
-        // Update local state with the version returned from saveImage (which should have storageUrl)
         setBankedImagesInViewMode(prevImages =>
-            prevImages.map(img => (img.id === imageId ? { ...updatedImage, storageUrl: updatedImage.storageUrl || img.storageUrl } : img))
+            prevImages.map(img => (img.id === imageId ? updatedImage : img))
         );
     }
   };
@@ -440,18 +462,10 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
 
   const formatDataUrlSize = (dataUrl?: string): string => {
     if (!dataUrl) return 'Okänd';
-    const sizeInBytes = (dataUrl.length * (3/4)); // Base64 string length to bytes approx.
+    const sizeInBytes = (dataUrl.length * (3/4));
     if (sizeInBytes < 1024) return `${Math.round(sizeInBytes)} B`;
     if (sizeInBytes < 1024 * 1024) return `${(sizeInBytes / 1024).toFixed(1)} KB`;
     return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-  
-  const formatStorageUrlSize = (imageRecord: ImageRecord): string => {
-      // Placeholder for actual size from storage, if available.
-      // Firebase Storage metadata can provide size, but we don't fetch it here.
-      // We can estimate from dataUrl if it's a client-side preview.
-      if (imageRecord.dataUrl) return formatDataUrlSize(imageRecord.dataUrl);
-      return 'Okänd (moln)';
   };
 
   // Removed: handleExportImageBankToPdf
@@ -565,13 +579,12 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {bankedImagesInViewMode.map(image => {
                 const isMetadataExpanded = expandedMetadataImageId === image.id;
-                const displayUrl = image.storageUrl || image.dataUrl;
 
                 return (
                     <div key={image.id} className="group relative border border-border-color dark:border-slate-700 p-2.5 rounded-xl shadow-sm hover:shadow-lg transition-all duration-150 ease-in-out bg-white dark:bg-slate-700/50 flex flex-col">
                         <div className="aspect-square bg-slate-100 dark:bg-slate-600 rounded-lg overflow-hidden mb-2 shadow-inner relative">
-                        {displayUrl ? (
-                            <img src={displayUrl} alt={image.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" loading="lazy" />
+                        {image.dataUrl ? (
+                            <img src={image.dataUrl} alt={image.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" loading="lazy" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-text dark:text-slate-400 text-xs p-2">Ingen förhandsgranskning</div>
                         )}
@@ -606,7 +619,7 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
                                 <p className="truncate text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Fil:</strong> <span className="text-slate-700 dark:text-slate-300" title={image.name}>{image.name}</span></p>
                                 <p className="truncate text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Typ:</strong> <span className="text-slate-700 dark:text-slate-300">{image.type}</span></p>
                                 {image.width && image.height && <p className="text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Mått:</strong> <span className="text-slate-700 dark:text-slate-300">{image.width} x {image.height} px</span></p>}
-                                <p className="text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Storlek:</strong> <span className="text-slate-700 dark:text-slate-300">{formatStorageUrlSize(image)}</span></p>
+                                <p className="text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Storlek (ca):</strong> <span className="text-slate-700 dark:text-slate-300">{formatDataUrlSize(image.dataUrl)}</span></p>
                                 {image.filePath && <p className="truncate text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Sökväg:</strong> <span className="text-slate-700 dark:text-slate-300" title={image.filePath}>{image.filePath}</span></p>}
                                 
                                 <ImageMetadataUserDetails userId={image.uploadedByUserId} sphereId={image.sphereId} />
