@@ -15,7 +15,7 @@ import { storage } from '../firebase'; // Added
 interface EditImagePageProps {
   imageId: string;
   onNavigate: (view: View, params?: any) => void;
-  currentUser: User; // Keep currentUser to know who is editing
+  currentUser: User; 
 }
 
 export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigate, currentUser }) => {
@@ -25,7 +25,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
   const [error, setError] = useState<string | null>(null);
   
   const audioRecorder = useAudioRecorder();
-  // Destructure resetAudio to get a stable reference for useCallback's dependency array
   const { resetAudio: resetAudioFromHook } = audioRecorder;
 
   const getCurrentUserDescriptionEntry = useCallback((): UserDescriptionEntry | undefined => {
@@ -43,7 +42,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
     try {
       const fetchedImage = await getImageById(imageId);
       if (fetchedImage) {
-        // Ensure essential fields for an ImageRecord are present
         const migratedImage: ImageRecord = {
           ...fetchedImage,
           userDescriptions: Array.isArray(fetchedImage.userDescriptions) ? fetchedImage.userDescriptions : [],
@@ -57,21 +55,16 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
           console.warn(`Current user does not have access to sphere '${migratedImage.sphereId}' for image '${imageId}'. Displaying anyway.`);
         }
 
-        if (migratedImage.isPublishedToFeed === false) {
-          console.warn(`Image '${imageId}' is marked as not published to feed but is being edited. Saving will publish it.`);
-        }
+        // No warning needed for isPublishedToFeed as editing implies it will be published.
 
-        // Attempt to resolve dataUrl if it's not base64 and filePath exists
         if (migratedImage.dataUrl && !migratedImage.dataUrl.startsWith('data:') && migratedImage.filePath) {
             try {
                 const downloadUrl = await getDownloadURL(ref(storage, migratedImage.filePath));
                 migratedImage.dataUrl = downloadUrl;
             } catch (urlError: any) {
                 console.error(`EditImagePage: Failed to get download URL for ${migratedImage.filePath}:`, urlError.message);
-                // Keep original dataUrl (which might be undefined or a non-base64 path if download failed)
-                // The UI will show "Detta inlägg har ingen bild" if dataUrl remains unsuitable.
             }
-        } else if (!migratedImage.dataUrl && migratedImage.filePath) { // If dataUrl is missing entirely but filePath exists
+        } else if (!migratedImage.dataUrl && migratedImage.filePath) {
              try {
                 const downloadUrl = await getDownloadURL(ref(storage, migratedImage.filePath));
                 migratedImage.dataUrl = downloadUrl;
@@ -80,11 +73,10 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
             }
         }
 
-
         setImage(migratedImage);
         const userDescEntry = migratedImage.userDescriptions.find(ud => ud.userId === currentUser.id);
         setCurrentUserTextDescription(userDescEntry?.description || '');
-        resetAudioFromHook(); // Use the stable function reference
+        resetAudioFromHook(); 
 
       } else {
         setError("Inlägget kunde inte hittas. Det kan ha blivit borttaget.");
@@ -145,45 +137,44 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
   const handleSave = async () => {
     if (!image || !currentUser) return;
     setIsSaving(true);
-    setError(null); // Clear previous errors
+    setError(null); 
     audioRecorder.stopRecording(); 
 
     try {
-      const updatedUserDescriptions = [...image.userDescriptions];
-      let userEntry = updatedUserDescriptions.find(ud => ud.userId === currentUser.id);
+      const updatedUserDescriptions = [...(image.userDescriptions || [])];
+      let userEntryIndex = updatedUserDescriptions.findIndex(ud => ud.userId === currentUser.id);
 
-      if (userEntry) {
-        userEntry.description = currentUserTextDescription.trim();
-        if (audioRecorder.audioUrl) {
-          userEntry.audioRecUrl = audioRecorder.audioUrl;
-        } else if (!currentUserTextDescription.trim() && !userEntry.audioRecUrl) { 
-          userEntry.audioRecUrl = undefined;
-        }
-        userEntry.createdAt = new Date().toISOString(); 
+      if (userEntryIndex > -1) {
+        const existingEntry = updatedUserDescriptions[userEntryIndex];
+        updatedUserDescriptions[userEntryIndex] = {
+          ...existingEntry,
+          description: currentUserTextDescription.trim(),
+          audioRecUrl: audioRecorder.audioUrl || existingEntry.audioRecUrl || null,
+          createdAt: new Date().toISOString(),
+        };
       } else {
         if (currentUserTextDescription.trim() || audioRecorder.audioUrl) {
           updatedUserDescriptions.push({
             userId: currentUser.id,
             description: currentUserTextDescription.trim(),
-            audioRecUrl: audioRecorder.audioUrl || undefined,
+            audioRecUrl: audioRecorder.audioUrl || null, 
             createdAt: new Date().toISOString(),
           });
         }
       }
-
+      
       const imageToSave: ImageRecord = {
         ...image,
-        geminiAnalysis: image.geminiAnalysis || '', 
-        compiledStory: image.compiledStory || '', 
         userDescriptions: updatedUserDescriptions,
         sphereId: image.sphereId || currentUser?.sphereIds[0] || 'defaultSphereOnError',
-        isPublishedToFeed: true, 
+        isPublishedToFeed: true,
+        // Rely on storageService to handle undefined for other optional fields
       };
+
       await saveImage(imageToSave); 
       onNavigate(View.Home); 
     } catch (err: any) {
       console.error("Error saving image:", err);
-      // Check for QuotaExceededError specifically
       if (err.name === 'QuotaExceededError' || (typeof err.message === 'string' && err.message.includes('quota'))) {
         setError("Lagringsutrymmet är fullt. Det gick inte att spara ändringarna. Försök att frigöra utrymme.");
       } else {
@@ -200,7 +191,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
         if (!prev || !currentUser) return prev;
         const newUserDescriptions = prev.userDescriptions.map(ud => {
             if (ud.userId === currentUser.id) {
-                return { ...ud, audioRecUrl: undefined };
+                return { ...ud, audioRecUrl: null }; // Set to null
             }
             return ud;
         });
@@ -240,10 +231,10 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
               label="Datum för inlägget"
               type="date"
               id="imageDate"
-              value={image.dateTaken || ''}
-              onChange={(e) => handleInputChange('dateTaken', e.target.value)}
+              value={image.dateTaken || ''} // Empty string if dateTaken is undefined/null
+              onChange={(e) => handleInputChange('dateTaken', e.target.value || undefined)} // Pass undefined if cleared
               disabled={isSaving}
-              className="dark:[color-scheme:dark]" // For better date picker appearance in dark mode
+              className="dark:[color-scheme:dark]"
             />
 
             <div>
