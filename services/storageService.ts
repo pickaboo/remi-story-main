@@ -317,20 +317,42 @@ export const getDiaryEntriesByUserId = async (userId: string): Promise<DiaryEntr
 
 export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
   const docRef = doc(db, DIARY_ENTRIES_COLLECTION, entry.id);
-  const entryToSave: Omit<DiaryEntry, 'createdAt'|'updatedAt'> & {createdAt?: FieldValue | Timestamp, updatedAt?: FieldValue | Timestamp} = {
-    ...entry,
-    updatedAt: serverTimestamp(),
-  };
-  if (!entry.createdAt) {
-    entryToSave.createdAt = serverTimestamp();
-  } else {
-    // If createdAt is a string, convert to Timestamp before saving
-    entryToSave.createdAt = Timestamp.fromDate(new Date(entry.createdAt));
-  }
-  if (entryToSave.audioRecUrl === undefined) entryToSave.audioRecUrl = null;
-  if (entryToSave.transcribedText === undefined) entryToSave.transcribedText = null;
+  const { createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, ...restOfEntryData } = entry;
 
-  await setDoc(docRef, entryToSave, { merge: true });
+  const dataForFirestore: { [key: string]: any } = {
+    ...restOfEntryData,
+  };
+
+  // Handle createdAt
+  if (!originalCreatedAtStr) {
+    dataForFirestore.createdAt = serverTimestamp();
+  } else {
+    try {
+      const date = new Date(originalCreatedAtStr);
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date string for diaryEntry.createdAt: "${originalCreatedAtStr}". Using serverTimestamp.`);
+        dataForFirestore.createdAt = serverTimestamp();
+      } else {
+        dataForFirestore.createdAt = Timestamp.fromDate(date);
+      }
+    } catch (e) {
+      console.warn(`Error parsing date string for diaryEntry.createdAt: "${originalCreatedAtStr}". Using serverTimestamp. Error: ${e}`);
+      dataForFirestore.createdAt = serverTimestamp();
+    }
+  }
+
+  // Handle updatedAt
+  dataForFirestore.updatedAt = serverTimestamp();
+
+  // Handle optional fields
+  if (dataForFirestore.audioRecUrl === undefined) {
+    dataForFirestore.audioRecUrl = null;
+  }
+  if (dataForFirestore.transcribedText === undefined) {
+    dataForFirestore.transcribedText = null;
+  }
+
+  await setDoc(docRef, dataForFirestore, { merge: true });
 };
 
 export const deleteDiaryEntry = async (id: string, userId: string): Promise<boolean> => {
