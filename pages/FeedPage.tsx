@@ -183,45 +183,52 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     }
 
     const observer = new IntersectionObserver((entries) => {
-      let determinedActivePost: ImageRecord | null = null; // Use a new variable
-      let minTopValue = Infinity;
+      const visibleCandidates: { post: ImageRecord; top: number }[] = [];
 
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
           const postId = entry.target.id.replace('post-item-', '');
-          const foundPost = posts.find(p => p.id === postId); // foundPost is ImageRecord | undefined
-
-          if (foundPost) { // Type guard: foundPost is ImageRecord here
-            if (entry.boundingClientRect.top < minTopValue) {
-              minTopValue = entry.boundingClientRect.top;
-              determinedActivePost = foundPost; // Assign the confirmed ImageRecord
-            }
+          const foundPost = posts.find(p => p.id === postId);
+          if (foundPost) {
+            visibleCandidates.push({ post: foundPost, top: entry.boundingClientRect.top });
           }
         }
       });
-      
-      if (determinedActivePost) { // Now determinedActivePost is ImageRecord (not null)
-        const currentPost: ImageRecord = determinedActivePost; // For clarity, or use determinedActivePost directly
-        const postIdForLogging = currentPost.id;
-        const dateTakenValue = currentPost.dateTaken;
+
+      if (visibleCandidates.length > 0) {
+        visibleCandidates.sort((a, b) => a.top - b.top);
+        const activePostCandidate = visibleCandidates[0].post; 
+
+        console.log(`[FeedPage Observer] Active post candidate: ID=${activePostCandidate.id}, DateTaken=${activePostCandidate.dateTaken}`);
+
+        const dateTakenValue = activePostCandidate.dateTaken;
 
         if (dateTakenValue && typeof dateTakenValue === 'string' && dateTakenValue.length > 0) {
           try {
             const dateObj = new Date(dateTakenValue);
             if (!isNaN(dateObj.getTime())) {
+              console.log(`[FeedPage Observer] Sending date to timeline: ${dateObj.toISOString()}`);
               onVisiblePostsDateChange(dateObj);
             } else {
-              console.warn(`FeedPage IntersectionObserver: Invalid date string encountered - "${dateTakenValue}" for post ID ${postIdForLogging}`);
+              console.warn(`[FeedPage Observer] Invalid date string for post ID ${activePostCandidate.id}: "${dateTakenValue}". Sending null to timeline.`);
+              onVisiblePostsDateChange(null);
             }
           } catch (e) {
-            console.error(`FeedPage IntersectionObserver: Error parsing date string "${dateTakenValue}" for post ID ${postIdForLogging}:`, e);
+            console.error(`[FeedPage Observer] Error parsing date string for post ID ${activePostCandidate.id} ("${dateTakenValue}"):`, e);
+            onVisiblePostsDateChange(null);
           }
+        } else {
+          console.log(`[FeedPage Observer] No valid dateTaken for post ID ${activePostCandidate.id}. Sending null to timeline.`);
+          onVisiblePostsDateChange(null); 
         }
+      } else {
+        console.log("[FeedPage Observer] No post sufficiently visible. Sending null to timeline.");
+        onVisiblePostsDateChange(null);
       }
     }, {
       root: null,
-      rootMargin: "-49% 0px -49% 0px",
-      threshold: [0.5],
+      rootMargin: "-33% 0px -33% 0px",
+      threshold: [0.5], 
     });
 
     postElements.forEach(element => observer.observe(element!));
