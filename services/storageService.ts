@@ -1,16 +1,17 @@
-import { db, storage } from '../firebase'; 
+
+import { db, storage } from '../firebase';
 import {
   collection,
   doc,
   getDoc,
   getDocs,
   setDoc,
-  deleteDoc as fbDeleteDoc, 
+  deleteDoc as fbDeleteDoc,
   query,
   where,
   orderBy,
   Timestamp,
-  serverTimestamp, 
+  serverTimestamp,
   writeBatch,
   arrayUnion,
   arrayRemove,
@@ -22,7 +23,7 @@ import {
   ref,
   uploadString,
   getDownloadURL,
-  deleteObject as fbDeleteObject, 
+  deleteObject as fbDeleteObject,
   uploadBytesResumable,
   UploadTaskSnapshot
 } from 'firebase/storage';
@@ -40,7 +41,9 @@ export const generateId = (): string => {
 
 export const getAllImages = async (): Promise<ImageRecord[]> => {
   const imagesCol = collection(db, IMAGES_COLLECTION);
-  const q = query(imagesCol, orderBy('createdAt', 'desc'));
+  // Default sort for getAllImages might also be dateTaken now, or keep as createdAt if this specific function has other uses.
+  // For consistency, let's assume dateTaken is generally preferred. If not, this can be reverted.
+  const q = query(imagesCol, orderBy('dateTaken', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as ImageRecord));
 };
@@ -56,11 +59,25 @@ export const getSphereFeedPostsListener = (
     imagesCol,
     where('sphereId', '==', sphereId),
     where('isPublishedToFeed', '==', true),
-    orderBy('createdAt', 'desc') // Ensure 'createdAt' is a Timestamp for proper ordering
+    orderBy('dateTaken', 'desc') // Changed from 'createdAt' to 'dateTaken'
   );
 
-  const unsubscribe = onSnapshot(q, 
+  console.log(`[getSphereFeedPostsListener] Setting up listener for sphereId: ${sphereId} (orderBy dateTaken)`);
+
+  const unsubscribe = onSnapshot(q,
     async (querySnapshot: QuerySnapshot) => {
+      console.log(`[getSphereFeedPostsListener] Snapshot received for sphereId: ${sphereId}. Number of docs: ${querySnapshot.docs.length}`);
+      if (querySnapshot.empty) {
+        console.log(`[getSphereFeedPostsListener] No posts found for sphereId: ${sphereId}`);
+        onPostsUpdate([]);
+        return;
+      }
+
+      // Log raw data from Firestore before any processing
+      const rawDocsData = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      console.log("[getSphereFeedPostsListener] Raw data from Firestore (ordered by dateTaken):", JSON.parse(JSON.stringify(rawDocsData)));
+
+
       const postsWithResolvedUrls = await Promise.all(
         querySnapshot.docs.map(async (docSnap) => {
           const rawPostData = docSnap.data(); // Get raw data first
@@ -73,13 +90,16 @@ export const getSphereFeedPostsListener = (
               console.warn(`FeedListener: Failed to get download URL for post ${docSnap.id} (filePath: ${rawPostData.filePath}). Error: ${urlError.message}`);
             }
           }
-          
+
           const createdAtValue = rawPostData.createdAt;
           const updatedAtValue = rawPostData.updatedAt;
+          // Ensure dateTaken is also handled correctly if it's a Timestamp (though it should be string)
+          const dateTakenValue = rawPostData.dateTaken;
+
 
           return {
             id: docSnap.id,
-            ...(rawPostData as Omit<ImageRecord, 'id' | 'dataUrl' | 'createdAt' | 'updatedAt'>), // Cast other fields
+            ...(rawPostData as Omit<ImageRecord, 'id' | 'dataUrl' | 'createdAt' | 'updatedAt' | 'dateTaken'>), // Cast other fields
             dataUrl: displayUrl,
             userDescriptions: Array.isArray(rawPostData.userDescriptions) ? rawPostData.userDescriptions : [],
             processedByHistory: Array.isArray(rawPostData.processedByHistory) ? rawPostData.processedByHistory : [],
@@ -92,19 +112,15 @@ export const getSphereFeedPostsListener = (
             updatedAt: (updatedAtValue instanceof Timestamp)
               ? updatedAtValue.toDate().toISOString()
               : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
-            dateTaken: rawPostData.dateTaken, // Assuming dateTaken is already a string or undefined
+            dateTaken: (dateTakenValue instanceof Timestamp) // Should ideally be string already, but good to check
+              ? dateTakenValue.toDate().toISOString().split('T')[0] // Ensure YYYY-MM-DD format for dateTaken
+              : (typeof dateTakenValue === 'string' ? dateTakenValue : undefined),
           } as ImageRecord;
         })
       );
       
-      // Sort again after URLs are resolved, as createdAt might be string now
-      const sortedPosts = postsWithResolvedUrls.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
-      });
-
-      onPostsUpdate(sortedPosts);
+      console.log("[getSphereFeedPostsListener] Posts after resolving URLs (and converting Timestamps):", JSON.parse(JSON.stringify(postsWithResolvedUrls)));
+      onPostsUpdate(postsWithResolvedUrls);
     },
     (error) => {
       console.error(`Error in getSphereFeedPostsListener snapshot listener for sphereId '${sphereId}': `, error);
@@ -123,52 +139,45 @@ export const getImageById = async (id: string): Promise<ImageRecord | undefined>
     const rawData = docSnap.data(); // Get raw data
     const createdAtValue = rawData.createdAt;
     const updatedAtValue = rawData.updatedAt;
+    const dateTakenValue = rawData.dateTaken;
 
-    return { 
-        id: docSnap.id, 
-        ...(rawData as Omit<ImageRecord, 'id' | 'createdAt' | 'updatedAt'>), // Cast other fields
+    return {
+        id: docSnap.id,
+        ...(rawData as Omit<ImageRecord, 'id' | 'createdAt' | 'updatedAt' | 'dateTaken'>), // Cast other fields
         createdAt: (createdAtValue instanceof Timestamp)
           ? createdAtValue.toDate().toISOString()
           : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
         updatedAt: (updatedAtValue instanceof Timestamp)
           ? updatedAtValue.toDate().toISOString()
           : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
+        dateTaken: (dateTakenValue instanceof Timestamp)
+          ? dateTakenValue.toDate().toISOString().split('T')[0]
+          : (typeof dateTakenValue === 'string' ? dateTakenValue : undefined),
      } as ImageRecord;
   }
   return undefined;
 };
 
 export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
-  const { dataUrl, id: imageId, createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, ...restOfImageDetailsInput } = image;
+  const { dataUrl, id: imageId, createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, dateTaken: originalDateTakenStr, ...restOfImageDetailsInput } = image;
 
   const restOfImageDetails = { ...restOfImageDetailsInput };
 
   if (restOfImageDetails.userDescriptions && Array.isArray(restOfImageDetails.userDescriptions)) {
     restOfImageDetails.userDescriptions = restOfImageDetails.userDescriptions.map(desc => {
-      const newDesc = { ...desc }; 
+      const newDesc = { ...desc };
       if (newDesc.audioRecUrl === undefined) {
         newDesc.audioRecUrl = null;
       }
-      // Ensure createdAt in UserDescriptionEntry is string
-      const originalUserDescCreatedAt = desc.createdAt;
-      if (originalUserDescCreatedAt) {
-        if (typeof originalUserDescCreatedAt === 'string') {
-          newDesc.createdAt = originalUserDescCreatedAt;
-        } else if (originalUserDescCreatedAt instanceof Timestamp) {
-          newDesc.createdAt = originalUserDescCreatedAt.toDate().toISOString();
-        } else {
-          // This case should ideally not happen if types are consistent.
-          // It handles if desc.createdAt is some other object type.
-          console.warn('UserDescriptionEntry.createdAt was an unexpected type, using current date.', originalUserDescCreatedAt);
-          newDesc.createdAt = new Date().toISOString();
-        }
-      } else { // If desc.createdAt is null, undefined, or empty string
+      if (desc.createdAt && desc.createdAt.trim() !== "") {
+        newDesc.createdAt = desc.createdAt;
+      } else {
         newDesc.createdAt = new Date().toISOString();
       }
       return newDesc;
     });
   }
-  
+
   if (dataUrl && dataUrl.startsWith('data:') && image.filePath) {
     const storageRef = ref(storage, image.filePath);
     const base64DataParts = dataUrl.split(',');
@@ -191,25 +200,59 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
       if (value === undefined) {
         firestoreData[key] = null;
       } else {
-        firestoreData[key] = value; 
+        firestoreData[key] = value;
       }
     }
   }
-  
+
   // Handle timestamps: convert string ISO dates from ImageRecord back to Firestore Timestamps if needed or use serverTimestamp
-  if (!originalCreatedAtStr) { 
+  if (!originalCreatedAtStr) {
     firestoreData.createdAt = serverTimestamp();
   } else {
-    // If originalCreatedAtStr is a valid ISO string, convert to Timestamp
-    firestoreData.createdAt = Timestamp.fromDate(new Date(originalCreatedAtStr));
+    try {
+      const date = new Date(originalCreatedAtStr);
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date string for image.createdAt: "${originalCreatedAtStr}". Using serverTimestamp instead.`);
+        firestoreData.createdAt = serverTimestamp();
+      } else {
+        firestoreData.createdAt = Timestamp.fromDate(date);
+      }
+    } catch (e) { 
+      console.warn(`Error parsing date string for image.createdAt: "${originalCreatedAtStr}". Using serverTimestamp. Error: ${e}`);
+      firestoreData.createdAt = serverTimestamp();
+    }
   }
   firestoreData.updatedAt = serverTimestamp();
-  
-  await setDoc(docRef, firestoreData, { merge: true });
-  
-  const savedImage = { ...image };
 
-  return savedImage; 
+  // Handle dateTaken: Ensure it's a valid YYYY-MM-DD string or default to current date's YYYY-MM-DD
+  if (!originalDateTakenStr) {
+    firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+  } else {
+    try {
+      const date = new Date(originalDateTakenStr);
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date string for image.dateTaken: "${originalDateTakenStr}". Defaulting to current date.`);
+        firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+      } else {
+        // Ensure it's stored as YYYY-MM-DD string
+        firestoreData.dateTaken = date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      console.warn(`Error parsing date string for image.dateTaken: "${originalDateTakenStr}". Defaulting to current date. Error: ${e}`);
+      firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+    }
+  }
+
+
+  await setDoc(docRef, firestoreData, { merge: true });
+
+  const savedImage = { ...image };
+  // Update dateTaken on the returned object to match what was saved if it was defaulted
+  if (firestoreData.dateTaken && savedImage.dateTaken !== firestoreData.dateTaken) {
+    savedImage.dateTaken = firestoreData.dateTaken;
+  }
+  
+  return savedImage;
 };
 
 
@@ -259,8 +302,8 @@ export const getDiaryEntriesByUserId = async (userId: string): Promise<DiaryEntr
     const data = docSnap.data();
     const createdAtValue = data.createdAt;
     const updatedAtValue = data.updatedAt;
-    return { 
-        id: docSnap.id, 
+    return {
+        id: docSnap.id,
         ...data,
         createdAt: (createdAtValue instanceof Timestamp)
           ? createdAtValue.toDate().toISOString()
@@ -279,7 +322,7 @@ export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
     updatedAt: serverTimestamp(),
   };
   if (!entry.createdAt) {
-    entryToSave.createdAt = serverTimestamp(); 
+    entryToSave.createdAt = serverTimestamp();
   } else {
     // If createdAt is a string, convert to Timestamp before saving
     entryToSave.createdAt = Timestamp.fromDate(new Date(entry.createdAt));
@@ -297,7 +340,7 @@ export const deleteDiaryEntry = async (id: string, userId: string): Promise<bool
     await fbDeleteDoc(docRef);
     return true;
   }
-  return false; 
+  return false;
 };
 
 export const getAllSpheres = async (): Promise<Sphere[]> => {
@@ -314,16 +357,16 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
-  await setDoc(docRef, sphere); 
+  await setDoc(docRef, sphere);
 };
 
 export const createSphereInvitation = async (invitationData: Omit<SphereInvitation, 'id' | 'createdAt' | 'status'>): Promise<SphereInvitation> => {
-  const newId = doc(collection(db, SPHERE_INVITATIONS_COLLECTION)).id; 
+  const newId = doc(collection(db, SPHERE_INVITATIONS_COLLECTION)).id;
   const newInvitation: SphereInvitation = {
     ...invitationData,
     id: newId,
     status: 'pending',
-    createdAt: Timestamp.now().toDate().toISOString(), 
+    createdAt: Timestamp.now().toDate().toISOString(),
   };
   const invitationDocRef = doc(db, SPHERE_INVITATIONS_COLLECTION, newId);
   await setDoc(invitationDocRef, newInvitation);
@@ -372,8 +415,8 @@ export const updateSphereInvitationStatus = async (invitationId: string, status:
         createdAt: (createdAtValue instanceof Timestamp)
           ? createdAtValue.toDate().toISOString()
           : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
-        respondedAt: (respondedAtValue instanceof Timestamp) 
-          ? respondedAtValue.toDate().toISOString() 
+        respondedAt: (respondedAtValue instanceof Timestamp)
+          ? respondedAtValue.toDate().toISOString()
           : (typeof respondedAtValue === 'string' ? respondedAtValue : undefined),
     } as SphereInvitation;
   }
