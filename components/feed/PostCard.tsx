@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo, JSX } from 'react';
+import React, { useState, useEffect, JSX } from 'react';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
@@ -8,6 +7,7 @@ import { Button } from '../common/Button';
 import { Input } from '../common/Input'; // Keep for hover input
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { AudioPlayerButton } from '../common/AudioPlayerButton';
+import { FullscreenImageViewer } from '../common/FullscreenImageViewer'; // Added
 
 interface PostCardProps {
   post: ImageRecord;
@@ -15,6 +15,14 @@ interface PostCardProps {
   onPostUpdated: (updatedPost: ImageRecord) => void;
   onNavigateToEdit: () => void;
 }
+
+// Local SVG Icon for fullscreen button
+const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+    </svg>
+);
+
 
 export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }: PostCardProps): JSX.Element {
   const [newCommentText, setNewCommentText] = useState('');
@@ -28,82 +36,45 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   const [commenters, setCommenters] = useState<Map<string, User>>(new Map());
   const [isLoadingCommenters, setIsLoadingCommenters] = useState(true);
 
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null); // State for fullscreen viewer
+
 
   useEffect(() => {
     if (post.uploadedByUserId) {
       setIsLoadingCreator(true);
-      getUserById(post.uploadedByUserId)
-        .then(user => {
-          setCreator(user);
-        })
-        .catch(err => {
-          console.error(`Error fetching creator (ID: ${post.uploadedByUserId}) for post ${post.id}:`, err);
-          setCreator(null); 
-        })
-        .finally(() => {
-          setIsLoadingCreator(false);
-        });
+      getUserById(post.uploadedByUserId).then(user => {
+        setCreator(user);
+        setIsLoadingCreator(false);
+      });
     } else {
       setIsLoadingCreator(false);
       setCreator(null);
     }
-  }, [post.id, post.uploadedByUserId]);
+  }, [post.uploadedByUserId]);
 
 
-  const comments = useMemo(() => {
-    const mainDesc = post.userDescriptions.find(ud => ud.userId === post.uploadedByUserId);
-    return post.userDescriptions
-      .filter(ud => ud !== mainDesc)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  }, [post.userDescriptions, post.uploadedByUserId]);
-
-  const commenterUserIdsString = useMemo(() => {
-    const mainDescUserId = post.uploadedByUserId;
-    const ids = Array.from(new Set(
-        post.userDescriptions
-            .filter(ud => ud.userId !== mainDescUserId)
-            .map(ud => ud.userId)
-    )).sort();
-    return JSON.stringify(ids);
-  }, [post.userDescriptions, post.uploadedByUserId]);
-
+  const mainPostDescription = post.userDescriptions.find(ud => ud.userId === post.uploadedByUserId);
+  const comments = post.userDescriptions.filter(ud => ud !== mainPostDescription).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   useEffect(() => {
     const fetchCommenters = async () => {
-      const currentCommenterIds: string[] = JSON.parse(commenterUserIdsString);
-      if (currentCommenterIds.length > 0) {
+      if (comments.length > 0) {
         setIsLoadingCommenters(true);
-        try {
-          const newCommentersMap = new Map<string, User>();
-          for (const id of currentCommenterIds) {
-            // Avoid refetching if already present and not stale, or implement smarter caching if needed
-            if (!commenters.has(id)) { 
-              const user = await getUserById(id);
-              if (user) newCommentersMap.set(id, user);
-            } else {
-              newCommentersMap.set(id, commenters.get(id)!);
-            }
-          }
-          // Only update if the map content has actually changed to avoid potential loops if map reference itself causes issues.
-          // This check is somewhat superficial; deep equality would be more robust but expensive.
-          if (newCommentersMap.size !== commenters.size || !Array.from(newCommentersMap.keys()).every(key => commenters.has(key))) {
-            setCommenters(newCommentersMap);
-          }
-        } catch (err) {
-          console.error(`Error fetching commenters for post ${post.id}:`, err);
-          setCommenters(new Map()); 
-        } finally {
-          setIsLoadingCommenters(false);
+        const uniqueCommenterIds = Array.from(new Set(comments.map(c => c.userId)));
+        const newCommentersMap = new Map<string, User>();
+        for (const id of uniqueCommenterIds) {
+          const user = await getUserById(id);
+          if (user) newCommentersMap.set(id, user);
         }
+        setCommenters(newCommentersMap);
+        setIsLoadingCommenters(false);
       } else {
-        if (commenters.size > 0) { // Only clear if not already empty
-            setCommenters(new Map());
-        }
+        setCommenters(new Map());
         setIsLoadingCommenters(false);
       }
     };
     fetchCommenters();
-  }, [commenterUserIdsString, post.id]); // Dependencies are correct
+  }, [comments]);
 
 
   useEffect(() => {
@@ -113,12 +84,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   }, [commentAudioRecorder.transcribedText, commentAudioRecorder.audioUrl, newCommentText]);
 
   const displayedComments = showAllComments ? comments : comments.slice(0, 2);
-  const displayUrl = post.storageUrl || post.dataUrl;
-  const hasImage = displayUrl && post.width != null && post.height != null && post.width > 0;
-
-  const mainPostDescription = useMemo(() => {
-    return post.userDescriptions.find(ud => ud.userId === post.uploadedByUserId);
-  }, [post.userDescriptions, post.uploadedByUserId]);
+  const hasImage = post.dataUrl && post.width != null && post.height != null && post.width > 0;
 
   const showUploaderDescriptionInput = hasImage &&
     currentUser.id === post.uploadedByUserId &&
@@ -152,8 +118,8 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     }
 
     const updatedPost = { ...post, userDescriptions: updatedDescriptions };
-    const savedPost = await saveImage({ ...updatedPost, dataUrl: post.dataUrl }); 
-    onPostUpdated(savedPost);
+    await saveImage(updatedPost);
+    onPostUpdated(updatedPost);
     setNewCommentText('');
     commentAudioRecorder.resetAudio();
     setIsCommenting(false);
@@ -171,8 +137,8 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       createdAt: new Date().toISOString(),
     };
     const updatedPost = { ...post, userDescriptions: [...post.userDescriptions, newCommentEntry] };
-    const savedPost = await saveImage({ ...updatedPost, dataUrl: post.dataUrl });
-    onPostUpdated(savedPost);
+    await saveImage(updatedPost);
+    onPostUpdated(updatedPost);
     setNewCommentText('');
     commentAudioRecorder.resetAudio();
     setIsCommenting(false);
@@ -187,8 +153,8 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     const newTag = tag.trim().toLowerCase();
     if (newTag && !post.tags.includes(newTag)) {
       const updatedPost = { ...post, tags: [...post.tags, newTag] };
-      const savedPost = await saveImage({ ...updatedPost, dataUrl: post.dataUrl });
-      onPostUpdated(savedPost);
+      await saveImage(updatedPost);
+      onPostUpdated(updatedPost);
     }
   };
 
@@ -199,8 +165,17 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   
   const handleRemoveTag = async (tagToRemove: string) => {
     const updatedPost = { ...post, tags: post.tags.filter(tag => tag !== tagToRemove) };
-    const savedPost = await saveImage({ ...updatedPost, dataUrl: post.dataUrl });
-    onPostUpdated(savedPost);
+    await saveImage(updatedPost);
+    onPostUpdated(updatedPost);
+  };
+
+  const handleOpenFullscreenViewer = (url: string | undefined) => {
+    if (url) {
+        setFullscreenImageUrl(url);
+    }
+  };
+  const handleCloseFullscreenViewer = () => {
+    setFullscreenImageUrl(null);
   };
 
 
@@ -214,9 +189,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   const renderTimestamp = (isoDateString?: string) => {
     if (!isoDateString) return null;
     const date = new Date(isoDateString);
-    if (isNaN(date.getTime())) { // Check for invalid date
-        return <span className="text-xs text-red-500 dark:text-red-400 ml-2" title={`Ogiltigt datum: ${isoDateString}`}>Ogiltigt datum</span>;
-    }
     return (
       <span className="text-xs text-gray-400 dark:text-slate-500 ml-2" title={date.toLocaleString('sv-SE')}>
         {date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
@@ -234,6 +206,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   };
 
   return (
+    <>
     <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
       {/* Post Header */}
       <div className="flex items-center justify-between mb-3">
@@ -266,11 +239,21 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       )}
 
       {/* Image, Hover Tag Management, and User-added Tags */}
-      {hasImage && displayUrl && (
+      {hasImage && post.dataUrl && (
         <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700/50 shadow-md">
           <div className="relative group"> {/* Added group for hover */}
-            <img src={displayUrl} alt={post.name} className="w-full h-auto object-contain block max-h-[70vh]" />
+            <img src={post.dataUrl} alt={post.name} className="w-full h-auto object-contain block max-h-[70vh]" />
             
+            {/* Fullscreen Button */}
+            <button
+                onClick={() => handleOpenFullscreenViewer(post.dataUrl)}
+                className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                title="Visa i helskärm"
+                aria-label="Visa bild i helskärm"
+            >
+                <MagnifyingGlassPlusIcon className="w-5 h-5" />
+            </button>
+
             {/* Tag Management Overlay on Hover - only for uploader */}
             {currentUser.id === post.uploadedByUserId && (
               <div 
@@ -508,6 +491,18 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
           )}
         </div>
       )}
+      
+      {/* Removed old custom tag input section */}
     </div>
+
+    {fullscreenImageUrl && (
+        <FullscreenImageViewer
+            imageUrl={fullscreenImageUrl}
+            imageName={post.name}
+            isOpen={!!fullscreenImageUrl}
+            onClose={handleCloseFullscreenViewer}
+        />
+    )}
+    </>
   );
 }
