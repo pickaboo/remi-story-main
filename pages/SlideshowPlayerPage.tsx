@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ImageRecord, SlideshowProject, View, UserDescriptionEntry } from '../types';
 import { getProjectById, getImageById } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { getDownloadURL, ref } from 'firebase/storage'; // Added
+import { storage } from '../firebase'; // Added
 // Removed Button import as top controls are now raw buttons
 
 interface SlideshowPlayerPageProps {
@@ -29,11 +31,27 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
       if (fetchedProject) {
         setProject(fetchedProject);
         const imagePromises = fetchedProject.imageIds.map(id => getImageById(id));
-        const resolvedImages = await Promise.all(imagePromises);
+        const resolvedRawImages = await Promise.all(imagePromises);
         
-        const projectImageRecords = resolvedImages.filter(img => img !== undefined) as ImageRecord[];
+        const projectImageRecords = resolvedRawImages.filter(img => img !== undefined) as ImageRecord[];
         
-        const displayableImages = projectImageRecords.filter(img => img.storageUrl || img.dataUrl);
+        const imagesWithResolvedUrls = await Promise.all(
+          projectImageRecords.map(async (img) => {
+            let displayUrl = img.dataUrl;
+            // If dataUrl is not a base64 string or an http/s URL, AND filePath exists, try to get downloadURL
+            if ((!displayUrl || (!displayUrl.startsWith('data:') && !displayUrl.startsWith('http'))) && img.filePath) {
+                try {
+                    displayUrl = await getDownloadURL(ref(storage, img.filePath));
+                } catch (urlError) {
+                    console.warn(`SlideshowPlayerPage: Failed to get download URL for img ${img.id} (filePath: ${img.filePath}). Error:`, urlError);
+                    // Keep original (possibly undefined) dataUrl if download fails
+                }
+            }
+            return { ...img, dataUrl: displayUrl };
+          })
+        );
+
+        const displayableImages = imagesWithResolvedUrls.filter(img => img.dataUrl);
         setImages(displayableImages);
 
         if (displayableImages.length === 0) {
@@ -162,7 +180,6 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
   }
   
   const imageIsLandscape = currentImage && currentImage.width && currentImage.height && currentImage.width > currentImage.height;
-  const displayUrl = currentImage?.storageUrl || currentImage?.dataUrl;
 
   return (
     <div className="fixed inset-0 bg-slate-900 text-white flex flex-col items-center justify-center p-2 sm:p-4 z-[100] overflow-hidden select-none">
@@ -174,10 +191,10 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
             overflow-hidden rounded-lg shadow-2xl 
             group transition-all duration-300`}
         >
-           {currentImage && displayUrl && (
+           {currentImage && currentImage.dataUrl && (
             <img 
                 key={`${currentImage.id}-${currentAnimationClass}`}
-                src={displayUrl} 
+                src={currentImage.dataUrl} 
                 alt={currentImage.name} 
                 className={`w-full h-full object-cover ${currentAnimationClass}`}
             />

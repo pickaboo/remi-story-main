@@ -15,16 +15,6 @@ const FONT_SIZE_ALBUM_CONTINUATION_HEADER = FONT_SIZE_ALBUM_STORY - 2;
 const LINE_HEIGHT_ALBUM_STORY = 1.0; 
 const CONTINUATION_HEADER_ADVANCE_Y_ALBUM = 7; // mm space for continuation header + small padding
 
-// Helper to convert blob to base64
-const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
-
 
 export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: ImageRecord[]): Promise<void> => {
   const doc = new jsPDF({
@@ -49,22 +39,63 @@ export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: I
   // Image Pages
   for (const image of images) {
     doc.addPage();
-    let imageDataForPdf: string | undefined = image.dataUrl; // Fallback to existing dataUrl if present
-
+    let currentPageY = MARGIN; // Reset Y for each new page dedicated to an image
+    
     try {
-      if (image.storageUrl && !imageDataForPdf) { // Prioritize storageUrl if dataUrl is not present
-        const response = await fetch(image.storageUrl);
-        if (!response.ok) throw new Error(`Failed to fetch image from ${image.storageUrl}: ${response.statusText}`);
-        const blob = await response.blob();
-        imageDataForPdf = await blobToBase64(blob);
-      }
+      let imageDataForPdf: string | undefined = image.dataUrl;
+      let imageMimeType: string = image.type; // Original MIME type from ImageRecord
 
       if (!imageDataForPdf) {
-        throw new Error(`No image data available for ${image.name || 'Okänd bild'}`);
+        console.warn(`Skipping image "${image.name || 'Okänd bild'}" in PDF due to missing dataUrl.`);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(FONT_SIZE_ALBUM_STORY);
+        doc.text(`Bilddata saknas för: ${image.name || 'Okänd bild'}`, MARGIN, currentPageY);
+        currentPageY += 7; 
+        continue;
+      }
+
+      // If it's an HTTP/S URL, fetch it and convert to base64 data URL
+      if (imageDataForPdf.startsWith('http')) {
+        try {
+          const response = await fetch(imageDataForPdf);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image ${image.name || 'Okänd bild'}: ${response.status} ${response.statusText}`);
+          }
+          const blob = await response.blob();
+          imageMimeType = blob.type; // Use the actual blob type for more accuracy
+          
+          imageDataForPdf = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(blob);
+          });
+        } catch (fetchError: any) {
+          console.error(`Error fetching/converting image "${image.name || 'Okänd bild'}" from URL to base64:`, fetchError.message);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(FONT_SIZE_ALBUM_STORY);
+          doc.text(`Kunde inte ladda bilddata (nätverksfel): ${image.name || 'Okänd bild'}`, MARGIN, currentPageY);
+          currentPageY += 7;
+          continue;
+        }
+      }
+      
+      // At this point, imageDataForPdf should be a base64 data URL.
+      // Extract format for jsPDF (JPEG, PNG, etc.)
+      const imageFormat = imageMimeType.split('/')[1]?.toUpperCase();
+      const supportedFormats = ['JPEG', 'PNG', 'GIF', 'WEBP', 'JPG']; // JPG is alias for JPEG
+
+      if (!imageFormat || !supportedFormats.includes(imageFormat)) {
+        console.warn(`Skipping image "${image.name || 'Okänd bild'}" due to unsupported format for PDF: ${imageMimeType}`);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(FONT_SIZE_ALBUM_STORY);
+        doc.text(`Bildformat (${imageMimeType}) stöds ej för PDF: ${image.name || 'Okänd bild'}`, MARGIN, currentPageY);
+        currentPageY += 7;
+        continue;
       }
 
       // Add Image
-      const imgProps = doc.getImageProperties(imageDataForPdf);
+      const imgProps = doc.getImageProperties(imageDataForPdf); // Now this should work reliably
       const aspectRatio = imgProps.width / imgProps.height;
       
       let imgWidth = IMAGE_MAX_WIDTH_COMMON;
@@ -76,9 +107,10 @@ export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: I
       }
       
       const imgX = (A4_PAGE_WIDTH - imgWidth) / 2; // Center image
-      const imgY = MARGIN;
+      const imgYPosition = currentPageY;
 
-      doc.addImage(imageDataForPdf, imgProps.fileType || 'JPEG', imgX, imgY, imgWidth, imgHeight);
+      doc.addImage(imageDataForPdf, imageFormat === 'JPG' ? 'JPEG' : imageFormat, imgX, imgYPosition, imgWidth, imgHeight);
+      currentPageY = imgYPosition + imgHeight + 10; // Update Y for text after image
 
       // Add Compiled Story Text (or uploader's description if story is missing)
       let storyToUse = image.compiledStory;
@@ -91,7 +123,6 @@ export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: I
       
       if (storyToUse) {
         const textLines = doc.splitTextToSize(storyToUse, IMAGE_MAX_WIDTH_COMMON);
-        let currentTextY = imgY + imgHeight + 10; // Start text 10mm below image
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(FONT_SIZE_ALBUM_STORY);
@@ -99,28 +130,30 @@ export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: I
         const storyLineHeight = doc.getLineHeight(); // Get line height in mm
 
         textLines.forEach((line: string) => {
-          if (currentTextY + storyLineHeight > A4_PAGE_HEIGHT - MARGIN) {
+          if (currentPageY + storyLineHeight > A4_PAGE_HEIGHT - MARGIN) {
             doc.addPage();
-            currentTextY = MARGIN; // Reset Y for new page
+            currentPageY = MARGIN; // Reset Y for new page
             
             doc.setFontSize(FONT_SIZE_ALBUM_CONTINUATION_HEADER);
-            doc.text(`(Fortsättning för: ${image.name || 'Okänd bild'})`, MARGIN, currentTextY);
-            currentTextY += CONTINUATION_HEADER_ADVANCE_Y_ALBUM; 
+            doc.text(`(Fortsättning för: ${image.name || 'Okänd bild'})`, MARGIN, currentPageY);
+            currentPageY += CONTINUATION_HEADER_ADVANCE_Y_ALBUM; 
             doc.setFontSize(FONT_SIZE_ALBUM_STORY); 
           }
-          doc.text(line, MARGIN, currentTextY);
-          currentTextY += storyLineHeight;
+          doc.text(line, MARGIN, currentPageY);
+          currentPageY += storyLineHeight;
         });
       }
-    } catch (error) {
-      console.error(`Error adding image ${image.name || 'Okänd bild'} to PDF:`, error);
+    } catch (error: any) { // Catch errors from getImageProperties or other jsPDF calls
+      console.error(`Error processing image "${image.name || 'Okänd bild'}" for PDF:`, error.message);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(FONT_SIZE_ALBUM_STORY);
-      doc.text(`Kunde inte ladda text/bild för: ${image.name || 'Okänd bild'}`, MARGIN, MARGIN + 10);
+      if (currentPageY + 7 > A4_PAGE_HEIGHT - MARGIN) { 
+          doc.addPage();
+          currentPageY = MARGIN;
+      }
+      doc.text(`Fel vid bearbetning av bild: ${image.name || 'Okänd bild'}`, MARGIN, currentPageY);
     }
   }
 
   doc.save(`${project.name.replace(/\s+/g, '_').toLowerCase()}_fotoalbum.pdf`);
 };
-
-// Removed generateImageBankExportPdf function
