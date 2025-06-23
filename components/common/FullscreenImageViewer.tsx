@@ -82,7 +82,7 @@ export const FullscreenImageViewer: React.FC<FullscreenImageViewerProps> = ({ im
   return (
     <div
       ref={viewerRef}
-      className="fixed inset-0 bg-black/80 dark:bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-[200] p-4 select-none"
+      className="fixed inset-0 bg-slate-900/60 dark:bg-black/20 backdrop-blur-xl flex flex-col items-center justify-center z-[200] p-4 select-none"
       role="dialog"
       aria-modal="true"
       aria-label={`Helskärmsvy av ${imageName || 'bild'}`}
