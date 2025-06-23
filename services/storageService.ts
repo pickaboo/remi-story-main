@@ -1,4 +1,3 @@
-
 import { db, storage } from '../firebase'; 
 import {
   collection,
@@ -15,7 +14,9 @@ import {
   writeBatch,
   arrayUnion,
   arrayRemove,
-  FieldValue 
+  FieldValue,
+  onSnapshot, // Added for real-time listener
+  QuerySnapshot // Added for type
 } from 'firebase/firestore';
 import {
   ref,
@@ -44,33 +45,130 @@ export const getAllImages = async (): Promise<ImageRecord[]> => {
   return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as ImageRecord));
 };
 
+// New function for real-time feed posts
+export const getSphereFeedPostsListener = (
+  sphereId: string,
+  onPostsUpdate: (posts: ImageRecord[]) => void,
+  onError: (error: Error, sphereId?: string) => void // Added optional sphereId to onError
+): (() => void) => { // Returns an unsubscribe function
+  const imagesCol = collection(db, IMAGES_COLLECTION);
+  const q = query(
+    imagesCol,
+    where('sphereId', '==', sphereId),
+    where('isPublishedToFeed', '==', true),
+    orderBy('createdAt', 'desc') // Ensure 'createdAt' is a Timestamp for proper ordering
+  );
+
+  const unsubscribe = onSnapshot(q, 
+    async (querySnapshot: QuerySnapshot) => {
+      const postsWithResolvedUrls = await Promise.all(
+        querySnapshot.docs.map(async (docSnap) => {
+          const rawPostData = docSnap.data(); // Get raw data first
+          let displayUrl = rawPostData.dataUrl;
+
+          if ((!displayUrl || !displayUrl.startsWith('data:')) && rawPostData.filePath) {
+            try {
+              displayUrl = await getDownloadURL(ref(storage, rawPostData.filePath));
+            } catch (urlError: any) {
+              console.warn(`FeedListener: Failed to get download URL for post ${docSnap.id} (filePath: ${rawPostData.filePath}). Error: ${urlError.message}`);
+            }
+          }
+          
+          const createdAtValue = rawPostData.createdAt;
+          const updatedAtValue = rawPostData.updatedAt;
+
+          return {
+            id: docSnap.id,
+            ...(rawPostData as Omit<ImageRecord, 'id' | 'dataUrl' | 'createdAt' | 'updatedAt'>), // Cast other fields
+            dataUrl: displayUrl,
+            userDescriptions: Array.isArray(rawPostData.userDescriptions) ? rawPostData.userDescriptions : [],
+            processedByHistory: Array.isArray(rawPostData.processedByHistory) ? rawPostData.processedByHistory : [],
+            tags: Array.isArray(rawPostData.tags) ? rawPostData.tags : [],
+            suggestedGeotags: Array.isArray(rawPostData.suggestedGeotags) ? rawPostData.suggestedGeotags : [],
+            sphereId: rawPostData.sphereId || sphereId, // Ensure sphereId is present
+            createdAt: (createdAtValue instanceof Timestamp)
+              ? createdAtValue.toDate().toISOString()
+              : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+            updatedAt: (updatedAtValue instanceof Timestamp)
+              ? updatedAtValue.toDate().toISOString()
+              : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
+            dateTaken: rawPostData.dateTaken, // Assuming dateTaken is already a string or undefined
+          } as ImageRecord;
+        })
+      );
+      
+      // Sort again after URLs are resolved, as createdAt might be string now
+      const sortedPosts = postsWithResolvedUrls.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      onPostsUpdate(sortedPosts);
+    },
+    (error) => {
+      console.error(`Error in getSphereFeedPostsListener snapshot listener for sphereId '${sphereId}': `, error);
+      onError(error, sphereId); // Pass sphereId along with the error
+    }
+  );
+
+  return unsubscribe; // Return the unsubscribe function
+};
+
+
 export const getImageById = async (id: string): Promise<ImageRecord | undefined> => {
   const docRef = doc(db, IMAGES_COLLECTION, id);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as ImageRecord;
+    const rawData = docSnap.data(); // Get raw data
+    const createdAtValue = rawData.createdAt;
+    const updatedAtValue = rawData.updatedAt;
+
+    return { 
+        id: docSnap.id, 
+        ...(rawData as Omit<ImageRecord, 'id' | 'createdAt' | 'updatedAt'>), // Cast other fields
+        createdAt: (createdAtValue instanceof Timestamp)
+          ? createdAtValue.toDate().toISOString()
+          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+        updatedAt: (updatedAtValue instanceof Timestamp)
+          ? updatedAtValue.toDate().toISOString()
+          : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
+     } as ImageRecord;
   }
   return undefined;
 };
 
 export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
-  const { dataUrl, id: imageId, createdAt: originalCreatedAt, updatedAt: originalUpdatedAt, ...restOfImageDetailsInput } = image;
+  const { dataUrl, id: imageId, createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, ...restOfImageDetailsInput } = image;
 
-  // Create a mutable copy of restOfImageDetails to modify
   const restOfImageDetails = { ...restOfImageDetailsInput };
 
-  // 1. Sanitize userDescriptions: convert undefined audioRecUrl to null
   if (restOfImageDetails.userDescriptions && Array.isArray(restOfImageDetails.userDescriptions)) {
     restOfImageDetails.userDescriptions = restOfImageDetails.userDescriptions.map(desc => {
-      const newDesc = { ...desc }; // Create a new object for the description entry
+      const newDesc = { ...desc }; 
       if (newDesc.audioRecUrl === undefined) {
         newDesc.audioRecUrl = null;
+      }
+      // Ensure createdAt in UserDescriptionEntry is string
+      const originalUserDescCreatedAt = desc.createdAt;
+      if (originalUserDescCreatedAt) {
+        if (typeof originalUserDescCreatedAt === 'string') {
+          newDesc.createdAt = originalUserDescCreatedAt;
+        } else if (originalUserDescCreatedAt instanceof Timestamp) {
+          newDesc.createdAt = originalUserDescCreatedAt.toDate().toISOString();
+        } else {
+          // This case should ideally not happen if types are consistent.
+          // It handles if desc.createdAt is some other object type.
+          console.warn('UserDescriptionEntry.createdAt was an unexpected type, using current date.', originalUserDescCreatedAt);
+          newDesc.createdAt = new Date().toISOString();
+        }
+      } else { // If desc.createdAt is null, undefined, or empty string
+        newDesc.createdAt = new Date().toISOString();
       }
       return newDesc;
     });
   }
   
-  // File upload logic (uses image.filePath from the original image object if dataUrl indicates new upload)
   if (dataUrl && dataUrl.startsWith('data:') && image.filePath) {
     const storageRef = ref(storage, image.filePath);
     const base64DataParts = dataUrl.split(',');
@@ -84,7 +182,6 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
 
   const docRef = doc(db, IMAGES_COLLECTION, imageId);
 
-  // 2. Prepare final data for Firestore: convert all other top-level undefined properties in restOfImageDetails to null
   const firestoreData: { [key: string]: any } = {};
   for (const key in restOfImageDetails) {
     if (Object.prototype.hasOwnProperty.call(restOfImageDetails, key)) {
@@ -94,22 +191,25 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
       if (value === undefined) {
         firestoreData[key] = null;
       } else {
-        firestoreData[key] = value; // This includes the potentially modified userDescriptions
+        firestoreData[key] = value; 
       }
     }
   }
   
-  // Handle timestamps
-  if (!originalCreatedAt) { 
+  // Handle timestamps: convert string ISO dates from ImageRecord back to Firestore Timestamps if needed or use serverTimestamp
+  if (!originalCreatedAtStr) { 
     firestoreData.createdAt = serverTimestamp();
   } else {
-    firestoreData.createdAt = originalCreatedAt; 
+    // If originalCreatedAtStr is a valid ISO string, convert to Timestamp
+    firestoreData.createdAt = Timestamp.fromDate(new Date(originalCreatedAtStr));
   }
   firestoreData.updatedAt = serverTimestamp();
   
   await setDoc(docRef, firestoreData, { merge: true });
   
-  return image; 
+  const savedImage = { ...image };
+
+  return savedImage; 
 };
 
 
@@ -155,21 +255,35 @@ export const getDiaryEntriesByUserId = async (userId: string): Promise<DiaryEntr
   const diaryCol = collection(db, DIARY_ENTRIES_COLLECTION);
   const q = query(diaryCol, where('userId', '==', userId), orderBy('date', 'desc'));
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as DiaryEntry));
+  return snapshot.docs.map(docSnap => {
+    const data = docSnap.data();
+    const createdAtValue = data.createdAt;
+    const updatedAtValue = data.updatedAt;
+    return { 
+        id: docSnap.id, 
+        ...data,
+        createdAt: (createdAtValue instanceof Timestamp)
+          ? createdAtValue.toDate().toISOString()
+          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+        updatedAt: (updatedAtValue instanceof Timestamp)
+          ? updatedAtValue.toDate().toISOString()
+          : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
+    } as DiaryEntry
+  });
 };
 
 export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
   const docRef = doc(db, DIARY_ENTRIES_COLLECTION, entry.id);
-  const entryToSave: Omit<DiaryEntry, 'createdAt'|'updatedAt'> & {createdAt?: FieldValue | string, updatedAt?: FieldValue | string} = {
+  const entryToSave: Omit<DiaryEntry, 'createdAt'|'updatedAt'> & {createdAt?: FieldValue | Timestamp, updatedAt?: FieldValue | Timestamp} = {
     ...entry,
     updatedAt: serverTimestamp(),
   };
   if (!entry.createdAt) {
     entryToSave.createdAt = serverTimestamp(); 
   } else {
-    entryToSave.createdAt = entry.createdAt; 
+    // If createdAt is a string, convert to Timestamp before saving
+    entryToSave.createdAt = Timestamp.fromDate(new Date(entry.createdAt));
   }
-  // Ensure audioRecUrl and transcribedText are null if undefined
   if (entryToSave.audioRecUrl === undefined) entryToSave.audioRecUrl = null;
   if (entryToSave.transcribedText === undefined) entryToSave.transcribedText = null;
 
@@ -220,21 +334,50 @@ export const getPendingInvitationsForEmail = async (email: string): Promise<Sphe
   const invitationsCol = collection(db, SPHERE_INVITATIONS_COLLECTION);
   const q = query(invitationsCol, where('inviteeEmail', '==', email.toLowerCase()), where('status', '==', 'pending'));
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as SphereInvitation));
+  return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      const createdAtValue = data.createdAt;
+      const respondedAtValue = data.respondedAt;
+      return {
+        id: docSnap.id,
+        ...data,
+        createdAt: (createdAtValue instanceof Timestamp)
+          ? createdAtValue.toDate().toISOString()
+          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+        respondedAt: (respondedAtValue instanceof Timestamp)
+          ? respondedAtValue.toDate().toISOString()
+          : (typeof respondedAtValue === 'string' ? respondedAtValue : undefined),
+      } as SphereInvitation
+  });
 };
 
 export const updateSphereInvitationStatus = async (invitationId: string, status: 'accepted' | 'declined', inviteeUserId?: string): Promise<SphereInvitation | null> => {
   const invitationDocRef = doc(db, SPHERE_INVITATIONS_COLLECTION, invitationId);
-  const updateData: Partial<SphereInvitation> = {
+  const updateData: Partial<Omit<SphereInvitation, 'createdAt'|'respondedAt'> & {createdAt?: FieldValue|Timestamp, respondedAt?: FieldValue|Timestamp}> = {
     status,
-    respondedAt: Timestamp.now().toDate().toISOString(),
+    respondedAt: serverTimestamp(),
   };
   if (status === 'accepted' && inviteeUserId) {
     updateData.inviteeUserId = inviteeUserId;
   }
   await setDoc(invitationDocRef, updateData, { merge: true });
   const updatedDocSnap = await getDoc(invitationDocRef);
-  return updatedDocSnap.exists() ? ({ id: updatedDocSnap.id, ...updatedDocSnap.data() } as SphereInvitation) : null;
+  if(updatedDocSnap.exists()){
+    const data = updatedDocSnap.data();
+    const createdAtValue = data.createdAt;
+    const respondedAtValue = data.respondedAt; // This will be server-set, won't be available immediately client-side
+    return {
+        id: updatedDocSnap.id,
+        ...data,
+        createdAt: (createdAtValue instanceof Timestamp)
+          ? createdAtValue.toDate().toISOString()
+          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+        respondedAt: (respondedAtValue instanceof Timestamp) 
+          ? respondedAtValue.toDate().toISOString() 
+          : (typeof respondedAtValue === 'string' ? respondedAtValue : undefined),
+    } as SphereInvitation;
+  }
+  return null;
 };
 
 export const uploadAudioFile = async (audioDataUrl: string, userId: string, entryId: string): Promise<string> => {

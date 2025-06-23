@@ -1,4 +1,5 @@
-import React, { useState, useEffect, JSX } from 'react';
+
+import React, { useState, useEffect, useMemo, JSX } from 'react'; // Added useMemo
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
@@ -7,7 +8,6 @@ import { Button } from '../common/Button';
 import { Input } from '../common/Input'; // Keep for hover input
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { AudioPlayerButton } from '../common/AudioPlayerButton';
-import { FullscreenImageViewer } from '../common/FullscreenImageViewer'; // Added
 
 interface PostCardProps {
   post: ImageRecord;
@@ -15,14 +15,6 @@ interface PostCardProps {
   onPostUpdated: (updatedPost: ImageRecord) => void;
   onNavigateToEdit: () => void;
 }
-
-// Local SVG Icon for fullscreen button
-const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-    </svg>
-);
-
 
 export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }: PostCardProps): JSX.Element {
   const [newCommentText, setNewCommentText] = useState('');
@@ -35,8 +27,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   const [isLoadingCreator, setIsLoadingCreator] = useState(true);
   const [commenters, setCommenters] = useState<Map<string, User>>(new Map());
   const [isLoadingCommenters, setIsLoadingCommenters] = useState(true);
-
-  const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null); // State for fullscreen viewer
 
 
   useEffect(() => {
@@ -52,13 +42,22 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     }
   }, [post.uploadedByUserId]);
 
+  const mainPostDescription = useMemo(() => {
+    const userDescriptionsArray = Array.isArray(post.userDescriptions) ? post.userDescriptions : [];
+    return userDescriptionsArray.find(ud => ud.userId === post.uploadedByUserId);
+  }, [post.userDescriptions, post.uploadedByUserId]);
 
-  const mainPostDescription = post.userDescriptions.find(ud => ud.userId === post.uploadedByUserId);
-  const comments = post.userDescriptions.filter(ud => ud !== mainPostDescription).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const comments = useMemo(() => {
+    const userDescriptionsArray = Array.isArray(post.userDescriptions) ? post.userDescriptions : [];
+    return userDescriptionsArray
+      .filter(ud => ud !== mainPostDescription)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }, [post.userDescriptions, mainPostDescription]);
+
 
   useEffect(() => {
     const fetchCommenters = async () => {
-      if (comments.length > 0) {
+      if (Array.isArray(comments) && comments.length > 0) {
         setIsLoadingCommenters(true);
         const uniqueCommenterIds = Array.from(new Set(comments.map(c => c.userId)));
         const newCommentersMap = new Map<string, User>();
@@ -99,7 +98,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     setIsCommenting(true);
     commentAudioRecorder.stopRecording();
 
-    const updatedDescriptions = [...post.userDescriptions];
+    const updatedDescriptions = [...(Array.isArray(post.userDescriptions) ? post.userDescriptions : [])];
     let uploaderEntry = updatedDescriptions.find(ud => ud.userId === currentUser.id);
 
     if (uploaderEntry) {
@@ -136,7 +135,8 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       audioRecUrl: commentAudioRecorder.audioUrl || undefined,
       createdAt: new Date().toISOString(),
     };
-    const updatedPost = { ...post, userDescriptions: [...post.userDescriptions, newCommentEntry] };
+    const userDescriptionsArray = Array.isArray(post.userDescriptions) ? post.userDescriptions : [];
+    const updatedPost = { ...post, userDescriptions: [...userDescriptionsArray, newCommentEntry] };
     await saveImage(updatedPost);
     onPostUpdated(updatedPost);
     setNewCommentText('');
@@ -169,15 +169,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     onPostUpdated(updatedPost);
   };
 
-  const handleOpenFullscreenViewer = (url: string | undefined) => {
-    if (url) {
-        setFullscreenImageUrl(url);
-    }
-  };
-  const handleCloseFullscreenViewer = () => {
-    setFullscreenImageUrl(null);
-  };
-
 
   const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>;
   const StopIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>;
@@ -206,7 +197,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   };
 
   return (
-    <>
     <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
       {/* Post Header */}
       <div className="flex items-center justify-between mb-3">
@@ -239,21 +229,11 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       )}
 
       {/* Image, Hover Tag Management, and User-added Tags */}
-      {hasImage && post.dataUrl && (
+      {hasImage && (
         <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700/50 shadow-md">
           <div className="relative group"> {/* Added group for hover */}
             <img src={post.dataUrl} alt={post.name} className="w-full h-auto object-contain block max-h-[70vh]" />
             
-            {/* Fullscreen Button */}
-            <button
-                onClick={() => handleOpenFullscreenViewer(post.dataUrl)}
-                className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                title="Visa i helskärm"
-                aria-label="Visa bild i helskärm"
-            >
-                <MagnifyingGlassPlusIcon className="w-5 h-5" />
-            </button>
-
             {/* Tag Management Overlay on Hover - only for uploader */}
             {currentUser.id === post.uploadedByUserId && (
               <div 
@@ -460,7 +440,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       </div>
 
       {/* Comments List */}
-      {comments.length > 0 && (
+      {Array.isArray(comments) && comments.length > 0 && (
         <div className="mt-4 space-y-3 pt-3 border-t border-border-color dark:border-slate-700">
           {displayedComments.map(comment => {
             const commenter = commenters.get(comment.userId);
@@ -494,15 +474,5 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       
       {/* Removed old custom tag input section */}
     </div>
-
-    {fullscreenImageUrl && (
-        <FullscreenImageViewer
-            imageUrl={fullscreenImageUrl}
-            imageName={post.name}
-            isOpen={!!fullscreenImageUrl}
-            onClose={handleCloseFullscreenViewer}
-        />
-    )}
-    </>
   );
 }
