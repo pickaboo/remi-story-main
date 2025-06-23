@@ -8,6 +8,8 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord, View, User, UserDescriptionEntry } from '../types';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { getDownloadURL, ref } from 'firebase/storage'; // Added
+import { storage } from '../firebase'; // Added
 
 
 interface EditImagePageProps {
@@ -59,6 +61,26 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
           console.warn(`Image '${imageId}' is marked as not published to feed but is being edited. Saving will publish it.`);
         }
 
+        // Attempt to resolve dataUrl if it's not base64 and filePath exists
+        if (migratedImage.dataUrl && !migratedImage.dataUrl.startsWith('data:') && migratedImage.filePath) {
+            try {
+                const downloadUrl = await getDownloadURL(ref(storage, migratedImage.filePath));
+                migratedImage.dataUrl = downloadUrl;
+            } catch (urlError: any) {
+                console.error(`EditImagePage: Failed to get download URL for ${migratedImage.filePath}:`, urlError.message);
+                // Keep original dataUrl (which might be undefined or a non-base64 path if download failed)
+                // The UI will show "Detta inlägg har ingen bild" if dataUrl remains unsuitable.
+            }
+        } else if (!migratedImage.dataUrl && migratedImage.filePath) { // If dataUrl is missing entirely but filePath exists
+             try {
+                const downloadUrl = await getDownloadURL(ref(storage, migratedImage.filePath));
+                migratedImage.dataUrl = downloadUrl;
+            } catch (urlError: any) {
+                console.error(`EditImagePage: Failed to get download URL (no initial dataUrl) for ${migratedImage.filePath}:`, urlError.message);
+            }
+        }
+
+
         setImage(migratedImage);
         const userDescEntry = migratedImage.userDescriptions.find(ud => ud.userId === currentUser.id);
         setCurrentUserTextDescription(userDescEntry?.description || '');
@@ -72,7 +94,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
     } finally {
       setIsLoading(false);
     }
-  }, [imageId, currentUser, resetAudioFromHook]); // Changed dependency to stable resetAudioFromHook
+  }, [imageId, currentUser, resetAudioFromHook]); 
 
   useEffect(() => {
     fetchImage();
@@ -155,11 +177,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
         compiledStory: image.compiledStory || '', 
         userDescriptions: updatedUserDescriptions,
         sphereId: image.sphereId || currentUser?.sphereIds[0] || 'defaultSphereOnError',
-        isPublishedToFeed: true,
-        // dataUrl and storageUrl are handled by saveImage service function now.
-        // Pass the current state of dataUrl if it exists (e.g., from a new upload not yet saved)
-        // This allows saveImage to upload it if necessary.
-        dataUrl: image.dataUrl, // Keep this if it was a new image being edited
+        isPublishedToFeed: true, 
       };
       await saveImage(imageToSave); 
       onNavigate(View.Home); 
@@ -198,7 +216,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
   const audioUrlToPlay = audioRecorder.audioUrl || existingUserAudioUrl;
 
   const pageTitle = `Redigera Inlägg: ${image.name}`;
-  const displayUrl = image.storageUrl || image.dataUrl;
 
   return (
     <PageContainer title={pageTitle}>
@@ -209,8 +226,8 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
         </div>}
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-1/2 flex flex-col items-center">
-            {displayUrl ? (
-              <img src={displayUrl} alt={image.name} className="w-full rounded-xl shadow-xl max-h-[80vh] object-contain sticky top-24" />
+            {image.dataUrl && (image.dataUrl.startsWith('data:') || image.dataUrl.startsWith('http')) ? (
+              <img src={image.dataUrl} alt={image.name} className="w-full rounded-xl shadow-xl max-h-[80vh] object-contain sticky top-24" />
             ) : (
               <div className="w-full rounded-xl shadow-xl min-h-[200px] bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-muted-text dark:text-slate-400 p-8 sticky top-24 text-center">
                 Detta inlägg har ingen bild. Du kan redigera text, ljud och taggar.
@@ -243,7 +260,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
                 />
                 <Button onClick={() => handleAddTag()} size="md" variant="ghost" className="whitespace-nowrap" disabled={isSaving || !currentTag.trim()}>Lägg till</Button>
               </div>
-              {displayUrl && image.suggestedGeotags && image.suggestedGeotags.length > 0 && (
+              {image.dataUrl && image.suggestedGeotags && image.suggestedGeotags.length > 0 && (
                 <div className="mb-3">
                   <p className="text-xs text-muted-text dark:text-slate-400 mb-1.5">Föreslagna geotaggar (klicka för att lägga till):</p>
                   <div className="flex flex-wrap gap-2">
@@ -322,15 +339,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
                     </Button>
                 </div>
             </div>
-
-            {image.geminiAnalysis && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-text dark:text-slate-400 mb-1">AI Bildanalys (objektiv):</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-border-color dark:border-slate-600">
-                  {image.geminiAnalysis}
-                </p>
-              </div>
-            )}
             
             <div className="pt-6 border-t border-border-color dark:border-slate-600 flex justify-end gap-3">
               <Button onClick={() => onNavigate(View.Home)} variant="secondary" disabled={isSaving}>Avbryt</Button>

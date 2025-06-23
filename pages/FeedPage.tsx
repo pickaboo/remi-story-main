@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, View, User, Sphere } from '../types'; 
-import { getAllImages } from '../services/storageService'; 
+import { ImageRecord, View, User, Sphere } from '../types';
+import { getAllImages } from '../services/storageService';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../firebase'; // Added
 
@@ -12,22 +12,22 @@ import { storage } from '../firebase'; // Added
 interface FeedPageProps {
   onNavigate: (view: View, params?: any) => void;
   currentUser: User;
-  activeSphere: Sphere; 
-  onFeedPostsUpdate: (posts: ImageRecord[]) => void; 
-  onVisiblePostsDateChange: (date: Date | null) => void; 
+  activeSphere: Sphere;
+  onFeedPostsUpdate: (posts: ImageRecord[]) => void;
+  onVisiblePostsDateChange: (date: Date | null) => void;
   prefillPostWithImageId?: string | null;
   scrollToPostIdFromParams?: string | null; // New prop for scrolling
 }
 
 
-export const FeedPage: React.FC<FeedPageProps> = ({ 
-    onNavigate, 
-    currentUser, 
-    activeSphere, 
-    onFeedPostsUpdate, 
+export const FeedPage: React.FC<FeedPageProps> = ({
+    onNavigate,
+    currentUser,
+    activeSphere,
+    onFeedPostsUpdate,
     onVisiblePostsDateChange,
     prefillPostWithImageId,
-    scrollToPostIdFromParams 
+    scrollToPostIdFromParams
 }) => {
   const [posts, setPosts] = useState<ImageRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,13 +37,13 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
   const fetchPosts = useCallback(async () => {
     setIsLoading(true);
-    setError(null); 
+    setError(null);
     try {
-      const imagesFromStorage = await getAllImages(); 
-      
-      const sphereRawPosts = imagesFromStorage.filter(post => 
-        post.sphereId === activeSphere.id && 
-        (post.isPublishedToFeed === true || post.isPublishedToFeed === undefined) 
+      const imagesFromStorage = await getAllImages();
+
+      const sphereRawPosts = imagesFromStorage.filter(post =>
+        post.sphereId === activeSphere.id &&
+        (post.isPublishedToFeed === true || post.isPublishedToFeed === undefined)
       );
 
       const postsWithResolvedUrls = await Promise.all(
@@ -65,7 +65,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
             processedByHistory: Array.isArray(post.processedByHistory) ? post.processedByHistory : [],
             tags: Array.isArray(post.tags) ? post.tags : [],
             suggestedGeotags: Array.isArray(post.suggestedGeotags) ? post.suggestedGeotags : [],
-            sphereId: post.sphereId || activeSphere.id, 
+            sphereId: post.sphereId || activeSphere.id,
           };
         })
       );
@@ -74,7 +74,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
         const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0;
         const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0;
         if (dateB !== dateA) return dateB - dateA;
-        const idTimeA = a.id ? parseInt(a.id.substring(0, 8), 36) : 0; 
+        const idTimeA = a.id ? parseInt(a.id.substring(0, 8), 36) : 0;
         const idTimeB = b.id ? parseInt(b.id.substring(0, 8), 36) : 0;
         return idTimeB - idTimeA;
       });
@@ -85,7 +85,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [activeSphere.id]); 
+  }, [activeSphere.id]);
 
   useEffect(() => {
     fetchPosts();
@@ -95,14 +95,14 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     if (prefillPostWithImageId && createPostRef.current) {
       // Scroll to CreatePost component smoothly
       createPostRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Potentially clear the prefill param from URL after use, if desired, 
+      // Potentially clear the prefill param from URL after use, if desired,
       // but App.tsx handles URL state. Here we just react to the prop.
     }
   }, [prefillPostWithImageId]);
 
 
   useEffect(() => {
-    if (posts && posts.length >= 0) { 
+    if (posts && posts.length >= 0) {
       onFeedPostsUpdate(posts);
     }
   }, [posts, onFeedPostsUpdate]);
@@ -110,11 +110,11 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   // Effect for scrolling to a specific post
   useEffect(() => {
     if (scrollToPostIdFromParams && posts.length > 0) {
-      if (scrolledToIdRef.current !== scrollToPostIdFromParams) { 
+      if (scrolledToIdRef.current !== scrollToPostIdFromParams) {
         const element = document.getElementById(`post-item-${scrollToPostIdFromParams}`);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          scrolledToIdRef.current = scrollToPostIdFromParams; 
+          scrolledToIdRef.current = scrollToPostIdFromParams;
         } else {
           // Post not found in DOM yet, reset ref to try again if posts update
           scrolledToIdRef.current = null;
@@ -126,30 +126,35 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   }, [scrollToPostIdFromParams, posts]);
 
   const handlePostCreated = (newPost: ImageRecord) => {
-    // Only add to feed display if it's for the current sphere and is marked as published
     if (newPost.sphereId === activeSphere.id && (newPost.isPublishedToFeed === true || newPost.isPublishedToFeed === undefined)) {
       setPosts(prevPosts => {
-        const updatedPosts = [newPost, ...prevPosts].sort((a, b) => {
+        const existingPostIndex = prevPosts.findIndex(p => p.id === newPost.id);
+        let updatedPostsIntermediate;
+
+        if (existingPostIndex > -1) {
+          // Update existing post
+          updatedPostsIntermediate = prevPosts.map((p, index) =>
+            index === existingPostIndex ? newPost : p
+          );
+        } else {
+          // Add new post
+          updatedPostsIntermediate = [newPost, ...prevPosts];
+        }
+
+        // Sort all posts (including new/updated)
+        return updatedPostsIntermediate.sort((a, b) => {
           const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : (a.id ? parseInt(a.id.substring(0,8), 36) : 0);
           const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : (b.id ? parseInt(b.id.substring(0,8), 36) : 0);
           return dateB - dateA;
         });
-        return updatedPosts;
       });
     } else {
-        // If the post isn't for this sphere OR isn't published, it shouldn't be added to this feed's state.
-        // It might have been saved to storage correctly (e.g. to bank if isPublishedToFeed is false).
-        // If it was meant for *this* feed but something went wrong with sphereId or published flag,
-        // a refetch might be too broad if other logic handles direct state updates.
-        // For now, if it's not for this feed, we do nothing to the local state, assuming it's handled elsewhere or not relevant here.
-        console.warn("Post created/updated but not added to current feed display:", {
-            postId: newPost.id, 
-            postSphere: newPost.sphereId, 
+        console.warn("Post created/updated but not added to current feed display (mismatched sphere or not published):", {
+            postId: newPost.id,
+            postSphere: newPost.sphereId,
             postPublished: newPost.isPublishedToFeed,
             activeSphere: activeSphere.id
         });
-        // Optionally, one could refetch if there's a suspicion of state inconsistency, but targeted updates are better.
-        // fetchPosts(); 
     }
     // If the page was prefilled, navigate to clear the prefill parameter from App state.
     if (prefillPostWithImageId) {
@@ -168,43 +173,59 @@ export const FeedPage: React.FC<FeedPageProps> = ({
         });
     }
   };
-  
+
   useEffect(() => {
     const postElements = posts.map(post => document.getElementById(`post-item-${post.id}`)).filter(el => el !== null);
-  
+
     if (postElements.length === 0) {
-        onVisiblePostsDateChange(null); 
+        onVisiblePostsDateChange(null);
         return;
     }
-  
+
     const observer = new IntersectionObserver((entries) => {
-      let activePostCandidate: ImageRecord | null = null;
-      let minTopValue = Infinity; 
+      let determinedActivePost: ImageRecord | null = null; // Use a new variable
+      let minTopValue = Infinity;
 
       entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) { 
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
           const postId = entry.target.id.replace('post-item-', '');
-          const post = posts.find(p => p.id === postId);
-          if (post) {
+          const foundPost = posts.find(p => p.id === postId); // foundPost is ImageRecord | undefined
+
+          if (foundPost) { // Type guard: foundPost is ImageRecord here
             if (entry.boundingClientRect.top < minTopValue) {
               minTopValue = entry.boundingClientRect.top;
-              activePostCandidate = post;
+              determinedActivePost = foundPost; // Assign the confirmed ImageRecord
             }
           }
         }
       });
-        
-      if (activePostCandidate && activePostCandidate.dateTaken) {
-        onVisiblePostsDateChange(new Date(activePostCandidate.dateTaken));
-      } 
+      
+      if (determinedActivePost) { // Now determinedActivePost is ImageRecord (not null)
+        const currentPost: ImageRecord = determinedActivePost; // For clarity, or use determinedActivePost directly
+        const postIdForLogging = currentPost.id;
+        const dateTakenValue = currentPost.dateTaken;
+
+        if (dateTakenValue && typeof dateTakenValue === 'string' && dateTakenValue.length > 0) {
+          try {
+            const dateObj = new Date(dateTakenValue);
+            if (!isNaN(dateObj.getTime())) {
+              onVisiblePostsDateChange(dateObj);
+            } else {
+              console.warn(`FeedPage IntersectionObserver: Invalid date string encountered - "${dateTakenValue}" for post ID ${postIdForLogging}`);
+            }
+          } catch (e) {
+            console.error(`FeedPage IntersectionObserver: Error parsing date string "${dateTakenValue}" for post ID ${postIdForLogging}:`, e);
+          }
+        }
+      }
     }, {
-      root: null, 
-      rootMargin: "-49% 0px -49% 0px", 
-      threshold: [0.5], 
+      root: null,
+      rootMargin: "-49% 0px -49% 0px",
+      threshold: [0.5],
     });
-  
+
     postElements.forEach(element => observer.observe(element!));
-  
+
     return () => {
       postElements.forEach(element => {
         if (element) observer.unobserve(element);
@@ -216,20 +237,20 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
   return (
     <div className="py-8 sm:px-6 lg:px-8 w-full flex justify-center">
-      <div className="max-w-7xl w-full"> 
-        <div className="max-w-2xl mx-auto"> 
+      <div className="max-w-7xl w-full">
+        <div className="max-w-2xl mx-auto">
           <div className="space-y-8">
             <div ref={createPostRef} className="scroll-mt-8"> {/* Wrapper for CreatePost and scroll target */}
-              <CreatePost 
-                currentUser={currentUser} 
-                activeSphereId={activeSphere.id} 
+              <CreatePost
+                currentUser={currentUser}
+                activeSphereId={activeSphere.id}
                 onPostCreated={handlePostCreated}
                 initialImageIdToLoad={prefillPostWithImageId} // Pass the prop
               />
             </div>
 
             {isLoading && <div className="flex justify-center py-10"><LoadingSpinner message="Laddar inlägg..." /></div>}
-            
+
             {error && <div className="bg-red-100 border border-red-400 text-danger px-4 py-3 rounded-lg" role="alert">
                 <strong className="font-bold">Fel:</strong>
                 <span className="block sm:inline"> {error}</span>
@@ -247,10 +268,10 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
             <div className="space-y-6">
               {posts.map(post => (
-                <div id={`post-item-${post.id}`} key={post.id} className="scroll-mt-8"> 
-                  <PostCard 
-                    post={post} 
-                    currentUser={currentUser} 
+                <div id={`post-item-${post.id}`} key={post.id} className="scroll-mt-8">
+                  <PostCard
+                    post={post}
+                    currentUser={currentUser}
                     onPostUpdated={handlePostUpdated}
                     onNavigateToEdit={() => onNavigate(View.EditImage, { imageId: post.id })}
                   />

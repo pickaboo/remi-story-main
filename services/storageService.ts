@@ -61,9 +61,9 @@ export const getImageById = async (id: string): Promise<ImageRecord | undefined>
 };
 
 export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
-  const { dataUrl, ...imageDataToStore } = image; // dataUrl lagras inte i Firestore
+  const { dataUrl, id: imageId, createdAt: originalCreatedAt, updatedAt: originalUpdatedAt, ...restOfImageDetails } = image;
 
-  // Only attempt to upload if dataUrl is a base64 string AND filePath is provided
+  // File upload logic
   if (dataUrl && dataUrl.startsWith('data:') && image.filePath) {
     const storageRef = ref(storage, image.filePath);
     const base64DataParts = dataUrl.split(',');
@@ -74,31 +74,48 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
     const base64Data = base64DataParts[1];
     await uploadString(storageRef, base64Data, 'base64', { contentType: image.type });
   }
-  // If dataUrl is present but not a base64 string (e.g., it's a downloadURL from ImageBankPicker),
-  // and filePath is present, we assume the file is already in storage and do nothing with dataUrl here.
-  // The dataUrl field is already excluded from imageDataToStore.
+  // If dataUrl is a download URL, filePath should already be set, and we don't re-upload.
 
+  const docRef = doc(db, IMAGES_COLLECTION, imageId);
 
-  const docRef = doc(db, IMAGES_COLLECTION, image.id);
-  // Explicitly type saveData to allow for FieldValue for timestamp fields
-  const saveData: Omit<ImageRecord, 'dataUrl' | 'createdAt' | 'updatedAt'> & { createdAt?: FieldValue | string, updatedAt?: FieldValue | string } = { 
-    ...imageDataToStore 
-  };
-  
-  if (!imageDataToStore.createdAt) { 
-    saveData.createdAt = serverTimestamp();
+  // Prepare data for Firestore, converting undefined to null
+  const firestoreData: { [key: string]: any } = {};
+  for (const key in restOfImageDetails) {
+    if (Object.prototype.hasOwnProperty.call(restOfImageDetails, key)) {
+      const typedKey = key as keyof typeof restOfImageDetails;
+      // Ensure filePath from restOfImageDetails is also handled here
+      if (key === 'filePath' && restOfImageDetails[typedKey] === undefined) {
+        firestoreData[key] = null;
+      } else if (restOfImageDetails[typedKey] === undefined) {
+        firestoreData[key] = null;
+      } else {
+        firestoreData[key] = restOfImageDetails[typedKey];
+      }
+    }
   }
-  saveData.updatedAt = serverTimestamp(); 
-
-  await setDoc(docRef, saveData, { merge: true });
-  // Returnera originalbilden med dataUrl för omedelbar UI-uppdatering.
-  // Men observera att createdAt/updatedAt nu är FieldValues i saveData, inte strängar direkt.
-  // För UI kan det vara bättre att returnera en version med uppskattade tider eller hämta posten på nytt.
   
-  // Return the image but ensure the dataUrl (if it was a downloadURL) is kept for immediate UI use.
-  // The version in Firestore (saveData) correctly omits it.
-  return { ...image, dataUrl: dataUrl }; 
+  // Explicitly ensure filePath is set to null if it was undefined,
+  // even if it wasn't part of restOfImageDetails (e.g., if image.filePath was undefined).
+  if (firestoreData.filePath === undefined) {
+    firestoreData.filePath = image.filePath === undefined ? null : image.filePath;
+  }
+
+
+  // Handle timestamps
+  if (!originalCreatedAt) { // If original image.createdAt was undefined or not provided
+    firestoreData.createdAt = serverTimestamp();
+  } else {
+    firestoreData.createdAt = originalCreatedAt; // Use existing string timestamp
+  }
+  firestoreData.updatedAt = serverTimestamp();
+  
+  await setDoc(docRef, firestoreData, { merge: true });
+  
+  // Return the original image object for UI consistency.
+  // If serverTimestamp was used, createdAt/updatedAt in the returned object won't reflect server time immediately.
+  return image; 
 };
+
 
 export const deleteImage = async (image: ImageRecord): Promise<void> => {
   if (image.filePath) {

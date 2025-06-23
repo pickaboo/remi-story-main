@@ -338,69 +338,81 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
 
       if (selectedBankedImageInfo) {
         const banked = selectedBankedImageInfo;
-        const newPostId = generateId();
         
-        // Always perform new analysis if it's an image post from bank
         if (banked.dataUrl) { 
             let base64ForAnalysis: string | null = null;
-            let mimeTypeForAnalysis: string | null = null;
+            let mimeTypeForAnalysis: string | null = banked.type || 'image/jpeg';
 
             if (banked.dataUrl.startsWith('data:')) {
                 base64ForAnalysis = banked.dataUrl.split(',')[1];
-                mimeTypeForAnalysis = banked.type || 'image/jpeg';
             } else if (banked.dataUrl.startsWith('http')) {
                 try {
                     const { base64Data, mimeType } = await getBase64FromUrl(banked.dataUrl, banked.type);
                     base64ForAnalysis = base64Data;
                     mimeTypeForAnalysis = mimeType;
                 } catch (fetchErr: any) {
-                    console.error("Failed to fetch and convert banked image URL to base64 for analysis:", fetchErr);
-                    // Proceed without analysis if fetching failed
+                    console.warn("Failed to fetch and convert banked image URL to base64 for analysis:", fetchErr.message);
                 }
             }
 
-            if (base64ForAnalysis && mimeTypeForAnalysis) {
+            if (base64ForAnalysis) {
                 try {
                     analysisResultFromGemini = await analyzeImageWithGemini(base64ForAnalysis, mimeTypeForAnalysis);
                     if (analysisResultFromGemini.description && !currentUserDescEntry.description.trim() && !currentUserDescEntry.audioRecUrl) {
                         aiPlaceholderFromGemini = await generateEngagingQuestionFromAnalysis(analysisResultFromGemini.description);
                     }
                 } catch (geminiError) {
-                    console.error("Gemini analysis failed for banked image in new post:", geminiError);
-                    // analysisResultFromGemini remains default (empty/undefined)
+                    console.warn("Gemini analysis failed for banked image in new post:", geminiError);
                 }
             }
         }
         
-        const otherUserDescriptions = banked.userDescriptions.filter(ud => ud.userId !== currentUser.id);
-        const updatedUserDescriptions = [...otherUserDescriptions, currentUserDescEntry];
+        let finalUserDescriptions: UserDescriptionEntry[];
+        const existingDescriptions = banked.userDescriptions ? [...banked.userDescriptions] : [];
+        const currentUserExistingDescIndex = existingDescriptions.findIndex(ud => ud.userId === currentUser.id);
+
+        if (currentUserExistingDescIndex > -1) {
+            finalUserDescriptions = existingDescriptions.map((desc, index) => 
+                index === currentUserExistingDescIndex 
+                ? { ...desc, description: currentUserDescEntry.description, audioRecUrl: currentUserDescEntry.audioRecUrl || desc.audioRecUrl, createdAt: new Date().toISOString() } 
+                : desc
+            );
+        } else {
+            if (currentUserDescEntry.description || currentUserDescEntry.audioRecUrl) {
+                finalUserDescriptions = [...existingDescriptions, currentUserDescEntry];
+            } else {
+                finalUserDescriptions = existingDescriptions;
+            }
+        }
 
         finalImageRecord = {
-            id: newPostId,
-            name: banked.name,
-            type: banked.type,
+            ...banked,
+            id: banked.id, 
+            userDescriptions: finalUserDescriptions,
+            geminiAnalysis: analysisResultFromGemini.description ?? banked.geminiAnalysis ?? null,
+            suggestedGeotags: analysisResultFromGemini.geotags.length > 0 ? analysisResultFromGemini.geotags : (banked.suggestedGeotags ?? []),
+            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? banked.aiGeneratedPlaceholder ?? null,
+            isPublishedToFeed: true, 
+            isProcessed: !!(analysisResultFromGemini.description || banked.isProcessed),
+            processedByHistory: analysisResultFromGemini.description 
+                                ? Array.from(new Set([...(banked.processedByHistory || []), currentUser.id])) 
+                                : (banked.processedByHistory || []),
             dataUrl: banked.dataUrl, 
-            filePath: banked.filePath ?? null,
-            width: banked.width ?? null,
-            height: banked.height ?? null,
-            dateTaken: banked.dateTaken ?? new Date().toISOString().split('T')[0],
-            exifData: banked.exifData ?? null,
-            geminiAnalysis: analysisResultFromGemini.description ?? null,
-            suggestedGeotags: analysisResultFromGemini.geotags ?? [],
-            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? null,
-            userDescriptions: updatedUserDescriptions,
-            tags: [], 
-            compiledStory: null, 
-            isProcessed: !!analysisResultFromGemini.description,
-            processedByHistory: analysisResultFromGemini.description ? [currentUser.id] : [],
-            uploadedByUserId: currentUser.id,
-            sphereId: activeSphereId,
-            isPublishedToFeed: true,
-            createdAt: undefined, 
+            createdAt: banked.createdAt, 
             updatedAt: undefined, 
         };
+        // Ensure these fields are correctly retained or set to null/default
+        finalImageRecord.filePath = banked.filePath ?? null;
+        finalImageRecord.width = banked.width ?? null;
+        finalImageRecord.height = banked.height ?? null;
+        finalImageRecord.dateTaken = banked.dateTaken ?? new Date().toISOString().split('T')[0];
+        finalImageRecord.exifData = banked.exifData ?? null;
+        finalImageRecord.tags = banked.tags ?? []; 
+        finalImageRecord.compiledStory = banked.compiledStory ?? null;
+
 
       } else if (imageFile && imagePreviewUrl && uploadedFileDetails) { 
+        const newImageId = generateId();
         const base64Data = imagePreviewUrl.split(',')[1]; 
         try {
             analysisResultFromGemini = await analyzeImageWithGemini(base64Data, imageFile.type);
@@ -412,7 +424,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
         }
         
         finalImageRecord = {
-            id: generateId(),
+            id: newImageId,
             name: imageFile.name,
             type: imageFile.type,
             dataUrl: imagePreviewUrl, 
@@ -436,6 +448,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
             updatedAt: undefined, 
         };
       } else { 
+        const newPostId = generateId();
         let postNameText: string;
         if (postText.trim() && audioRecorder.audioUrl) postNameText = "Textinlägg med ljud";
         else if (postText.trim()) postNameText = "Textinlägg";
@@ -447,7 +460,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
         }
         
         finalImageRecord = {
-            id: generateId(),
+            id: newPostId,
             name: postNameText,
             type: audioRecorder.audioUrl && !postText.trim() ? "audio/generic" : "text/plain",
             dataUrl: undefined, 
@@ -478,9 +491,19 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
           (finalRecordForFirestore as any)[key] = null; 
         }
       }
+      
+      // The dataUrl passed to saveImage needs to be the base64 string for new uploads for storage upload.
+      // For banked images, finalImageRecord.dataUrl will be the downloadURL, saveImage handles this.
+      let recordToSaveInDb = {...finalRecordForFirestore} as ImageRecord;
+      if (imageFile && imagePreviewUrl && uploadedFileDetails && recordToSaveInDb.id !== selectedBankedImageInfo?.id) { // This is a new file upload
+         recordToSaveInDb.dataUrl = imagePreviewUrl; // Pass base64 to saveImage for new uploads
+      } else if (selectedBankedImageInfo) { // This is from bank
+         recordToSaveInDb.dataUrl = selectedBankedImageInfo.dataUrl; // Pass downloadUrl or original base64
+      }
 
-      await saveImage(finalRecordForFirestore as ImageRecord); 
-      onPostCreated(finalImageRecord);
+
+      await saveImage(recordToSaveInDb); 
+      onPostCreated(finalImageRecord); // Pass the version with potentially displayable dataUrl to UI
 
       setPostText('');
       clearImageSelection();
