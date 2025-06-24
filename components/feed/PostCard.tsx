@@ -62,7 +62,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [post.userDescriptions, mainPostDescription]);
 
-
   useEffect(() => {
     const fetchCommenters = async () => {
       if (Array.isArray(comments) && comments.length > 0) {
@@ -82,7 +81,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     };
     fetchCommenters();
   }, [comments]);
-
 
   useEffect(() => {
     if (commentAudioRecorder.transcribedText && (!commentAudioRecorder.audioUrl || newCommentText.trim() === '')) {
