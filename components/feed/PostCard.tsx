@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, JSX } from 'react'; // Added useMemo
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
@@ -8,6 +7,7 @@ import { Button } from '../common/Button';
 import { Input } from '../common/Input'; // Keep for hover input
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { AudioPlayerButton } from '../common/AudioPlayerButton';
+import { FullscreenImageViewer } from '../common/FullscreenImageViewer'; // Added
 
 interface PostCardProps {
   post: ImageRecord;
@@ -15,6 +15,13 @@ interface PostCardProps {
   onPostUpdated: (updatedPost: ImageRecord) => void;
   onNavigateToEdit: () => void;
 }
+
+// Local SVG Icon for fullscreen button
+const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+    </svg>
+);
 
 export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }: PostCardProps): JSX.Element {
   const [newCommentText, setNewCommentText] = useState('');
@@ -28,6 +35,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   const [commenters, setCommenters] = useState<Map<string, User>>(new Map());
   const [isLoadingCommenters, setIsLoadingCommenters] = useState(true);
 
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null); // State for fullscreen viewer
 
   useEffect(() => {
     if (post.uploadedByUserId) {
@@ -54,7 +62,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [post.userDescriptions, mainPostDescription]);
 
-
   useEffect(() => {
     const fetchCommenters = async () => {
       if (Array.isArray(comments) && comments.length > 0) {
@@ -74,7 +81,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     };
     fetchCommenters();
   }, [comments]);
-
 
   useEffect(() => {
     if (commentAudioRecorder.transcribedText && (!commentAudioRecorder.audioUrl || newCommentText.trim() === '')) {
@@ -169,11 +175,18 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     onPostUpdated(updatedPost);
   };
 
+  const handleOpenFullscreenViewer = (url: string | undefined) => {
+    if (url) {
+        setFullscreenImageUrl(url);
+    }
+  };
+  const handleCloseFullscreenViewer = () => {
+    setFullscreenImageUrl(null);
+  };
 
   const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>;
   const StopIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>;
   const TagIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1 text-primary dark:text-blue-300"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>;
-
 
   const canSubmitInput = !isCommenting && (newCommentText.trim() !== '' || !!commentAudioRecorder.audioUrl);
 
@@ -197,6 +210,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
   };
 
   return (
+    <>
     <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
       {/* Post Header */}
       <div className="flex items-center justify-between mb-3">
@@ -229,11 +243,21 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       )}
 
       {/* Image, Hover Tag Management, and User-added Tags */}
-      {hasImage && (
+      {hasImage && post.dataUrl && (
         <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700/50 shadow-md">
           <div className="relative group"> {/* Added group for hover */}
             <img src={post.dataUrl} alt={post.name} className="w-full h-auto object-contain block max-h-[70vh]" />
             
+            {/* Fullscreen Button */}
+            <button
+                onClick={() => handleOpenFullscreenViewer(post.dataUrl)}
+                className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                title="Visa i helskärm"
+                aria-label="Visa bild i helskärm"
+            >
+                <MagnifyingGlassPlusIcon className="w-5 h-5" />
+            </button>
+
             {/* Tag Management Overlay on Hover - only for uploader */}
             {currentUser.id === post.uploadedByUserId && (
               <div 
@@ -440,7 +464,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       </div>
 
       {/* Comments List */}
-      {Array.isArray(comments) && comments.length > 0 && (
+      {comments.length > 0 && (
         <div className="mt-4 space-y-3 pt-3 border-t border-border-color dark:border-slate-700">
           {displayedComments.map(comment => {
             const commenter = commenters.get(comment.userId);
@@ -474,5 +498,15 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       
       {/* Removed old custom tag input section */}
     </div>
+
+    {fullscreenImageUrl && (
+        <FullscreenImageViewer
+            imageUrl={fullscreenImageUrl}
+            imageName={post.name}
+            isOpen={!!fullscreenImageUrl}
+            onClose={handleCloseFullscreenViewer}
+        />
+    )}
+    </>
   );
 }
