@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
@@ -97,7 +96,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
     if (userDescEntry?.description !== currentUserTextDescription) {
         setCurrentUserTextDescription(userDescEntry?.description || '');
     }
-  }, [image, getCurrentUserDescriptionEntry, currentUserTextDescription]);
+  }, [image, getCurrentUserDescriptionEntry]);
 
   useEffect(() => {
     if (audioRecorder.transcribedText && currentUserTextDescription.trim() === '' && !audioRecorder.isRecording) {
