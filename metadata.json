@@ -1,0 +1,8 @@
+{
+  "name": " REMI Story main",
+  "description": "An application to import images, enrich them with AI-generated descriptions and user narratives (including voice), and create compelling slideshows.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "prompt": ""
+}
