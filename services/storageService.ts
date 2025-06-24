@@ -1,4 +1,3 @@
-
 import { db, storage } from '../firebase';
 import {
   collection,
@@ -391,6 +390,10 @@ export const createSphereInvitation = async (invitationData: Omit<SphereInvitati
     createdAt: Timestamp.now().toDate().toISOString(),
   };
   const invitationDocRef = doc(db, SPHERE_INVITATIONS_COLLECTION, newId);
+  // Remove undefined fields (especially message)
+  Object.keys(newInvitation).forEach(
+    (key) => (newInvitation as any)[key] === undefined && delete (newInvitation as any)[key]
+  );
   await setDoc(invitationDocRef, newInvitation);
   return newInvitation;
 };
