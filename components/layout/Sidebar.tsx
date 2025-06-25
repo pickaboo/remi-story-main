@@ -1,22 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Sphere, User } from '../../types';
+import { View } from '../../types';
 import { SphereDisplay } from '../common/SphereDisplay'; 
+import { useSphere } from '../../context/SphereContext';
+import { useUser } from '../../context/UserContext';
 
 interface SidebarProps {
   currentPath: string;
   onNavigate: (view: View, params?: any) => void;
   isExpanded: boolean;
   onToggle: () => void;
-  activeSphere: Sphere | null;
-  userSpheres: Sphere[];
-  onSwitchSphere: (sphereId: string) => void;
-  currentUser: User | null; 
-  onOpenCreateSphereModal: () => void; 
-  onOpenInviteModal: (sphere: Sphere) => void; 
-  onOpenLookAndFeelModal: () => void; 
-  onOpenManageSphereModal: () => void; 
-  onOpenImageBankSettingsModal: () => void; 
-  allUsers: User[]; // Added for member count
 }
 
 // ... (NAV_ITEMS_SIDEBAR and Icons remain the same) ...
@@ -105,27 +97,35 @@ const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) 
     </svg>
 );
 
-
 export const Sidebar: React.FC<SidebarProps> = ({ 
     currentPath, 
     onNavigate, 
     isExpanded, 
     onToggle, 
+}) => {
+  // Use context instead of props
+  const { currentUser } = useUser();
+  const { 
     activeSphere, 
     userSpheres, 
-    onSwitchSphere,
-    currentUser,
-    onOpenCreateSphereModal,
-    onOpenInviteModal, 
-    onOpenLookAndFeelModal,
-    onOpenManageSphereModal,
-    onOpenImageBankSettingsModal,
-    allUsers
-}) => {
+    allSpheres,
+    handleSwitchSphere,
+    handleCreateSphere 
+  } = useSphere();
+  
+  // Sidebar internal state
   const [isSphereDropdownOpen, setIsSphereDropdownOpen] = useState(false);
   const sphereSwitcherRef = useRef<HTMLDivElement>(null);
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Modal state (will be moved to context later)
+  const [isCreateSphereModalOpen, setIsCreateSphereModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [sphereToInviteTo, setSphereToInviteTo] = useState<any>(null);
+  const [isLookAndFeelModalOpen, setIsLookAndFeelModalOpen] = useState(false);
+  const [isManageSphereModalOpen, setIsManageSphereModalOpen] = useState(false);
+  const [isImageBankSettingsModalOpen, setIsImageBankSettingsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -143,7 +143,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const otherSpheres = activeSphere ? userSpheres.filter(s => s.id !== activeSphere.id) : [];
   
-  const memberCount = activeSphere ? allUsers.filter(user => user.sphereIds.includes(activeSphere.id)).length : 0;
+  // Calculate member count - for now, we'll use a placeholder since we need user data
+  const memberCount = 1; // TODO: Get actual member count when we have user data in context
+
+  // Handle sphere switching
+  const handleSwitchSphereClick = async (sphereId: string) => {
+    await handleSwitchSphere(sphereId);
+    setIsSphereDropdownOpen(false);
+  };
+
+  // Handle modal operations
+  const handleOpenCreateSphereModal = () => setIsCreateSphereModalOpen(true);
+  const handleCloseCreateSphereModal = () => setIsCreateSphereModalOpen(false);
+  
+  const handleOpenInviteModal = (sphere: any) => {
+    setSphereToInviteTo(sphere);
+    setIsInviteModalOpen(true);
+    setIsSphereDropdownOpen(false);
+  };
+  const handleCloseInviteModal = () => setIsInviteModalOpen(false);
+  
+  const handleOpenLookAndFeelModal = () => setIsLookAndFeelModalOpen(true);
+  const handleCloseLookAndFeelModal = () => setIsLookAndFeelModalOpen(false);
+  
+  const handleOpenManageSphereModal = () => setIsManageSphereModalOpen(true);
+  const handleCloseManageSphereModal = () => setIsManageSphereModalOpen(false);
+  
+  const handleOpenImageBankSettingsModal = () => setIsImageBankSettingsModalOpen(true);
+  const handleCloseImageBankSettingsModal = () => setIsImageBankSettingsModalOpen(false);
 
   return (
     <aside 
@@ -176,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           isExpanded ? (
             <button
-                onClick={onOpenCreateSphereModal}
+                onClick={handleOpenCreateSphereModal}
                 className="flex items-center text-sm font-medium p-2 rounded-lg transition-colors w-full text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-blue-400/50 justify-start"
                 title="Skapa din första sfär"
             >
@@ -185,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ) : (
             <button 
-                onClick={onOpenCreateSphereModal}
+                onClick={handleOpenCreateSphereModal}
                 title="Skapa ny sfär"
                 className="p-2 text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400"
                 aria-label="Skapa ny sfär"
@@ -216,8 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); 
-                      onOpenInviteModal(activeSphere);
-                      setIsSphereDropdownOpen(false);
+                      handleOpenInviteModal(activeSphere);
                     }}
                     className="p-1 rounded-full hover:bg-primary/10 dark:hover:bg-blue-400/10 text-primary dark:text-blue-400 flex-shrink-0"
                     title={`Bjud in till ${activeSphere.name}`}
@@ -237,10 +263,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <SphereDisplay
                       sphere={sphere}
                       size={'lg'}
-                      onClick={() => {
-                          onSwitchSphere(sphere.id);
-                          setIsSphereDropdownOpen(false);
-                      }}
+                      onClick={() => handleSwitchSphereClick(sphere.id)}
                       className={`hover:ring-2 hover:ring-primary dark:hover:ring-blue-400 focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 ${isExpanded ? 'flex-grow justify-start' : ''}`}
                       ariaLabel={`Byt till sfär: ${sphere.name}`}
                       tabIndex={0}
@@ -252,8 +275,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               
               <button
                 onClick={() => {
-                  onOpenCreateSphereModal();
-                  setIsSphereDropdownOpen(false);
+                  handleOpenCreateSphereModal();
                 }}
                 className={`flex items-center text-sm font-medium p-2 rounded-lg transition-colors w-full
                             text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-blue-400/50
@@ -322,7 +344,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     role="menu"
                 >
                     <button
-                        onClick={() => { onOpenLookAndFeelModal(); setIsSettingsPopoverOpen(false); }}
+                        onClick={() => { handleOpenLookAndFeelModal(); setIsSettingsPopoverOpen(false); }}
                         className={`flex items-center w-full text-left p-2.5 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:bg-primary/10 dark:hover:bg-blue-400/10 hover:text-primary dark:hover:text-blue-300 transition-colors ${!isExpanded && 'justify-center'}`}
                         role="menuitem"
                         title={!isExpanded ? "Utseende" : undefined}
@@ -331,7 +353,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         {isExpanded && "Utseende"}
                     </button>
                     <button
-                        onClick={() => { onOpenImageBankSettingsModal(); setIsSettingsPopoverOpen(false); }}
+                        onClick={() => { handleOpenImageBankSettingsModal(); setIsSettingsPopoverOpen(false); }}
                         className={`flex items-center w-full text-left p-2.5 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:bg-primary/10 dark:hover:bg-blue-400/10 hover:text-primary dark:hover:text-blue-300 transition-colors ${!isExpanded && 'justify-center'}`}
                         role="menuitem"
                         title={!isExpanded ? "Bildbank" : undefined}
@@ -340,7 +362,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         {isExpanded && "Bildbank"}
                     </button>
                     <button
-                        onClick={() => { onOpenManageSphereModal(); setIsSettingsPopoverOpen(false); }}
+                        onClick={() => { handleOpenManageSphereModal(); setIsSettingsPopoverOpen(false); }}
                         className={`flex items-center w-full text-left p-2.5 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:bg-primary/10 dark:hover:bg-blue-400/10 hover:text-primary dark:hover:text-blue-300 transition-colors ${!isExpanded && 'justify-center'}`}
                         role="menuitem"
                         title={!isExpanded ? "Hantera Sfärer" : undefined}
@@ -367,6 +389,5 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
     </aside>
-    
   );
 };

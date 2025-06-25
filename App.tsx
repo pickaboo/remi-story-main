@@ -770,15 +770,10 @@ const App: React.FC = () => {
     <>
       <div className="h-full flex">
         <Sidebar
-          currentPath={getCurrentPathForSidebar()} onNavigate={handleNavigate} isExpanded={isSidebarExpanded}
-          onToggle={toggleSidebar} activeSphere={activeSphere} userSpheres={userSpheres}
-          onSwitchSphere={handleSwitchSphere} currentUser={currentUser}
-          onOpenCreateSphereModal={handleOpenCreateSphereModal} 
-          onOpenInviteModal={handleOpenInviteModal} 
-          onOpenLookAndFeelModal={handleOpenLookAndFeelModal} 
-          onOpenManageSphereModal={handleOpenManageSphereModal} 
-          onOpenImageBankSettingsModal={handleOpenImageBankSettingsModal} 
-          allUsers={allUsersForManageModal} // Pass allUsers
+          currentPath={getCurrentPathForSidebar()} 
+          onNavigate={handleNavigate} 
+          isExpanded={isSidebarExpanded}
+          onToggle={toggleSidebar}
         />
         <Header
             isSidebarExpanded={isSidebarExpanded} 
