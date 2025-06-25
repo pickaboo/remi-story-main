@@ -107,7 +107,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
               <DiaryPopover 
-                currentUser={currentUser} 
                 isOpen={isDiaryPopoverOpen} 
                 onClose={() => setIsDiaryPopoverOpen(false)}
                 anchorRef={diaryButtonRef as React.RefObject<HTMLElement>}
@@ -147,7 +146,6 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
               {isUserMenuOpen && (
                 <UserMenuPopover
-                  currentUser={currentUser}
                   isOpen={isUserMenuOpen}
                   onClose={() => setIsUserMenuOpen(false)}
                   anchorRef={userMenuButtonRef as React.RefObject<HTMLElement>}

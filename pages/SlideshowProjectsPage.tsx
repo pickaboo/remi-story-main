@@ -1,19 +1,17 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, SlideshowProject, View, Sphere, User } from '../types'; 
+import { ImageRecord, SlideshowProject, View, Sphere } from '../types'; 
 import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
 import { generatePhotoAlbumPdf } from '../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../firebase'; 
+import { useUser, useSphere } from '../context';
 
 interface SlideshowProjectsPageProps {
   onNavigate: (view: View, params?: any) => void;
-  currentUser: User; 
-  activeSphere: Sphere; 
 }
 
 // Custom Confirmation Modal Component (Local to SlideshowProjectsPage)
@@ -213,7 +211,12 @@ const CreationOptionCard: React.FC<CreationOptionCardProps> = ({
 };
 
 
-export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ onNavigate, currentUser, activeSphere }) => {
+export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ onNavigate }) => {
+  const { currentUser } = useUser();
+  const { activeSphere } = useSphere();
+  if (!currentUser || !activeSphere) {
+    return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata och sfär..." /></div>;
+  }
   const [projects, setProjects] = useState<SlideshowProject[]>([]);
   const [availableImagesForSelection, setAvailableImagesForSelection] = useState<ImageRecord[]>([]);
   const [isCreating, setIsCreating] = useState(false);

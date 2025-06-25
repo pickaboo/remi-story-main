@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { User, SphereInvitation, Sphere } from '../../types';
 import { Button } from './Button';
@@ -6,17 +5,17 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
 import { SphereDisplay } from './SphereDisplay';
+import { useUser } from '../../context';
 
 type ThemePreference = User['themePreference'];
 
 interface UserMenuPopoverProps {
-  currentUser: User;
   isOpen: boolean;
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement>;
   onAcceptInvitation: (invitationId: string) => Promise<void>;
   onDeclineInvitation: (invitationId: string) => Promise<void>;
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // New prop
+  onSaveThemePreference: (theme: User['themePreference']) => Promise<void>;
 }
 
 interface InvitationDisplayData extends SphereInvitation {
@@ -38,7 +37,6 @@ const THEME_OPTIONS: { label: string; value: ThemePreference }[] = [
 ];
 
 export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
-  currentUser,
   isOpen,
   onClose,
   anchorRef,
@@ -46,17 +44,17 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
   onDeclineInvitation,
   onSaveThemePreference,
 }) => {
+  const { currentUser } = useUser();
   const [invitations, setInvitations] = useState<InvitationDisplayData[]>([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<Record<string, boolean>>({});
   const popoverRef = useRef<HTMLDivElement>(null);
   const [isSavingTheme, setIsSavingTheme] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(currentUser.themePreference || 'system');
-
+  const [selectedTheme, setSelectedTheme] = useState<User['themePreference']>(currentUser?.themePreference || 'system');
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      if (isOpen && currentUser.email) {
+      if (isOpen && currentUser?.email) {
         setIsLoadingInvitations(true);
         try {
           const pendingRawInvitations = await getPendingInvitationsForEmail(currentUser.email);
@@ -84,9 +82,9 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
 
     if (isOpen) {
         fetchInvitations();
-        setSelectedTheme(currentUser.themePreference || 'system');
+        setSelectedTheme(currentUser?.themePreference || 'system');
     }
-  }, [isOpen, currentUser.email, currentUser.themePreference]);
+  }, [isOpen, currentUser?.email, currentUser?.themePreference]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -123,12 +121,11 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
     } catch (error) {
         console.error("Failed to save theme preference:", error);
         // Optionally revert selectedTheme or show error message
-        setSelectedTheme(currentUser.themePreference || 'system'); // Revert on error
+        setSelectedTheme(currentUser?.themePreference || 'system'); // Revert on error
     } finally {
         setIsSavingTheme(false);
     }
   };
-
 
   if (!isOpen) return null;
 
@@ -142,8 +139,8 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
       aria-labelledby="user-menu-button"
     >
       <div className="p-3 border-b border-border-color dark:border-slate-700">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Hej, {currentUser.name.split(' ')[0]}!</p>
-        <p className="text-xs text-muted-text dark:text-slate-400">{currentUser.email}</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Hej, {currentUser?.name.split(' ')[0]}!</p>
+        <p className="text-xs text-muted-text dark:text-slate-400">{currentUser?.email}</p>
       </div>
 
       <div className="p-3 max-h-60 overflow-y-auto no-scrollbar">

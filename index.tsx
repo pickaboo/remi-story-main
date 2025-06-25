@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx'; // Added .tsx extension
-import { UserProvider, SphereProvider } from './context';
+import { UserProvider, SphereProvider, ModalProvider } from './context';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,7 +13,9 @@ root.render(
   <React.StrictMode>
     <UserProvider>
       <SphereProvider>
-        <App />
+        <ModalProvider>
+          <App />
+        </ModalProvider>
       </SphereProvider>
     </UserProvider>
   </React.StrictMode>

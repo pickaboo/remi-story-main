@@ -2,30 +2,32 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, View, User, Sphere } from '../types';
-import { getSphereFeedPostsListener } from '../services/storageService'; // Updated import
-// getDownloadURL and ref are no longer needed here as storageService handles it.
+import { ImageRecord, View } from '../types';
+import { getSphereFeedPostsListener } from '../services/storageService';
+import { useUser, useSphere } from '../context';
 
 interface FeedPageProps {
   onNavigate: (view: View, params?: any) => void;
-  currentUser: User;
-  activeSphere: Sphere;
   onFeedPostsUpdate: (posts: ImageRecord[]) => void;
   onVisiblePostsDateChange: (date: Date | null) => void;
   prefillPostWithImageId?: string | null;
   scrollToPostIdFromParams?: string | null;
 }
 
-
 export const FeedPage: React.FC<FeedPageProps> = ({
     onNavigate,
-    currentUser,
-    activeSphere,
     onFeedPostsUpdate,
     onVisiblePostsDateChange,
     prefillPostWithImageId,
     scrollToPostIdFromParams
 }) => {
+  const { currentUser } = useUser();
+  const { activeSphere } = useSphere();
+
+  if (!currentUser || !activeSphere) {
+    return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata och sfär..." /></div>;
+  }
+
   const [posts, setPosts] = useState<ImageRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

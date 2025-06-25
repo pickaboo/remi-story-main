@@ -4,20 +4,23 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { TextArea } from '../components/common/TextArea';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, View, User, UserDescriptionEntry } from '../types';
+import { ImageRecord, View, UserDescriptionEntry } from '../types';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
-import { getDownloadURL, ref } from 'firebase/storage'; // Added
-import { storage } from '../firebase'; // Added
-
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../firebase';
+import { useUser } from '../context';
 
 interface EditImagePageProps {
   imageId: string;
   onNavigate: (view: View, params?: any) => void;
-  currentUser: User; 
 }
 
-export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigate, currentUser }) => {
+export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigate }) => {
+  const { currentUser } = useUser();
+  if (!currentUser) {
+    return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata..." /></div>;
+  }
   const [image, setImage] = useState<ImageRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTag, setCurrentTag] = useState('');

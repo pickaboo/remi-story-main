@@ -1,16 +1,12 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
 import { TextArea } from '../components/common/TextArea';
-import { DiaryEntry, User } from '../types';
+import { DiaryEntry } from '../types';
 import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry, generateId } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { useAudioRecorder } from '../hooks/useAudioRecorder'; 
-
-interface DiaryPageProps {
-  currentUser: User;
-}
+import { useUser } from '../context';
 
 const MicIconLarge: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={sizeClass}>
@@ -58,8 +54,11 @@ const ConfirmDeleteDiaryEntryModal: React.FC<ConfirmDeleteDiaryEntryModalProps> 
   </div>
 );
 
-
-export const DiaryPage: React.FC<DiaryPageProps> = ({ currentUser }) => {
+export const DiaryPage: React.FC = () => {
+  const { currentUser } = useUser();
+  if (!currentUser) {
+    return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata..." /></div>;
+  }
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);

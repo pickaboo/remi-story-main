@@ -2,6 +2,9 @@
 export { UserProvider, useUser } from './UserContext';
 export { SphereProvider, useSphere } from './SphereContext';
 
+// Modal Context
+export { ModalProvider, useModal } from './ModalContext';
+
 // Re-export types for convenience
 export type { UserContextType } from './UserContext';
 export type { SphereContextType } from './SphereContext'; 

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
@@ -10,11 +8,10 @@ import { getUserById } from '../services/userService'; // Import for getting use
 import ExifReader from 'exifreader';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../firebase'; // Added
+import { useUser, useSphere } from '../context';
 // Removed: import { generateImageBankExportPdf } from '../services/pdfService'; 
 
 interface ImageBankPageProps {
-  currentUser: User;
-  activeSphere: Sphere;
   onNavigate: (view: View, params?: any) => void;
 }
 
@@ -176,7 +173,12 @@ const ImageMetadataUserDetails: React.FC<{ userId?: string; sphereId?: string }>
 };
 
 
-export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activeSphere, onNavigate }) => {
+export const ImageBankPage: React.FC<ImageBankPageProps> = ({ onNavigate }) => {
+  const { currentUser } = useUser();
+  const { activeSphere } = useSphere();
+  if (!currentUser || !activeSphere) {
+    return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata och sfär..." /></div>;
+  }
   const [imageBankView, setImageBankView] = useState<ImageBankViewMode>('view'); // Default to 'view'
   
   // States for 'upload' view

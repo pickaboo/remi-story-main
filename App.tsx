@@ -704,20 +704,20 @@ const App: React.FC = () => {
     switch (currentView) {
       case View.Home:
         return <FeedPage 
-                  onNavigate={handleNavigate} currentUser={currentUser} activeSphere={activeSphere} 
+                  onNavigate={handleNavigate}
                   onFeedPostsUpdate={handleFeedPostsUpdate} onVisiblePostsDateChange={handleVisiblePostsDateChange}
                   prefillPostWithImageId={viewParams?.prefillPostWithImageId}
                   scrollToPostIdFromParams={viewParams?.scrollToPostId}
                 />;
       case View.ImageBank:
-        return <ImageBankPage currentUser={currentUser} activeSphere={activeSphere} onNavigate={handleNavigate} />;
+        return <ImageBankPage onNavigate={handleNavigate} />;
       case View.Diary:
-        return <DiaryPage currentUser={currentUser} />; 
+        return <DiaryPage />; 
       case View.EditImage:
-        if (viewParams?.imageId) { return <EditImagePage imageId={viewParams.imageId} onNavigate={handleNavigate} currentUser={currentUser} />; }
+        if (viewParams?.imageId) { return <EditImagePage imageId={viewParams.imageId} onNavigate={handleNavigate} />; }
         handleNavigate(View.Home); return null;
       case View.SlideshowProjects:
-        return <SlideshowProjectsPage onNavigate={handleNavigate} currentUser={currentUser} activeSphere={activeSphere} />;
+        return <SlideshowProjectsPage onNavigate={handleNavigate} />;
       case View.PlaySlideshow:
         if (viewParams?.projectId) { return <SlideshowPlayerPage projectId={viewParams.projectId} onNavigate={handleNavigate} />; }
         handleNavigate(View.SlideshowProjects); return null;
