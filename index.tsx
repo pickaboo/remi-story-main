@@ -1,7 +1,7 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx'; // Added .tsx extension
+import { UserProvider, SphereProvider } from './context';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +11,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <UserProvider>
+      <SphereProvider>
+        <App />
+      </SphereProvider>
+    </UserProvider>
   </React.StrictMode>
 );

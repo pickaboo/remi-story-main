@@ -1,4 +1,3 @@
-
 import { auth, db } from '../firebase'; // Importera från den riktiga Firebase-initieraren
 import {
   createUserWithEmailAndPassword,
@@ -277,13 +276,16 @@ export const mock_inviteUserToSphereByEmail = async ( // Behåll namnet "mock_" 
   }
 
   try {
-    const newInvitation = await storageCreateSphereInvitation({
+    const invitationObj: any = {
         inviterUserId,
         inviteeEmail: inviteeEmail.toLowerCase(),
         sphereId,
-        message: message?.trim() || undefined,
         inviteeUserId: inviteeRecord?.id,
-    });
+    };
+    if (message && message.trim() !== "") {
+        invitationObj.message = message.trim();
+    }
+    const newInvitation = await storageCreateSphereInvitation(invitationObj);
     // Här kan man implementera att skicka ett riktigt e-postmeddelande via en backend-funktion
     console.log(`[AuthService] Inbjudan skapad (ID: ${newInvitation.id}) till ${inviteeEmail} för sfär "${sphere.name}". Meddelande: "${message}"`);
     return { success: true, message: `Inbjudan skapad för ${inviteeEmail} till sfären "${sphere.name}"!`, invitation: newInvitation };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FeedPage } from './pages/FeedPage';
 import { EditImagePage } from './pages/EditImagePage';
@@ -51,29 +50,27 @@ import {
     declineSphereInvitation as authDeclineSphereInvitation, // Added
 } from './services/authService'; 
 import { LoadingSpinner } from './components/common/LoadingSpinner';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from './firebase';
 
 
 const YOUR_LOGO_URL = "https://example.com/your-logo.png"; 
 type Theme = User['themePreference'];
 
 const App: React.FC = () => {
+  // All useState, useRef, useCallback hooks
   const [currentView, setCurrentView] = useState<View>(View.Login); 
   const [viewParams, setViewParams] = useState<any>(null);
-  
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [feedPostsForTimeline, setFeedPostsForTimeline] = useState<ImageRecord[]>([]);
   const mainScrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeFeedDate, setActiveFeedDate] = useState<Date | null>(null);
   const [letFeedDriveTimelineSync, setLetFeedDriveTimelineSync] = useState(true);
-
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
   const [activeSphere, setActiveSphere] = useState<Sphere | null>(null);
   const [userSpheres, setUserSpheres] = useState<Sphere[]>([]);
-  
-  // Modals state
   const [isCreateSphereModalOpen, setIsCreateSphereModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [sphereToInviteTo, setSphereToInviteTo] = useState<Sphere | null>(null);
@@ -81,12 +78,10 @@ const App: React.FC = () => {
   const [isManageSphereModalOpen, setIsManageSphereModalOpen] = useState(false); 
   const [isImageBankSettingsModalOpen, setIsImageBankSettingsModalOpen] = useState(false); 
   const [allUsersForManageModal, setAllUsersForManageModal] = useState<User[]>([]); 
+  const [inviteFeedback, setInviteFeedback] = useState<string | null>(null); 
+  const [globalFeedback, setGlobalFeedback] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-
-  const [inviteFeedback, setInviteFeedback] = useState<string | null>(null); // This state seems unused, ManageSphereModal has its own feedback
-  const [globalFeedback, setGlobalFeedback] = useState<{message: string, type: 'success' | 'error'} | null>(null); 
-
-
+  // All useCallback, useEffect hooks
   const applyThemePreference = useCallback((theme: Theme) => {
     const root = document.documentElement;
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -786,13 +781,9 @@ const App: React.FC = () => {
           allUsers={allUsersForManageModal} // Pass allUsers
         />
         <Header
-            currentUser={currentUser} 
-            isSidebarExpanded={isSidebarExpanded} onNavigate={handleNavigate}
+            isSidebarExpanded={isSidebarExpanded} 
+            onNavigate={handleNavigate}
             logoUrl={YOUR_LOGO_URL.startsWith("https://example.com") ? undefined : YOUR_LOGO_URL}
-            onLogout={handleLogout}
-            onAcceptInvitation={handleAcceptSphereInvitation}
-            onDeclineInvitation={handleDeclineSphereInvitation}
-            onSaveThemePreference={handleSaveThemePreference}
           />
         <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'ml-60' : 'ml-20'} pt-16 h-full`} >
           <div className="h-full overflow-y-auto no-scrollbar" ref={mainScrollContainerRef}>

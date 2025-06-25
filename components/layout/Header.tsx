@@ -1,20 +1,16 @@
-
 import React, { useState, useRef } from 'react';
-import { User, View } from '../../types'; 
+import { View } from '../../types'; 
 import { DiaryPopover } from '../common/DiaryPopover'; 
-import { UserMenuPopover } from '../common/UserMenuPopover'; // Added
+import { UserMenuPopover } from '../common/UserMenuPopover';
+import { useUser } from '../../context/UserContext';
+import { usePendingInvites } from '../../hooks/usePendingInvites';
 
-type ThemePreference = User['themePreference']; // Define ThemePreference type
+type ThemePreference = 'light' | 'dark' | 'system';
 
 interface HeaderProps {
-  currentUser: User | null;
   isSidebarExpanded: boolean;
   onNavigate: (view: View, params?: any) => void;
   logoUrl?: string; 
-  onLogout?: () => void; 
-  onAcceptInvitation: (invitationId: string) => Promise<void>; 
-  onDeclineInvitation: (invitationId: string) => Promise<void>; 
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // Added
 }
 
 // Icons
@@ -36,22 +32,34 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
   </svg>
 );
 
-
 export const Header: React.FC<HeaderProps> = ({ 
-    currentUser, 
     isSidebarExpanded, 
     onNavigate, 
     logoUrl, 
-    onLogout,
-    onAcceptInvitation, 
-    onDeclineInvitation,
-    onSaveThemePreference, // Added
 }) => {
+  // Use context instead of props
+  const { currentUser, handleLogout, handleSaveThemePreference } = useUser();
+  
+  // Use custom hook for pending invites
+  const { inviteCount } = usePendingInvites(currentUser?.email);
+  
+  // Header internal state
   const leftOffsetClass = isSidebarExpanded ? 'left-60' : 'left-20';
   const [isDiaryPopoverOpen, setIsDiaryPopoverOpen] = useState(false);
   const diaryButtonRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuButtonRef = useRef<HTMLDivElement>(null);
+
+  // Handle invitation actions
+  const handleAcceptInvitation = async (invitationId: string) => {
+    // This will be implemented when we move the invitation logic to a hook
+    console.log('Accept invitation:', invitationId);
+  };
+
+  const handleDeclineInvitation = async (invitationId: string) => {
+    // This will be implemented when we move the invitation logic to a hook
+    console.log('Decline invitation:', invitationId);
+  };
 
   return (
     <header className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-slate-700 px-4 sm:px-6 lg:px-8 shadow-sm`}>
@@ -102,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                 currentUser={currentUser} 
                 isOpen={isDiaryPopoverOpen} 
                 onClose={() => setIsDiaryPopoverOpen(false)}
-                anchorRef={diaryButtonRef}
+                anchorRef={diaryButtonRef as React.RefObject<HTMLElement>}
               />
             </div>
           )}
@@ -127,11 +135,11 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:inline truncate max-w-[100px]">
                   {currentUser.name.split(' ')[0]}
                 </span>
-                {Number(currentUser.pendingInvitationCount) > 0 && (
+                {inviteCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
-                            {currentUser.pendingInvitationCount! > 9 ? '9+' : currentUser.pendingInvitationCount}
+                            {inviteCount > 9 ? '9+' : inviteCount}
                         </span>
                     </span>
                 )}
@@ -142,19 +150,19 @@ export const Header: React.FC<HeaderProps> = ({
                   currentUser={currentUser}
                   isOpen={isUserMenuOpen}
                   onClose={() => setIsUserMenuOpen(false)}
-                  anchorRef={userMenuButtonRef}
-                  onAcceptInvitation={onAcceptInvitation}
-                  onDeclineInvitation={onDeclineInvitation}
-                  onSaveThemePreference={onSaveThemePreference} // Pass down the prop
+                  anchorRef={userMenuButtonRef as React.RefObject<HTMLElement>}
+                  onAcceptInvitation={handleAcceptInvitation}
+                  onDeclineInvitation={handleDeclineInvitation}
+                  onSaveThemePreference={handleSaveThemePreference}
                 />
               )}
             </div>
           )}
 
           {/* Logout Button */}
-          {currentUser && onLogout && (
+          {currentUser && (
             <button
-              onClick={onLogout}
+              onClick={handleLogout}
               className="p-2.5 text-slate-600 dark:text-slate-300 hover:text-danger dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger dark:focus:ring-red-400 transition-colors"
               title="Logga ut"
               aria-label="Logga ut"
