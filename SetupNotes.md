@@ -1,5 +1,22 @@
-
 # REMI Story - Setup Instructions
+
+## 🎉 Recent Major Refactoring Update
+
+**App.tsx Successfully Refactored: 400+ lines → 146 lines (63% reduction)**
+
+The codebase has undergone a major refactoring to improve maintainability and follow React best practices. The application now uses:
+
+- **Context-driven architecture** with NavigationContext, FeedbackContext, and AppStateContext
+- **Feature-based modularization** with dedicated hooks (useAuth, useSphereManagement)
+- **Clean separation of concerns** with App.tsx serving as an orchestrator
+- **TypeScript strict mode** for enhanced type safety
+
+### **New Architecture Components**
+- **NavigationContext**: Handles routing and view state management
+- **FeedbackContext**: Manages global feedback messages
+- **AppStateContext**: Manages sidebar and feed state
+- **useAuth**: Authentication and user state management
+- **useSphereManagement**: Sphere operations and management
 
 This guide will help you set up and run the REMI Story application locally using a real Firebase backend and the Gemini API.
 
@@ -85,7 +102,7 @@ Download or clone the application files to your local machine.
 
 ### 4. Environment Variables
 
-1.  In the root directory of your downloaded/cloned application, create a file named `.env`.
+1.  In the root directory of your downloaded/cloned application, create a file named `.env.local`.
 2.  Add your Firebase project configuration and Gemini API key to this file. **Replace `YOUR_ACTUAL_..._KEY` with the values you copied.**
 
     ```env
@@ -104,29 +121,26 @@ Download or clone the application files to your local machine.
 
     **IMPORTANT:**
     *   Ensure all variable names start with `VITE_`.
-    *   Do not commit your `.env` file to version control (e.g., Git). Add `.env` to your `.gitignore` file.
+    *   Do not commit your `.env.local` file to version control (e.g., Git). Add `.env.local` to your `.gitignore` file.
 
 ### 5. Running the Application
 
 1.  Open your terminal or command prompt.
 2.  Navigate to the root directory of the application.
-3.  Run the Vite development server:
-    *   If you have Vite installed globally:
-        ```bash
-        vite
-        ```
-    *   Or, using npx (recommended if not installed globally):
-        ```bash
-        npx vite
-        ```
-    *   If you have a `package.json` with a dev script (e.g., `"dev": "vite"`):
-        ```bash
-        npm run dev
-        # or
-        yarn dev
-        ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+4.  Run the Vite development server:
+    ```bash
+    npm run dev
+    ```
+    Or using yarn:
+    ```bash
+    yarn dev
+    ```
 
-4.  Vite will typically start the server and output a URL like `http://localhost:5173/`. Open this URL in your web browser.
+5.  Vite will typically start the server and output a URL like `http://localhost:5173/`. Open this URL in your web browser.
 
 ### 6. Initial Data and Usage
 
@@ -137,13 +151,36 @@ Download or clone the application files to your local machine.
     *   You can create new spheres using the "Skapa ny sfär" button in the sidebar dropdown.
 *   Start by creating an account and then a sphere if needed.
 
+## 🏗️ Current Architecture Overview
+
+The application now follows a modern React architecture with:
+
+### **Context Providers**
+- **AppProviders**: Main provider wrapper that orchestrates all contexts
+- **NavigationContext**: Manages routing, view state, and navigation
+- **FeedbackContext**: Handles global feedback messages and notifications
+- **AppStateContext**: Manages sidebar state, feed posts, and timeline
+- **ModalContext**: Handles modal state and operations
+
+### **Feature Hooks**
+- **useAuth**: Authentication logic and user state management
+- **useSphereManagement**: Sphere creation, invitation, and management
+- **useAppLogic**: Theme management and user/sphere data fetching
+
+### **Component Structure**
+- **App.tsx**: Clean orchestrator (146 lines)
+- **AppRouter**: Handles route switching and page rendering
+- **ModalManager**: Manages all modal components
+- **Feature components**: Organized in `src/features/` with proper structure
+
 ## Troubleshooting
 
-*   **Firebase Connection Issues:** Double-check your Firebase configuration values in the `.env` file and ensure they match the ones from your Firebase project settings. Check the browser's developer console for any Firebase-related errors.
+*   **Firebase Connection Issues:** Double-check your Firebase configuration values in the `.env.local` file and ensure they match the ones from your Firebase project settings. Check the browser's developer console for any Firebase-related errors.
 *   **Gemini API Issues:** Ensure your `VITE_API_KEY` is correct and that the Gemini API is enabled for your project in Google AI Studio. Check the console for API errors.
-*   **"Missing Firebase config values" error:** This means one or more `VITE_FIREBASE_...` variables are not set in your `.env` file or not being picked up by Vite. Ensure the `.env` file is in the project root and restart the Vite server.
+*   **"Missing Firebase config values" error:** This means one or more `VITE_FIREBASE_...` variables are not set in your `.env.local` file or not being picked up by Vite. Ensure the `.env.local` file is in the project root and restart the Vite server.
 *   **Security Rules:** If you encounter permission errors after setting up secure rules, review your Firestore and Storage security rules in the Firebase console to ensure they allow the operations your app is trying to perform. The development rules provided above are very permissive.
+*   **Context Issues:** If you encounter context-related errors, ensure all components are wrapped in the appropriate context providers through `AppProviders`.
 
 ---
 
-You should now be able to run and use the REMI Story application with your own Firebase backend!
+You should now be able to run and use the REMI Story application with your own Firebase backend and enjoy the benefits of the refactored, maintainable codebase!
