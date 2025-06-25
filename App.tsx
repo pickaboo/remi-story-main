@@ -52,6 +52,7 @@ import {
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
+import { UserProvider, SphereProvider, ModalProvider, useModal } from './context';
 
 
 const YOUR_LOGO_URL = "https://example.com/your-logo.png"; 
@@ -327,8 +328,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleOpenCreateSphereModal = () => setIsCreateSphereModalOpen(true);
-  const handleCloseCreateSphereModal = () => setIsCreateSphereModalOpen(false);
   const handleCreateSphere = async (name: string, gradientColors: [string, string]) => {
     if (!currentUser) throw new Error("Du måste vara inloggad för att skapa en sfär.");
     const newSphereId = generateSphereId();
@@ -336,23 +335,20 @@ const App: React.FC = () => {
     await saveNewSphere(newSphere);
     const updatedUser = await addUserToSphere(currentUser.id, newSphereId);
     if (!updatedUser) throw new Error("Kunde inte lägga till sfären till användaren.");
-    
-    await fetchUserAndSphereData(updatedUser); 
+    await fetchUserAndSphereData(updatedUser);
     setAllUsersForManageModal(await authGetAllUsers());
-    
     const currentActiveSphere = await getActiveSphereFromService(updatedUser, await getAllSpheresFromStorage());
     setActiveSphere(currentActiveSphere);
     if (currentActiveSphere) await persistCurrentSphereId(currentActiveSphere.id);
-    
-    handleCloseCreateSphereModal();
+    closeCreateSphereModal();
     if (currentView !== View.Home) handleNavigate(View.Home);
   };
 
   const handleOpenInviteModal = (sphere: Sphere) => {
-    setSphereToInviteTo(sphere); setIsInviteModalOpen(true);
+    openInviteToSphereModal(sphere);
   };
   const handleCloseInviteModal = () => {
-    setIsInviteModalOpen(false); setSphereToInviteTo(null);
+    closeInviteToSphereModal();
   };
   
   const handleInviteUserToSphere = async (
@@ -379,8 +375,8 @@ const App: React.FC = () => {
     return result;
   };
 
-  const handleOpenLookAndFeelModal = () => setIsLookAndFeelModalOpen(true);
-  const handleCloseLookAndFeelModal = () => setIsLookAndFeelModalOpen(false);
+  const handleOpenLookAndFeelModal = () => openLookAndFeelModal();
+  const handleCloseLookAndFeelModal = () => closeLookAndFeelModal();
   
   const handleSaveSphereBackground = async (sphereId: string, backgroundUrl: string) => {
     if (!activeSphere || activeSphere.id !== sphereId) {
@@ -442,13 +438,13 @@ const App: React.FC = () => {
 
 
   const handleOpenManageSphereModal = async () => {
-    setAllUsersForManageModal(await authGetAllUsers()); 
-    setIsManageSphereModalOpen(true);
+    setAllUsersForManageModal(await authGetAllUsers());
+    openManageSphereModal();
   };
-  const handleCloseManageSphereModal = () => setIsManageSphereModalOpen(false);
+  const handleCloseManageSphereModal = () => closeManageSphereModal();
 
-  const handleOpenImageBankSettingsModal = () => setIsImageBankSettingsModalOpen(true); 
-  const handleCloseImageBankSettingsModal = () => setIsImageBankSettingsModalOpen(false); 
+  const handleOpenImageBankSettingsModal = () => openImageBankSettingsModal();
+  const handleCloseImageBankSettingsModal = () => closeImageBankSettingsModal();
 
   const handleRemoveUserFromSphere = async (userIdToRemove: string, sphereId: string): Promise<boolean> => {
     if (!currentUser || !activeSphere || sphereId !== activeSphere.id) return false;
@@ -766,6 +762,8 @@ const App: React.FC = () => {
     }
   }
 
+  const { modalState, openCreateSphereModal, closeCreateSphereModal, openInviteToSphereModal, closeInviteToSphereModal, openLookAndFeelModal, closeLookAndFeelModal, openManageSphereModal, closeManageSphereModal, openImageBankSettingsModal, closeImageBankSettingsModal } = useModal();
+
   return (
     <>
       <div className="h-full flex">
@@ -798,23 +796,23 @@ const App: React.FC = () => {
       </div>
       {currentUser && (
         <CreateSphereModal
-          isOpen={isCreateSphereModalOpen}
-          onClose={handleCloseCreateSphereModal}
+          isOpen={modalState.createSphere.isOpen}
+          onClose={closeCreateSphereModal}
           onCreateSphere={handleCreateSphere}
         />
       )}
       {currentUser && sphereToInviteTo && ( 
         <InviteToSphereModal
-          isOpen={isInviteModalOpen}
-          onClose={handleCloseInviteModal}
+          isOpen={modalState.inviteToSphere.isOpen}
+          onClose={closeInviteToSphereModal}
           onInvite={(email, message) => handleInviteUserToSphere(email, sphereToInviteTo.id, message)} // Pass message
           sphereToInviteTo={sphereToInviteTo}
         />
       )}
       {currentUser && activeSphere && isLookAndFeelModalOpen && (
         <LookAndFeelModal
-          isOpen={isLookAndFeelModalOpen}
-          onClose={handleCloseLookAndFeelModal}
+          isOpen={modalState.lookAndFeel.isOpen}
+          onClose={closeLookAndFeelModal}
           activeSphere={activeSphere}
           currentUser={currentUser}
           onSaveSphereBackground={handleSaveSphereBackground}
@@ -822,8 +820,8 @@ const App: React.FC = () => {
       )}
       {currentUser && activeSphere && isManageSphereModalOpen && (
         <ManageSphereModal
-            isOpen={isManageSphereModalOpen}
-            onClose={handleCloseManageSphereModal}
+            isOpen={modalState.manageSphere.isOpen}
+            onClose={closeManageSphereModal}
             activeSphere={activeSphere}
             currentUser={currentUser}
             allUsers={allUsersForManageModal}
@@ -833,8 +831,8 @@ const App: React.FC = () => {
       )}
       {currentUser && isImageBankSettingsModalOpen && ( 
         <ImageBankSettingsModal
-            isOpen={isImageBankSettingsModalOpen}
-            onClose={handleCloseImageBankSettingsModal}
+            isOpen={modalState.imageBankSettings.isOpen}
+            onClose={closeImageBankSettingsModal}
             currentUser={currentUser}
             onSaveShowImageMetadataPreference={handleSaveShowImageMetadataPreference}
         />
