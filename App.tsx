@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FeedPage } from './pages/FeedPage';
 import { EditImagePage } from './pages/EditImagePage';
-import { SlideshowProjectsPage } from './pages/SlideshowProjectsPage';
-import { SlideshowPlayerPage } from './pages/SlideshowPlayerPage';
+import { SlideshowProjectsPage } from './src/features/slideshow/components/SlideshowProjectsPage';
+import { SlideshowPlayerPage } from './src/features/slideshow/components/SlideshowPlayerPage';
 import { ImageBankPage } from './src/features/imageBank/components/ImageBankPage';
-import { DiaryPage } from './pages/DiaryPage';
+import { DiaryPage } from './src/features/diary/components/DiaryPage';
 import { LoginPage, SignupPage, EmailConfirmationPage, ProfileCompletionPage } from './src/features/auth';
 import { CreateSphereModal } from './src/features/spheres/components/CreateSphereModal';
 import { InviteToSphereModal } from './src/features/spheres/components/InviteToSphereModal';

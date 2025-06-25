@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View } from '../../types'; 
-import { DiaryPopover } from '../common/DiaryPopover'; 
+import { DiaryPopover } from '../../src/features/diary/components/DiaryPopover'; 
 import { UserMenuPopover } from '../common/UserMenuPopover';
 import { useUser } from '../../context/UserContext';
-import { usePendingInvites } from '../../hooks/usePendingInvites';
+import { usePendingInvites } from '../../src/features/spheres/hooks/usePendingInvites';
 
 interface HeaderProps {
   isSidebarExpanded: boolean;
