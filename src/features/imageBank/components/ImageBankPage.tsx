@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
-import { ImageRecord, User, View, Sphere } from '../types';
+import { ImageRecord, View } from '../types';
 import { getAllImages, saveImage, generateId, deleteImage, getSphereById } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { getUserById } from '../services/userService'; // Import for getting user details

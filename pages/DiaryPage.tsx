@@ -200,7 +200,7 @@ export const DiaryPage: React.FC = () => {
                 <audio 
                     key={audioRecorder.audioUrl || editingEntry?.audioRecUrl} // Re-render audio element if src changes
                     controls 
-                    src={audioRecorder.audioUrl || editingEntry?.audioRecUrl} 
+                    src={audioRecorder.audioUrl || editingEntry?.audioRecUrl || undefined} 
                     className="w-full h-10"
                 ></audio>
                 <Button 

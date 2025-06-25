@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
-import { signupWithEmailPassword, loginWithOAuth } from '../../services/authService';
+import { AuthContainer } from '../../../../components/auth/AuthContainer';
+import { Input } from '../../../../components/common/Input';
+import { Button } from '../../../../components/common/Button';
+import { User, AuthView } from '../types';
+import { signupWithEmailPassword, loginWithOAuth } from '../services/authService';
 
 interface SignupPageProps {
   onLoginSuccess: (user: User, isNewOAuthUser?: boolean) => void; // For OAuth flow that might "log in" directly
-  onNavigate: (viewOrPath: View | string, params?: any) => void;
+  onNavigate: (viewOrPath: AuthView | string, params?: any) => void;
 }
 
 // Simple SVG Icons for OAuth providers (can be reused or moved to a common place)
@@ -39,7 +38,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
+  const handleEmailSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     if (password !== confirmPassword) {
@@ -54,7 +53,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
     try {
       const result = await signupWithEmailPassword(email, password);
       if (result.user) {
-        onNavigate(View.EmailConfirmation, { email: result.user.email });
+        onNavigate(AuthView.EmailConfirmation, { email: result.user.email });
       } else {
         setError(result.error || 'Kunde inte skapa konto. Försök igen.');
       }
@@ -92,7 +91,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
           type="email"
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           required
           autoFocus
         />
@@ -102,7 +101,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
           type="password"
           autoComplete="new-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           required
         />
         <Input
@@ -111,7 +110,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
           type="password"
           autoComplete="new-password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
           required
         />
         {error && <p className="text-sm text-danger dark:text-red-400 text-center">{error}</p>}

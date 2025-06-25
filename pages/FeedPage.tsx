@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CreatePost } from '../components/feed/CreatePost';
-import { PostCard } from '../components/feed/PostCard';
+import React, { useState, useEffect, useRef } from 'react';
+import { CreatePost } from '../src/features/feed/components/CreatePost';
+import { PostCard } from '../src/features/feed/components/PostCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord, View } from '../types';
 import { getSphereFeedPostsListener } from '../services/storageService';

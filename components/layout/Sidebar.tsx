@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View } from '../../types';
-import { SphereDisplay } from '../common/SphereDisplay'; 
+import { SphereDisplay } from '../../src/features/spheres/components/SphereDisplay'; 
 import { useSphere } from '../../context/SphereContext';
 import { useUser } from '../../context/UserContext';
 import { useModal } from '../../context';
@@ -109,9 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { 
     activeSphere, 
     userSpheres, 
-    allSpheres,
     handleSwitchSphere,
-    handleCreateSphere 
   } = useSphere();
   
   // Sidebar internal state

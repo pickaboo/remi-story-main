@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
-import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../../services/authService';
+import { AuthContainer } from '../../../../components/auth/AuthContainer';
+import { Input } from '../../../../components/common/Input';
+import { Button } from '../../../../components/common/Button';
+import { User, AuthView } from '../types';
+import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../services/authService';
 
 interface LoginPageProps {
   onLoginSuccess: (user: User, isNewOAuthUser?: boolean) => void;
-  onNavigate: (viewOrPath: View | string, params?: any) => void; // Allow string for direct hash path
+  onNavigate: (viewOrPath: AuthView | string, params?: any) => void; // Allow string for direct hash path
 }
 
 // Simple SVG Icons for OAuth providers
@@ -46,7 +45,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
   const [isSendingReset, setIsSendingReset] = useState(false);
 
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -81,7 +80,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
     setIsLoading(false);
   };
   
-  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+  const handleForgotPasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setForgotPasswordMessage(null);
     setIsSendingReset(true);
@@ -126,7 +125,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
             type="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required
             autoFocus
           />

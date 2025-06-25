@@ -1,6 +1,5 @@
 import React from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
-import { View } from '../types'; // Assuming types might be used if developed further
 // If you need to navigate from here, uncomment and use:
 // import { useNavigate } from 'react-router-dom'; // or your navigation hook/method
 

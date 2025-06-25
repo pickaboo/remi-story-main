@@ -1,14 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
-import { simulateVerifyEmail } from '../../services/authService';
+import { AuthContainer } from '../../../../components/auth/AuthContainer';
+import { Button } from '../../../../components/common/Button';
+import { User, AuthView } from '../types';
+import { simulateVerifyEmail } from '../services/authService';
 
 interface EmailConfirmationPageProps {
   email?: string; // Passed as viewParam
   onLoginSuccess: (user: User, isNewOAuthUser?: boolean) => void; // To set user state after verification
-  onNavigate: (viewOrPath: View | string, params?: any) => void;
+  onNavigate: (viewOrPath: AuthView | string, params?: any) => void;
 }
 
 export const EmailConfirmationPage: React.FC<EmailConfirmationPageProps> = ({ email, onLoginSuccess, onNavigate }) => {
@@ -43,7 +42,7 @@ export const EmailConfirmationPage: React.FC<EmailConfirmationPageProps> = ({ em
     // If email is not passed, it might be an invalid state, redirect to signup
     if (!email) {
       console.warn("EmailConfirmationPage reached without an email. Redirecting to signup.");
-      onNavigate(View.Signup);
+      onNavigate(AuthView.Signup);
     }
   }, [email, onNavigate]);
 
@@ -71,11 +70,11 @@ export const EmailConfirmationPage: React.FC<EmailConfirmationPageProps> = ({ em
 
         <p className="mt-4 text-sm text-muted-text dark:text-slate-400">
           Inget mail?{' '}
-          <button onClick={() => onNavigate(View.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
+          <button onClick={() => onNavigate(AuthView.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
             Försök registrera igen
           </button>
           {' '}eller{' '}
-          <button onClick={() => onNavigate(View.Login)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
+          <button onClick={() => onNavigate(AuthView.Login)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
             logga in
           </button>.
         </p>

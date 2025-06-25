@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../common/Button';
 import { TextArea } from '../common/TextArea';
@@ -7,7 +6,7 @@ import { generateId, saveImage, getImageById } from '../../services/storageServi
 import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../services/geminiService';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
 import { AudioPlayerButton } from '../common/AudioPlayerButton';
-import { ImageBankPickerModal } from '../common/ImageBankPickerModal';
+import { ImageBankPickerModal } from '../../imageBank/components/ImageBankPickerModal';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../firebase'; 

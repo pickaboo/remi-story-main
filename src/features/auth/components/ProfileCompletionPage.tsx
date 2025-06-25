@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
-import { updateUserProfile } from '../../services/authService';
+import { AuthContainer } from '../../../../components/auth/AuthContainer';
+import { Input } from '../../../../components/common/Input';
+import { Button } from '../../../../components/common/Button';
+import { User, AuthView } from '../types';
+import { updateUserProfile } from '../services/authService';
 
 interface ProfileCompletionPageProps {
   initialUser: User;
   onProfileComplete: (updatedUser: User) => void;
-  onNavigate: (viewOrPath: View | string, params?: any) => void; // For potential logout or other navigation
+  onNavigate: (viewOrPath: AuthView | string, params?: any) => void; // For potential logout or other navigation
 }
 
 const AVATAR_COLORS = [
@@ -38,7 +37,7 @@ export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ in
     }
   }, [name, initials]); // Only run if `name` changes and `initials` is still empty
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     if (!name.trim()) {
@@ -79,7 +78,7 @@ export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ in
           label="Fullständigt Namn"
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           required
           autoFocus
           maxLength={50}
@@ -89,7 +88,7 @@ export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ in
           label="Initialer (1-3 tecken)"
           type="text"
           value={initials}
-          onChange={(e) => setInitials(e.target.value.toUpperCase())}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInitials(e.target.value.toUpperCase())}
           required
           maxLength={3}
         />

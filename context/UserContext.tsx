@@ -4,7 +4,7 @@ import {
     getCurrentAuthenticatedUser, 
     logout as authLogout, 
     updateUserProfile 
-} from '../services/authService';
+} from '../src/features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../services/storageService';
 
 export interface UserContextType {

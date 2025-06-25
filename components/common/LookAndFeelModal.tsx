@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { Sphere, User } from '../../types'; // User type is kept as it was part of the original props
@@ -7,9 +6,7 @@ interface LookAndFeelModalProps {
   isOpen: boolean;
   onClose: () => void;
   activeSphere: Sphere;
-  currentUser: User; 
   onSaveSphereBackground: (sphereId: string, backgroundUrl: string) => Promise<void>;
-  // onSaveThemePreference prop removed
 }
 
 const PREDEFINED_BACKGROUND_IMAGES: { name: string; url: string; thumbnailUrl: string }[] = [
@@ -25,9 +22,7 @@ export const LookAndFeelModal: React.FC<LookAndFeelModalProps> = ({
   isOpen,
   onClose,
   activeSphere,
-  currentUser, // currentUser is kept for potential future use or consistency
   onSaveSphereBackground,
-  // onSaveThemePreference removed
 }) => {
   const [selectedBackgroundUrl, setSelectedBackgroundUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);

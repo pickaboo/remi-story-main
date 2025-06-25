@@ -3,57 +3,24 @@ import { FeedPage } from './pages/FeedPage';
 import { EditImagePage } from './pages/EditImagePage';
 import { SlideshowProjectsPage } from './pages/SlideshowProjectsPage';
 import { SlideshowPlayerPage } from './pages/SlideshowPlayerPage';
-import { ImageBankPage } from './pages/ImageBankPage'; // Ensured correct relative path
+import { ImageBankPage } from './src/features/imageBank/components/ImageBankPage';
 import { DiaryPage } from './pages/DiaryPage';
-import { LoginPage } from './pages/auth/LoginPage'; 
-import { SignupPage } from './pages/auth/SignupPage'; 
-import { EmailConfirmationPage } from './pages/auth/EmailConfirmationPage'; 
-import { ProfileCompletionPage } from './pages/auth/ProfileCompletionPage';
-import { CreateSphereModal } from './components/common/CreateSphereModal';
-import { InviteToSphereModal } from './components/common/InviteToSphereModal';
+import { LoginPage, SignupPage, EmailConfirmationPage, ProfileCompletionPage } from './src/features/auth';
+import { CreateSphereModal } from './src/features/spheres/components/CreateSphereModal';
+import { InviteToSphereModal } from './src/features/spheres/components/InviteToSphereModal';
 import { LookAndFeelModal } from './components/common/LookAndFeelModal';
-import { ManageSphereModal } from './components/common/ManageSphereModal'; 
-import { ImageBankSettingsModal } from './components/common/ImageBankSettingsModal'; // New Modal
-
+import { ManageSphereModal } from './src/features/spheres/components/ManageSphereModal';
+import { ImageBankSettingsModal } from './src/features/imageBank/components/ImageBankSettingsModal';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
-import { Timeline } from './components/feed/Timeline';
-import { View, User, ImageRecord, Sphere, BackgroundPreference, SphereInvitation } from './types'; 
-import { 
-    getActiveSphere as getActiveSphereFromService,
-    setCurrentSphereId as persistCurrentSphereId, 
-    // setCurrentUserId, // Removed as Firebase Auth handles this
-    getUserSpheres as getUserSpheresFromService,
-    getUserById,
-} from './services/userService';
-import { 
-    getAllSpheres as getAllSpheresFromStorage, 
-    saveNewSphere, 
-    generateId as generateSphereId, 
-    getAllImages,
-    getPendingInvitationsForEmail, // Added
-} from './services/storageService'; 
-import { 
-    MOCK_SPHERES, 
-    LOCAL_STORAGE_USER_THEME_PREFERENCE_KEY_PREFIX,
-    LOCAL_STORAGE_USER_SHOW_IMAGE_METADATA_KEY_PREFIX, 
-} from './constants'; 
-import { 
-    getCurrentAuthenticatedUser, 
-    logout as authLogout, 
-    addUserToSphere, 
-    mock_inviteUserToSphereByEmail, // This uses storageCreateSphereInvitation now
-    updateUserProfile, 
-    getAllUsers as authGetAllUsers, 
-    removeUserFromSphere as authRemoveUserFromSphere, 
-    acceptSphereInvitation as authAcceptSphereInvitation, // Added
-    declineSphereInvitation as authDeclineSphereInvitation, // Added
-} from './services/authService'; 
+import { Timeline } from './src/features/feed/components/Timeline';
+import { View, User, ImageRecord, Sphere } from './types';
+import { getActiveSphere as getActiveSphereFromService, setCurrentSphereId as persistCurrentSphereId, getUserSpheres as getUserSpheresFromService } from './services/userService';
+import { getAllSpheres as getAllSpheresFromStorage, saveNewSphere, generateId as generateSphereId, getPendingInvitationsForEmail } from './services/storageService';
+import { MOCK_SPHERES, LOCAL_STORAGE_USER_THEME_PREFERENCE_KEY_PREFIX, LOCAL_STORAGE_USER_SHOW_IMAGE_METADATA_KEY_PREFIX } from './constants';
+import { getCurrentAuthenticatedUser, logout as authLogout, addUserToSphere, mock_inviteUserToSphereByEmail, updateUserProfile, getAllUsers as authGetAllUsers, removeUserFromSphere as authRemoveUserFromSphere, acceptSphereInvitation as authAcceptSphereInvitation, declineSphereInvitation as authDeclineSphereInvitation } from './src/features/auth/services/authService';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
-import { UserProvider, SphereProvider, ModalProvider, useModal } from './context';
-
+import { useModal } from './context';
 
 const YOUR_LOGO_URL = "https://example.com/your-logo.png"; 
 type Theme = User['themePreference'];
@@ -814,7 +781,6 @@ const App: React.FC = () => {
           isOpen={modalState.lookAndFeel.isOpen}
           onClose={closeLookAndFeelModal}
           activeSphere={activeSphere}
-          currentUser={currentUser}
           onSaveSphereBackground={handleSaveSphereBackground}
         />
       )}

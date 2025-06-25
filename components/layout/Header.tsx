@@ -5,8 +5,6 @@ import { UserMenuPopover } from '../common/UserMenuPopover';
 import { useUser } from '../../context/UserContext';
 import { usePendingInvites } from '../../hooks/usePendingInvites';
 
-type ThemePreference = 'light' | 'dark' | 'system';
-
 interface HeaderProps {
   isSidebarExpanded: boolean;
   onNavigate: (view: View, params?: any) => void;
