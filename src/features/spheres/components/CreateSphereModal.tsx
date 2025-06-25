@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { PREDEFINED_SPHERE_GRADIENTS } from '../../constants';
+import { Button } from '../../../../components/common/Button';
+import { Input } from '../../../../components/common/Input';
+import { PREDEFINED_SPHERE_GRADIENTS } from '../../../../constants';
 // SphereDisplay could be used for preview, but for simplicity, we'll just show colors.
 
 interface CreateSphereModalProps {

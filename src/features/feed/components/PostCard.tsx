@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, JSX } from 'react'; // Added useMemo
-import { ImageRecord, User, UserDescriptionEntry } from '../../types';
-import { saveImage } from '../../services/storageService';
-import { getUserById } from '../../services/userService';
-import { TextArea } from '../common/TextArea';
-import { Button } from '../common/Button';
-import { Input } from '../common/Input'; // Keep for hover input
-import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { AudioPlayerButton } from '../common/AudioPlayerButton';
-import { FullscreenImageViewer } from '../common/FullscreenImageViewer'; // Added
+import { ImageRecord, User, UserDescriptionEntry } from '../../../../types';
+import { saveImage } from '../../../../services/storageService';
+import { getUserById } from '../../../../services/userService';
+import { TextArea } from '../../../../components/common/TextArea';
+import { Button } from '../../../../components/common/Button';
+import { Input } from '../../../../components/common/Input'; // Keep for hover input
+import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { AudioPlayerButton } from '../../../../components/common/AudioPlayerButton';
+import { FullscreenImageViewer } from '../../../../components/common/FullscreenImageViewer'; // Added
 
 interface PostCardProps {
   post: ImageRecord;

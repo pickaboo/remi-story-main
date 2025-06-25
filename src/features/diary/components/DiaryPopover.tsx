@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { DiaryEntry } from '../../types';
-import { saveDiaryEntry, generateId } from '../../services/storageService';
-import { TextArea } from './TextArea';
-import { Button } from './Button';
-import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { useUser } from '../../context';
+import { DiaryEntry } from '../../../../types';
+import { saveDiaryEntry, generateId } from '../../../../services/storageService';
+import { TextArea } from '../../../../components/common/TextArea';
+import { Button } from '../../../../components/common/Button';
+import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { useUser } from '../../../../context';
 
 interface DiaryPopoverProps {
   isOpen: boolean;

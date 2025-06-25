@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { TextArea } from './TextArea'; // Added TextArea
-import { Sphere, User } from '../../types';
+import { Button } from '../../../../components/common/Button';
+import { Input } from '../../../../components/common/Input';
+import { TextArea } from '../../../../components/common/TextArea'; // Added TextArea
+import { Sphere, User } from '../../../../types';
 import { SphereDisplay } from './SphereDisplay'; 
-import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
 
 interface ManageSphereModalProps {
   isOpen: boolean;

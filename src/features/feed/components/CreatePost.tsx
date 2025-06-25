@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '../common/Button';
-import { TextArea } from '../common/TextArea';
-import { ImageRecord, User, UserDescriptionEntry } from '../../types';
-import { generateId, saveImage, getImageById } from '../../services/storageService';
-import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../services/geminiService';
-import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
-import { AudioPlayerButton } from '../common/AudioPlayerButton';
+import { Button } from '../../../../components/common/Button';
+import { TextArea } from '../../../../components/common/TextArea';
+import { ImageRecord, User, UserDescriptionEntry } from '../../../../types';
+import { generateId, saveImage, getImageById } from '../../../../services/storageService';
+import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../../../services/geminiService';
+import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { AudioPlayerButton } from '../../../../components/common/AudioPlayerButton';
 import { ImageBankPickerModal } from '../../imageBank/components/ImageBankPickerModal';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
-import { storage } from '../../firebase'; 
+import { storage } from '../../../../firebase';
 
 interface CreatePostProps {
   currentUser: User;

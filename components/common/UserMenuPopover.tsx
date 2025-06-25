@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { LoadingSpinner } from './LoadingSpinner';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
-import { SphereDisplay } from './SphereDisplay';
+import { SphereDisplay } from '../../src/features/spheres/components/SphereDisplay';
 import { useUser } from '../../context';
 
 type ThemePreference = User['themePreference'];

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PageContainer } from '../components/layout/PageContainer';
-import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, SlideshowProject, View } from '../types'; 
-import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
-import { generatePhotoAlbumPdf } from '../services/pdfService';
+import { PageContainer } from '../../../../components/layout/PageContainer';
+import { Button } from '../../../../components/common/Button';
+import { Input } from '../../../../components/common/Input';
+import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
+import { ImageRecord, SlideshowProject, View } from '../../../../types'; 
+import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../../../../services/storageService'; 
+import { generatePhotoAlbumPdf } from '../../../../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
-import { storage } from '../firebase'; 
-import { useUser, useSphere } from '../context';
+import { storage } from '../../../../firebase'; 
+import { useUser, useSphere } from '../../../../context';
 
 interface SlideshowProjectsPageProps {
   onNavigate: (view: View, params?: any) => void;

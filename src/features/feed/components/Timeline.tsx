@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { ImageRecord } from '../../types';
+import { ImageRecord } from '../../../../types';
 
 const getSwedishMonthName = (date: Date): string => {
   return date.toLocaleDateString('sv-SE', { month: 'long' });
