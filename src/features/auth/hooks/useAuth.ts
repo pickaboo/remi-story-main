@@ -1,33 +1,81 @@
-import { useCallback, useEffect } from 'react';
-import { useUser } from '../../../../context/UserContext';
+import { useState, useEffect } from 'react';
+import { User, View } from '../../../../types';
+import { getCurrentAuthenticatedUser } from '../services/authService';
+import { useNavigation } from '../../../../context/NavigationContext';
+import { useAppLogic } from '../../../../hooks/useAppLogic';
 
 export const useAuth = () => {
-  const { 
-    currentUser, 
-    isAuthenticated, 
-    checkAuthAndLoadData, 
-    handleLoginSuccess, 
-    handleLogout 
-  } = useUser();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { navigate } = useNavigation();
+  const { applyThemePreference, fetchUserAndSphereData } = useAppLogic();
 
-  // Check authentication status on mount
+  // Initial auth check and data load
   useEffect(() => {
+    const checkAuthAndLoadData = async () => {
+      const user = await getCurrentAuthenticatedUser(); 
+      if (user) {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        applyThemePreference(user.themePreference || 'system');
+        const finalUser = await fetchUserAndSphereData(user);
+        setCurrentUser(finalUser);
+
+        const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
+        const hashPath = hash.split('?')[0];
+        const authPaths = ['login', 'signup', 'confirm-email', 'forgot-password', 'complete-profile'];
+
+        if (user.name === "Ny Användare" || hashPath === 'complete-profile') { 
+             navigate(View.ProfileCompletion, { userId: user.id }); 
+        } else if (!hash || authPaths.includes(hashPath)) {
+            navigate(View.Home);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        navigate(View.Login);
+      }
+    };
     checkAuthAndLoadData();
-  }, [checkAuthAndLoadData]);
+  }, [navigate, applyThemePreference, fetchUserAndSphereData]);
 
-  const login = useCallback(async (user: any, isNewUserViaOAuthOrEmailFlow?: boolean) => {
-    await handleLoginSuccess(user, isNewUserViaOAuthOrEmailFlow);
-  }, [handleLoginSuccess]);
+  // Theme management
+  useEffect(() => {
+    if (currentUser?.themePreference) {
+        applyThemePreference(currentUser.themePreference);
+    } else {
+        applyThemePreference('system');
+    }
 
-  const logout = useCallback(async () => {
-    await handleLogout();
-  }, [handleLogout]);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+        if (currentUser?.themePreference === 'system' || !currentUser) {
+            applyThemePreference('system');
+        }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [currentUser, applyThemePreference]);
+
+  const handleLoginSuccess = async (user: User) => {
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    applyThemePreference(user.themePreference || 'system');
+    const finalUser = await fetchUserAndSphereData(user);
+    setCurrentUser(finalUser);
+    navigate(View.Home);
+  };
+
+  const handleProfileComplete = async (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+    navigate(View.Home);
+  };
 
   return {
-    currentUser,
     isAuthenticated,
-    login,
-    logout,
-    checkAuth: checkAuthAndLoadData,
+    currentUser,
+    setCurrentUser,
+    handleLoginSuccess,
+    handleProfileComplete,
   };
 }; 
