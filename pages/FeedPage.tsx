@@ -40,6 +40,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       activeSphere.id,
       (updatedPosts) => {
         setPosts(updatedPosts);
+        console.log('Alla poster i flödet:', updatedPosts);
         onFeedPostsUpdate(updatedPosts); // Notify App.tsx for Timeline
         setIsLoading(false);
       },
