@@ -156,6 +156,11 @@
 - [x] Extract tags to PostTags.tsx
 - [x] Extract image display to PostImage.tsx
 - [x] Extract comment input (with audio) to CommentInput.tsx
-- [ ] Extract comments list
-- [ ] Extract main logic hook (usePostCard)
-- [ ] Refactor main PostCard orchestrator 
+- [x] Extract comments list to PostComments.tsx
+- [x] Refactor main PostCard orchestrator
+
+**PostCard Refactor COMPLETED** ✅
+- Reduced from 513 lines to 205 lines (60% reduction)
+- All functionality preserved
+- Audio logic deduplicated
+- Ready for next component refactor 

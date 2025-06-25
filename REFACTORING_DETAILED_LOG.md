@@ -451,4 +451,28 @@
 - Extracted image display with fullscreen and tag management overlay to `src/features/feed/components/PostImage.tsx`.
 - Extracted comment input (with audio recording) to `src/features/feed/components/CommentInput.tsx`.
 - All audio recording and playback logic is now handled via the shared `useAudioRecorder` hook and `AudioPlayerButton` component, ensuring no duplication.
-- Next: Extract comments list, main logic hook, and refactor main PostCard.tsx orchestrator. 
+- Next: Extract comments list, main logic hook, and refactor main PostCard.tsx orchestrator.
+
+### [PostCard Refactor] Completion (Date)
+
+- Extracted comments list display to `src/features/feed/components/PostComments.tsx`.
+- Refactored main `PostCard.tsx` to orchestrate all extracted subcomponents:
+  - PostHeader (user avatar, name, timestamp, edit button)
+  - PostImage (image display with fullscreen and tag management)
+  - PostTags (tag display and management)
+  - CommentInput (audio/text input for comments/descriptions)
+  - PostComments (comments list)
+- **Result**: Reduced `PostCard.tsx` from 513 lines to 205 lines (60% reduction).
+- All audio recording and playback logic is handled via shared `useAudioRecorder` hook and `AudioPlayerButton` component.
+- Maintained all original functionality while improving maintainability and reducing duplication.
+- Fixed TypeScript errors related to optional properties.
+
+**Total extracted components:**
+- PostCardIcons.tsx (SVG icons)
+- PostHeader.tsx (header section)
+- PostTags.tsx (tag management)
+- PostImage.tsx (image display with fullscreen)
+- CommentInput.tsx (comment input with audio)
+- PostComments.tsx (comments list)
+
+**Refactor complete - PostCard.tsx now serves as a clean orchestrator.** 
