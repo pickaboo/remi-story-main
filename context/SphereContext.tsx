@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Sphere, User } from '../types';
 import { 
     getActiveSphere as getActiveSphereFromService,
@@ -9,6 +9,7 @@ import {
     getAllSpheres as getAllSpheresFromStorage, 
     saveNewSphere, 
     generateId as generateSphereId,
+    getSphereById,
 } from '../services/storageService';
 import { 
     MOCK_SPHERES 
@@ -28,15 +29,19 @@ export interface SphereContextType {
   handleCreateSphere: (name: string, gradientColors: [string, string]) => Promise<Sphere | null>;
   fetchUserAndSphereData: (user: User) => Promise<void>;
   applyBackgroundPreference: (sphereForBackground?: Sphere | null, userForBackground?: User | null) => void;
+  refreshActiveSphere: () => Promise<void>;
+  refreshUserSpheres: () => Promise<void>;
+  switchToSphere: (sphereId: string) => Promise<void>;
 }
 
 const SphereContext = createContext<SphereContextType | undefined>(undefined);
 
 interface SphereProviderProps {
   children: ReactNode;
+  currentUserId?: string;
 }
 
-export const SphereProvider: React.FC<SphereProviderProps> = ({ children }) => {
+export const SphereProvider: React.FC<SphereProviderProps> = ({ children, currentUserId }) => {
   const [activeSphere, setActiveSphere] = useState<Sphere | null>(null);
   const [userSpheres, setUserSpheres] = useState<Sphere[]>([]);
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
@@ -153,6 +158,54 @@ export const SphereProvider: React.FC<SphereProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const refreshActiveSphere = async () => {
+    if (activeSphere?.id) {
+      try {
+        const refreshedSphere = await getSphereById(activeSphere.id);
+        if (refreshedSphere) {
+          setActiveSphere(refreshedSphere);
+        }
+      } catch (error) {
+        console.error('Failed to refresh active sphere:', error);
+      }
+    }
+  };
+
+  const refreshUserSpheres = async () => {
+    if (currentUserId) {
+      try {
+        const user = { id: currentUserId } as User; // Create a minimal user object
+        const spheres = await getUserSpheresFromService(user, allSpheres);
+        setUserSpheres(spheres);
+        
+        // If no active sphere is set, set the first one as active
+        if (!activeSphere && spheres.length > 0) {
+          setActiveSphere(spheres[0]);
+        }
+      } catch (error) {
+        console.error('Failed to refresh user spheres:', error);
+      }
+    }
+  };
+
+  const switchToSphere = async (sphereId: string) => {
+    try {
+      const sphere = await getSphereById(sphereId);
+      if (sphere) {
+        setActiveSphere(sphere);
+      }
+    } catch (error) {
+      console.error('Failed to switch to sphere:', error);
+    }
+  };
+
+  // Load user spheres when currentUserId changes
+  useEffect(() => {
+    if (currentUserId) {
+      refreshUserSpheres();
+    }
+  }, [currentUserId]);
+
   const value: SphereContextType = {
     activeSphere,
     userSpheres,
@@ -164,6 +217,9 @@ export const SphereProvider: React.FC<SphereProviderProps> = ({ children }) => {
     handleCreateSphere,
     fetchUserAndSphereData,
     applyBackgroundPreference,
+    refreshActiveSphere,
+    refreshUserSpheres,
+    switchToSphere,
   };
 
   return (

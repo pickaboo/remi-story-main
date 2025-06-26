@@ -3,8 +3,8 @@ import { ModalProvider } from './ModalContext';
 import { NavigationProvider } from './NavigationContext';
 import { FeedbackProvider } from './FeedbackContext';
 import { AppStateProvider } from './AppStateContext';
-// import { UserProvider } from './UserContext';
-// import { SphereProvider } from './SphereContext';
+import { UserProvider } from './UserContext';
+import { SphereProvider } from './SphereContext';
 // Add other providers as needed
 
 interface AppProvidersProps {
@@ -16,13 +16,13 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     <NavigationProvider>
       <FeedbackProvider>
         <AppStateProvider>
-          <ModalProvider>
-            {/* <UserProvider>
-              <SphereProvider> */}
+          <UserProvider>
+            <SphereProvider>
+              <ModalProvider>
                 {children}
-              {/* </SphereProvider>
-            </UserProvider> */}
-          </ModalProvider>
+              </ModalProvider>
+            </SphereProvider>
+          </UserProvider>
         </AppStateProvider>
       </FeedbackProvider>
     </NavigationProvider>

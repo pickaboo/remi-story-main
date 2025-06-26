@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import { 
     getCurrentAuthenticatedUser, 
@@ -6,21 +6,22 @@ import {
     updateUserProfile 
 } from '../src/features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../services/storageService';
+import { getUserById } from '../services/userService';
 
 export interface UserContextType {
   // State
   currentUser: User | null;
-  isAuthenticated: boolean | null;
+  isAuthenticated: boolean;
   
   // Functions
   setCurrentUser: (user: User | null) => void;
-  setIsAuthenticated: (authenticated: boolean | null) => void;
-  handleLoginSuccess: (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => Promise<void>;
-  handleProfileComplete: (updatedUser: User) => Promise<void>;
+  handleLoginSuccess: (user: User) => void;
+  handleProfileComplete: (user: User) => void;
   handleLogout: () => Promise<void>;
   handleSaveThemePreference: (theme: User['themePreference']) => Promise<void>;
   handleSaveShowImageMetadataPreference: (show: boolean) => Promise<void>;
   checkAuthAndLoadData: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -31,9 +32,9 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const checkAuthAndLoadData = useCallback(async () => {
+  const checkAuthAndLoadData = async () => {
     try {
       const user = await getCurrentAuthenticatedUser();
       if (user) {
@@ -62,34 +63,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setCurrentUser(null);
       setIsAuthenticated(false);
     }
-  }, []);
+  };
 
-  const handleLoginSuccess = useCallback(async (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => {
-    console.log("[UserContext] handleLoginSuccess called for user:", user.id);
+  const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
-    
-    // Update pending invitation count
-    if (user.email) {
-      const pendingInvites = await getPendingInvitationsForEmail(user.email);
-      const needsInviteCountUpdate = user.pendingInvitationCount !== pendingInvites.length ||
-                                    (user.pendingInvitationCount === undefined && pendingInvites.length > 0);
+  };
 
-      if (needsInviteCountUpdate) {
-        const updatedUser = await updateUserProfile(user.id, { pendingInvitationCount: pendingInvites.length });
-        if (updatedUser) {
-          setCurrentUser(updatedUser);
-        }
-      }
-    }
-  }, []);
+  const handleProfileComplete = (user: User) => {
+    setCurrentUser(user);
+  };
 
-  const handleProfileComplete = useCallback(async (updatedUser: User) => {
-    console.log("[UserContext] handleProfileComplete called for user:", updatedUser.id);
-    setCurrentUser(updatedUser);
-  }, []);
-
-  const handleLogout = useCallback(async () => {
+  const handleLogout = async () => {
     try {
       await authLogout();
       setCurrentUser(null);
@@ -97,9 +82,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error during logout:', error);
     }
-  }, []);
+  };
 
-  const handleSaveThemePreference = useCallback(async (theme: User['themePreference']) => {
+  const handleSaveThemePreference = async (theme: User['themePreference']) => {
     if (!currentUser) return;
     
     try {
@@ -110,9 +95,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error saving theme preference:', error);
     }
-  }, [currentUser]);
+  };
 
-  const handleSaveShowImageMetadataPreference = useCallback(async (show: boolean) => {
+  const handleSaveShowImageMetadataPreference = async (show: boolean) => {
     if (!currentUser) return;
     
     try {
@@ -123,19 +108,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error saving show image metadata preference:', error);
     }
-  }, [currentUser]);
+  };
+
+  const refreshUser = async () => {
+    if (currentUser?.id) {
+      try {
+        const refreshedUser = await getUserById(currentUser.id);
+        if (refreshedUser) {
+          setCurrentUser(refreshedUser);
+        }
+      } catch (error) {
+        console.error('Failed to refresh user:', error);
+      }
+    }
+  };
 
   const value: UserContextType = {
     currentUser,
     isAuthenticated,
     setCurrentUser,
-    setIsAuthenticated,
     handleLoginSuccess,
     handleProfileComplete,
     handleLogout,
     handleSaveThemePreference,
     handleSaveShowImageMetadataPreference,
     checkAuthAndLoadData,
+    refreshUser,
   };
 
   return (
