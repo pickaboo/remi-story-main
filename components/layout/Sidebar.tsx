@@ -5,7 +5,7 @@ import { useSphere } from '../../context/SphereContext';
 import { useUser } from '../../context/UserContext';
 import { useModal } from '../../context';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '../common/icons/ChevronIcons';
-import { PlusCircleIcon, UserPlusIcon, Cog6ToothIcon, PaintBrushIcon } from '../common/icons/ActionIcons';
+import { PlusCircleIcon, UserPlusIcon, Cog6ToothIcon, PaintBrushIcon, UsersIcon } from '../common/icons/ActionIcons';
 import { PhotoIcon } from '../common/icons/ActionIcons';
 
 interface SidebarProps {
@@ -45,12 +45,6 @@ const NAV_ITEMS_SIDEBAR = [
       </svg> 
   },
 ];
-
-const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-3.741-3.741m-2.55 3.741a9.094 9.094 0 013.741-.479 3 3 0 01-3.741-3.741M15.525 15.375a3 3 0 01-3.741 3.741M15.525 15.375a3 3 0 00-3.741 3.741m6.036-3.741a9.094 9.094 0 01-3.741.479m-2.175 0a3 3 0 01-3.741-3.741m0 0a3 3 0 00-3.741-3.741m2.175 0a9.094 9.094 0 00-3.741-.479m3.741.479a3 3 0 003.741 3.741M3.75 14.25a3 3 0 003.741 3.741M3.75 14.25a3 3 0 013.741 3.741m0 0a9.094 9.094 0 003.741.479M3.75 14.25a3 3 0 01-.479-3.741M3.75 14.25a3 3 0 00-.479-3.741m-.055 0a9.094 9.094 0 00-3.741.479m0 0a3 3 0 013.741 3.741M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-    </svg>
-);
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
     currentPath, 

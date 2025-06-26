@@ -29,4 +29,10 @@ export const PhotoIcon: React.FC<{ className?: string }> = ({ className = "w-5 h
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
   </svg>
+);
+
+export const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-3.741-3.741m-2.55 3.741a9.094 9.094 0 013.741-.479 3 3 0 01-3.741-3.741M15.525 15.375a3 3 0 01-3.741 3.741M15.525 15.375a3 3 0 00-3.741 3.741m6.036-3.741a9.094 9.094 0 01-3.741.479m-2.175 0a3 3 0 01-3.741-3.741m0 0a3 3 0 00-3.741-3.741m2.175 0a9.094 9.094 0 00-3.741-.479m3.741.479a3 3 0 003.741 3.741M3.75 14.25a3 3 0 003.741 3.741M3.75 14.25a3 3 0 013.741 3.741m0 0a9.094 9.094 0 003.741.479M3.75 14.25a3 3 0 01-.479-3.741M3.75 14.25a3 3 0 00-.479-3.741m-.055 0a9.094 9.094 0 00-3.741.479m0 0a3 3 0 013.741 3.741M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+  </svg>
 ); 
