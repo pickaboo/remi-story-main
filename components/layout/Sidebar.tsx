@@ -4,7 +4,7 @@ import { SphereDisplay } from '../../src/features/spheres/components/SphereDispl
 import { useSphere } from '../../context/SphereContext';
 import { useUser } from '../../context/UserContext';
 import { useModal } from '../../context';
-import { ChevronDownIcon } from '../common/icons/ChevronIcons';
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '../common/icons/ChevronIcons';
 
 interface SidebarProps {
   currentPath: string;
@@ -43,18 +43,6 @@ const NAV_ITEMS_SIDEBAR = [
       </svg> 
   },
 ];
-
-const ChevronLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-  </svg>
-);
-
-const ChevronRightIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-  </svg>
-);
 
 const PlusCircleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
