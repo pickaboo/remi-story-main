@@ -154,8 +154,10 @@ export const logout = async (): Promise<void> => {
 };
 
 export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
+  console.log('[AuthService] getCurrentAuthenticatedUser called');
   return new Promise((resolve, reject) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[AuthService] onAuthStateChanged triggered:', { hasFirebaseUser: !!firebaseUser, uid: firebaseUser?.uid });
       unsubscribe(); 
       if (firebaseUser) {
         // Användare kan vara autentiserad men inte ha verifierat sin e-post
@@ -164,12 +166,20 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
         //   resolve(null); // Eller hantera detta annorlunda, t.ex. skicka till en verifieringssida
         //   return;
         // }
+        console.log('[AuthService] Getting Firestore data for user:', firebaseUser.uid);
         const firestoreData = await getAppUserRecord(firebaseUser.uid);
-        resolve(mapFirebaseUserToAppUser(firebaseUser, firestoreData || undefined));
+        console.log('[AuthService] Firestore data:', { hasData: !!firestoreData, userId: firestoreData?.id });
+        const user = mapFirebaseUserToAppUser(firebaseUser, firestoreData || undefined);
+        console.log('[AuthService] Mapped user:', { userId: user.id, userName: user.name });
+        resolve(user);
       } else {
+        console.log('[AuthService] No Firebase user found');
         resolve(null);
       }
-    }, reject);
+    }, (error) => {
+      console.error('[AuthService] Auth state change error:', error);
+      reject(error);
+    });
   });
 };
 

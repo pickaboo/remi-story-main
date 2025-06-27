@@ -13,18 +13,18 @@ interface AppProvidersProps {
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <NavigationProvider>
-      <FeedbackProvider>
-        <AppStateProvider>
-          <UserProvider>
-            <SphereProvider>
+    <SphereProvider>
+      <UserProvider>
+        <NavigationProvider>
+          <FeedbackProvider>
+            <AppStateProvider>
               <ModalProvider>
                 {children}
               </ModalProvider>
-            </SphereProvider>
-          </UserProvider>
-        </AppStateProvider>
-      </FeedbackProvider>
-    </NavigationProvider>
+            </AppStateProvider>
+          </FeedbackProvider>
+        </NavigationProvider>
+      </UserProvider>
+    </SphereProvider>
   );
 }; 

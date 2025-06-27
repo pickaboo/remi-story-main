@@ -201,8 +201,16 @@ export const SphereProvider: React.FC<SphereProviderProps> = ({ children, curren
 
   // Load user spheres when currentUserId changes
   useEffect(() => {
+    console.log('[SphereContext] currentUserId changed:', currentUserId);
     if (currentUserId) {
+      console.log('[SphereContext] Loading spheres for user:', currentUserId);
       refreshUserSpheres();
+    } else {
+      console.log('[SphereContext] No currentUserId, clearing sphere data');
+      // Clear sphere data when user logs out
+      setActiveSphere(null);
+      setUserSpheres([]);
+      // Keep allSpheres as it might be needed for other users
     }
   }, [currentUserId]);
 

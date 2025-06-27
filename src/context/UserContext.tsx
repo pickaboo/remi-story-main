@@ -1,17 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { User } from '../types';
-import { 
-    getCurrentAuthenticatedUser, 
-    logout as authLogout, 
-    updateUserProfile 
-} from '../features/auth/services/authService';
+import { useAuth } from '../features/auth/hooks/useAuth';
+import { logout as authLogout, updateUserProfile } from '../features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../common/services/storageService';
 import { getUserById } from '../common/services/userService';
 
 export interface UserContextType {
   // State
   currentUser: User | null;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean | null;
   
   // Functions
   setCurrentUser: (user: User | null) => void;
@@ -20,7 +17,6 @@ export interface UserContextType {
   handleLogout: () => Promise<void>;
   handleSaveThemePreference: (theme: User['themePreference']) => Promise<void>;
   handleSaveShowImageMetadataPreference: (show: boolean) => Promise<void>;
-  checkAuthAndLoadData: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -31,56 +27,30 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const checkAuthAndLoadData = async () => {
-    try {
-      const user = await getCurrentAuthenticatedUser();
-      if (user) {
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-        
-        // Update pending invitation count if user has email
-        if (user.email) {
-          const pendingInvites = await getPendingInvitationsForEmail(user.email);
-          const needsInviteCountUpdate = user.pendingInvitationCount !== pendingInvites.length ||
-                                        (user.pendingInvitationCount === undefined && pendingInvites.length > 0);
-
-          if (needsInviteCountUpdate) {
-            const updatedUser = await updateUserProfile(user.id, { pendingInvitationCount: pendingInvites.length });
-            if (updatedUser) {
-              setCurrentUser(updatedUser);
-            }
-          }
-        }
-      } else {
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-    }
-  };
-
-  const handleLoginSuccess = (user: User) => {
-    setCurrentUser(user);
-    setIsAuthenticated(true);
-  };
-
-  const handleProfileComplete = (user: User) => {
-    setCurrentUser(user);
-  };
+  // Use the original useAuth hook for authentication logic
+  const { 
+    isAuthenticated, 
+    currentUser, 
+    setCurrentUser, 
+    handleLoginSuccess: authHandleLoginSuccess, 
+    handleProfileComplete: authHandleProfileComplete,
+    setIsAuthenticated
+  } = useAuth();
 
   const handleLogout = async () => {
+    console.log('[UserContext] handleLogout called');
     try {
+      console.log('[UserContext] Calling authLogout...');
       await authLogout();
+      console.log('[UserContext] authLogout completed, clearing state');
       setCurrentUser(null);
-      setIsAuthenticated(false);
+      if (setIsAuthenticated) setIsAuthenticated(false);
+      console.log('[UserContext] State cleared, logout complete');
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('[UserContext] Error during logout:', error);
+      // Even if there's an error, clear the state
+      setCurrentUser(null);
+      if (setIsAuthenticated) setIsAuthenticated(false);
     }
   };
 
@@ -127,12 +97,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     currentUser,
     isAuthenticated,
     setCurrentUser,
-    handleLoginSuccess,
-    handleProfileComplete,
+    handleLoginSuccess: authHandleLoginSuccess,
+    handleProfileComplete: authHandleProfileComplete,
     handleLogout,
     handleSaveThemePreference,
     handleSaveShowImageMetadataPreference,
-    checkAuthAndLoadData,
     refreshUser,
   };
 

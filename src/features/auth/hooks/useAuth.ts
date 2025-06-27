@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { User, View } from '../../../types';
+import { User } from '../../../types';
 import { getCurrentAuthenticatedUser } from '../services/authService';
-import { useNavigation } from '../../../context/NavigationContext';
 import { useAppLogic } from '../../../common/hooks/useAppLogic';
+import { useSphere } from '../../../context/SphereContext';
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const { navigate } = useNavigation();
-  const { applyThemePreference, fetchUserAndSphereData } = useAppLogic();
+  const { applyThemePreference } = useAppLogic();
+  const { fetchUserAndSphereData } = useSphere();
 
   // Initial auth check and data load
   useEffect(() => {
@@ -18,26 +18,15 @@ export const useAuth = () => {
         setCurrentUser(user);
         setIsAuthenticated(true);
         applyThemePreference(user.themePreference || 'system');
-        const finalUser = await fetchUserAndSphereData(user);
-        setCurrentUser(finalUser);
-
-        const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
-        const hashPath = hash.split('?')[0];
-        const authPaths = ['login', 'signup', 'confirm-email', 'forgot-password', 'complete-profile'];
-
-        if (user.name === "Ny Användare" || hashPath === 'complete-profile') { 
-             navigate(View.ProfileCompletion, { userId: user.id }); 
-        } else if (!hash || authPaths.includes(hashPath)) {
-            navigate(View.Home);
-        }
+        await fetchUserAndSphereData(user);
       } else {
+        console.log('[useAuth] No user found, setting isAuthenticated to false');
         setIsAuthenticated(false);
         setCurrentUser(null);
-        navigate(View.Login);
       }
     };
     checkAuthAndLoadData();
-  }, [navigate, applyThemePreference, fetchUserAndSphereData]);
+  }, [applyThemePreference, fetchUserAndSphereData]);
 
   // Theme management
   useEffect(() => {
@@ -61,20 +50,18 @@ export const useAuth = () => {
     setCurrentUser(user);
     setIsAuthenticated(true);
     applyThemePreference(user.themePreference || 'system');
-    const finalUser = await fetchUserAndSphereData(user);
-    setCurrentUser(finalUser);
-    navigate(View.Home);
+    await fetchUserAndSphereData(user);
   };
 
   const handleProfileComplete = async (updatedUser: User) => {
     setCurrentUser(updatedUser);
-    navigate(View.Home);
   };
 
   return {
     isAuthenticated,
     currentUser,
     setCurrentUser,
+    setIsAuthenticated,
     handleLoginSuccess,
     handleProfileComplete,
   };
