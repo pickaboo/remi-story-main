@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sphere } from '../../../../types';
+import { Sphere } from '../../../types';
 
 interface SphereDisplayProps {
   sphere: Sphere;

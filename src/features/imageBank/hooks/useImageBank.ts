@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ImageRecord } from '../../../../types';
-import { getAllImages, saveImage, deleteImage } from '../../../../services/storageService';
+import { ImageRecord } from '../../../types';
+import { getAllImages, saveImage, deleteImage } from '../../../common/services/storageService';
 import { getDownloadURL, ref } from 'firebase/storage';
-import { storage } from '../../../../firebase';
-import { useSphere } from '../../../../context/SphereContext';
+import { storage } from '../../../firebase';
+import { useSphere } from '../../../context/SphereContext';
 
 export const useImageBank = () => {
   const { activeSphere } = useSphere();

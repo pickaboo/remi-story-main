@@ -1,6 +1,6 @@
 import React from 'react';
-import { User } from '../../../../types';
-import { Button } from '../../../../components/common/Button';
+import { User } from '../../../types';
+import { Button } from '../../../common/components/Button';
 import { EditIcon } from './PostCardIcons';
 
 interface PostHeaderProps {

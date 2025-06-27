@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '../../../../components/common/Button';
-import { SlideshowProject } from '../../../../types';
+import { Button } from '../../../common/components/Button';
+import { SlideshowProject } from '../../../types';
 
 interface ConfirmDeleteProjectModalProps {
   project: SlideshowProject;

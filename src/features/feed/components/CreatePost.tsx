@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { TextArea } from '../../../../components/common/TextArea';
-import { ImageRecord, User } from '../../../../types';
-import { saveImage } from '../../../../services/storageService';
-import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { TextArea } from '../../../common/components/TextArea';
+import { ImageRecord, User } from '../../../types';
+import { saveImage } from '../../../common/services/imageService';
+import { useAudioRecorder } from '../../../common/hooks/useAudioRecorder';
 import { ImageBankPickerModal } from '../../imageBank/components/ImageBankPickerModal';
 import { useImageProcessing } from '../hooks/useImageProcessing';
 import { ImagePreviewSection } from './ImagePreviewSection';

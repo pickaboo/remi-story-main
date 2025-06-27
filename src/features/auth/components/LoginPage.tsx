@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { AuthContainer } from '../../../../components/auth/AuthContainer';
-import { Input } from '../../../../components/common/Input';
-import { Button } from '../../../../components/common/Button';
+import { AuthContainer } from './AuthContainer';
+import { Input } from '../../../common/components/Input';
+import { Button } from '../../../common/components/Button';
 import { User, AuthView } from '../types';
 import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../services/authService';
 

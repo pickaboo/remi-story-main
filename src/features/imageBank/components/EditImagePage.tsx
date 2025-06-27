@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PageContainer } from '../../../../components/layout/PageContainer';
-import { Button } from '../../../../components/common/Button';
-import { Input } from '../../../../components/common/Input';
-import { TextArea } from '../../../../components/common/TextArea';
-import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
-import { ImageRecord, View, UserDescriptionEntry } from '../../../../types';
-import { getImageById, saveImage } from '../../../../services/storageService';
-import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { PageContainer } from '../../../layout/PageContainer';
+import { Button } from '../../../common/components/Button';
+import { Input } from '../../../common/components/Input';
+import { TextArea } from '../../../common/components/TextArea';
+import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
+import { ImageRecord, View, UserDescriptionEntry } from '../../../types';
+import { getImageById, saveImage } from '../../../common/services/storageService';
+import { useAudioRecorder } from '../../../common/hooks/useAudioRecorder';
 import { getDownloadURL, ref } from 'firebase/storage';
-import { storage } from '../../../../firebase';
-import { useUser } from '../../../../context';
+import { storage } from '../../../firebase';
+import { useUser } from '../../../context';
 
 interface EditImagePageProps {
   imageId: string;

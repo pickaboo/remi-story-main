@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../../../components/common/Button';
-import { User } from '../../../../types';
+import { Button } from '../../../common/components/Button';
+import { User } from '../../../types';
 
 interface ImageBankSettingsModalProps {
   isOpen: boolean;

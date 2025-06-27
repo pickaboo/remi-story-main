@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Sphere, User } from '../../../../types';
+import { Sphere, User } from '../../../types';
 import { addUserToSphere, mock_inviteUserToSphereByEmail, updateUserProfile, removeUserFromSphere as authRemoveUserFromSphere } from '../../auth/services/authService';
-import { saveNewSphere, generateId as generateSphereId } from '../../../../services/storageService';
-import { useFeedback } from '../../../../context/FeedbackContext';
-import { useAppLogic } from '../../../../hooks/useAppLogic';
+import { saveNewSphere, generateId as generateSphereId } from '../../../common/services/storageService';
+import { useFeedback } from '../../../context/FeedbackContext';
+import { useAppLogic } from '../../../common/hooks/useAppLogic';
 
 export const useSphereManagement = (currentUser: User | null) => {
   const [sphereToInviteTo, setSphereToInviteTo] = useState<Sphere | null>(null);

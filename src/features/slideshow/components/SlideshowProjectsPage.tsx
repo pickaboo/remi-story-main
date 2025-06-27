@@ -1,10 +1,11 @@
 import React from 'react';
-import { PageContainer } from '../../../../components/layout/PageContainer';
-import { Button } from '../../../../components/common/Button';
-import { Input } from '../../../../components/common/Input';
-import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
-import { View } from '../../../../types';
-import { useUser, useSphere } from '../../../../context';
+import { PageContainer } from '../../../layout/PageContainer';
+import { Button } from '../../../common/components/Button';
+import { Input } from '../../../common/components/Input';
+import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
+import { View } from '../../../types';
+import { useUser } from '../../../context/UserContext';
+import { useSphere } from '../../../context/SphereContext';
 import { useProjectManagement } from '../hooks/useProjectManagement';
 import { ConfirmDeleteProjectModal } from './ConfirmDeleteProjectModal';
 import { ProjectListItem } from './ProjectListItem';

@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { ImageRecord } from '../../../../types';
+import { ImageRecord } from '../../../types';
 import { findClosestAvailableMonth, isSameYearMonth, getInitialDate, getSwedishMonthName } from '../utils/timelineUtils';
 
 interface UseTimelineSyncProps {

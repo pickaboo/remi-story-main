@@ -1,4 +1,4 @@
-import { ImageRecord } from '../../../../types';
+import { ImageRecord } from '../../../types';
 
 export interface DayDisplayItem {
   day: number;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ImageRecord } from '../../../../types';
+import { ImageRecord } from '../../../types';
 import { getSwedishMonthName, getInitialDate, getAvailableMonthsWithPosts, getDaysToDisplay } from '../utils/timelineUtils';
 import { useTimelineState } from '../hooks/useTimelineState';
 import { useTimelineSync } from '../hooks/useTimelineSync';

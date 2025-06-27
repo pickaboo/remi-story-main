@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { AuthContainer } from '../../../../components/auth/AuthContainer';
-import { Input } from '../../../../components/common/Input';
-import { Button } from '../../../../components/common/Button';
+import { AuthContainer } from './AuthContainer';
+import { Input } from '../../../common/components/Input';
+import { Button } from '../../../common/components/Button';
 import { User, AuthView } from '../types';
 import { updateUserProfile } from '../services/authService';
 

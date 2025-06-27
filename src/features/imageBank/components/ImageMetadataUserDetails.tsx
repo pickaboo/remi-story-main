@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getUserById } from '../../../../services/userService';
-import { getSphereById } from '../../../../services/storageService';
+import { getUserById } from '../../../common/services/userService';
+import { getSphereById } from '../../../common/services/storageService';
 
 interface ImageMetadataUserDetailsProps {
   userId?: string;

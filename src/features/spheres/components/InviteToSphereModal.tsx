@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from '../../../../components/common/Button';
-import { Input } from '../../../../components/common/Input';
-import { TextArea } from '../../../../components/common/TextArea'; // Added TextArea
-import { Sphere } from '../../../../types';
+import { Button } from '../../../common/components/Button';
+import { Input } from '../../../common/components/Input';
+import { TextArea } from '../../../common/components/TextArea'; // Added TextArea
+import { Sphere } from '../../../types';
 
 interface InviteToSphereModalProps {
   isOpen: boolean;

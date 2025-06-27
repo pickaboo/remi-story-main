@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageRecord } from '../../../../types';
+import { ImageRecord } from '../../../types';
 import { TrashIcon } from './CreatePostIcons';
 
 interface ImagePreviewSectionProps {

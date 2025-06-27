@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { PageContainer } from '../../../../components/layout/PageContainer';
-import { Button } from '../../../../components/common/Button';
-import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
-import { View } from '../../../../types';
-import { useUser } from '../../../../context/UserContext';
-import { useSphere } from '../../../../context/SphereContext';
+import { PageContainer } from '../../../layout/PageContainer';
+import { Button } from '../../../common/components/Button';
+import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
+import { View } from '../../../types';
+import { useUser } from '../../../context/UserContext';
+import { useSphere } from '../../../context/SphereContext';
 import { useImageBank } from '../hooks/useImageBank';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { ImageUploadSection } from './ImageUploadSection';

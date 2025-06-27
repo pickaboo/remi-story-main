@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from '../../../../components/common/icons/ChevronIcons';
+import { ChevronLeftIcon, ChevronRightIcon } from '../../../common/components/icons/ChevronIcons';
 
 interface TimelineControlsProps {
   isPrevDisabled: boolean;

@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { ImageRecord } from '../../../../types';
-import { saveImage, generateId } from '../../../../services/storageService';
-import { useUser } from '../../../../context/UserContext';
-import { useSphere } from '../../../../context/SphereContext';
+import { ImageRecord } from '../../../types';
+import { saveImage, generateId } from '../../../common/services/storageService';
+import { useUser } from '../../../context/UserContext';
+import { useSphere } from '../../../context/SphereContext';
 import ExifReader from 'exifreader';
 
 interface UploadPreview {

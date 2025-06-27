@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '../../../../components/common/Button';
-import { ImageRecord } from '../../../../types';
+import { Button } from '../../../common/components/Button';
+import { ImageRecord } from '../../../types';
 
 interface ConfirmDeleteModalProps {
   image: ImageRecord;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../../firebase';
-import { SphereInvitation } from '../../../../types';
+import { db } from '../../../firebase';
+import { SphereInvitation } from '../../../types';
 
 export const usePendingInvites = (email: string | undefined) => {
   const [pendingInvites, setPendingInvites] = useState<SphereInvitation[]>([]);

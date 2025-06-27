@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, UserDescriptionEntry } from '../../../../types';
-import { Button } from '../../../../components/common/Button';
+import { User, UserDescriptionEntry } from '../../../types';
+import { Button } from '../../../common/components/Button';
 
 interface PostCommentsProps {
   comments: UserDescriptionEntry[];

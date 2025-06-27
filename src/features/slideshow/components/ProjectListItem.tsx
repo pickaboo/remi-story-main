@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../../../components/common/Button';
-import { ImageRecord, SlideshowProject } from '../../../../types';
-import { getImageById } from '../../../../services/storageService';
+import { Button } from '../../../common/components/Button';
+import { ImageRecord, SlideshowProject } from '../../../types';
+import { getImageById } from '../../../common/services/storageService';
 import { getDownloadURL, ref } from 'firebase/storage';
-import { storage } from '../../../../firebase';
+import { storage } from '../../../firebase';
 
 interface ProjectListItemProps {
   project: SlideshowProject;

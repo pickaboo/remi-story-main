@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PageContainer } from '../../../../components/layout/PageContainer';
-import { Button } from '../../../../components/common/Button';
-import { TextArea } from '../../../../components/common/TextArea';
-import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
-import { DiaryEntry } from '../../../../types';
-import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry, generateId } from '../../../../services/storageService';
-import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
-import { useUser } from '../../../../context';
+import { PageContainer } from '../../../layout/PageContainer';
+import { Button } from '../../../common/components/Button';
+import { TextArea } from '../../../common/components/TextArea';
+import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
+import { DiaryEntry } from '../../../types';
+import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry } from '../../../common/services/diaryService';
+import { generateId } from '../../../common/services/firebaseUtils';
+import { useAudioRecorder } from '../../../common/hooks/useAudioRecorder';
+import { useUser } from '../../../context';
 
 const MicIconLarge: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={sizeClass}>

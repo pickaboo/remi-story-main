@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ImageRecord, User, UserDescriptionEntry } from '../../../../types';
-import { generateId, saveImage, getImageById } from '../../../../services/storageService';
-import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../../../services/geminiService';
+import { ImageRecord, User, UserDescriptionEntry } from '../../../types';
+import { saveImage, getImageById } from '../../../common/services/imageService';
+import { generateId } from '../../../common/services/firebaseUtils';
+import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../../common/services/geminiService';
 import ExifReader from 'exifreader';
 import { getDownloadURL, ref } from 'firebase/storage'; 
-import { storage } from '../../../../firebase';
+import { storage } from '../../../firebase';
 
 interface ExtractedFileDetails {
   dataUrl: string;

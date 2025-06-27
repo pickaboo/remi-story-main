@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { User, View } from '../../../../types';
+import { User, View } from '../../../types';
 import { getCurrentAuthenticatedUser } from '../services/authService';
-import { useNavigation } from '../../../../context/NavigationContext';
-import { useAppLogic } from '../../../../hooks/useAppLogic';
+import { useNavigation } from '../../../context/NavigationContext';
+import { useAppLogic } from '../../../common/hooks/useAppLogic';
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { useSphere } from '../../../../context/SphereContext';
-import { useUser } from '../../../../context/UserContext';
+import { useSphere } from '../../../context/SphereContext';
+import { useUser } from '../../../context/UserContext';
 
 export const useSphereData = () => {
   const { 

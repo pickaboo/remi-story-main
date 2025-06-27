@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '../../../../components/common/Button';
+import { Button } from '../../../common/components/Button';
 import { UploadIcon, TrashIcon } from './ImageBankIcons';
 
 interface UploadPreview {

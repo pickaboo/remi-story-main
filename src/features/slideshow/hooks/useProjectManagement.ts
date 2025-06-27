@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ImageRecord, SlideshowProject, View } from '../../../../types';
-import { getAllImages, getAllProjects, saveProject, generateId, deleteProject } from '../../../../services/storageService';
-import { generatePhotoAlbumPdf } from '../../../../services/pdfService';
+import { ImageRecord, SlideshowProject, View } from '../../../types';
+import { getAllImages, getAllProjects, saveProject, generateId, deleteProject } from '../../../common/services/storageService';
+import { generatePhotoAlbumPdf } from '../../../common/services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage';
-import { storage } from '../../../../firebase';
-import { useUser, useSphere } from '../../../../context';
+import { storage } from '../../../firebase';
+import { useUser, useSphere } from '../../../context';
 
 export const useProjectManagement = (onNavigate: (view: View, params?: any) => void) => {
   const { currentUser } = useUser();
@@ -165,7 +165,7 @@ export const useProjectManagement = (onNavigate: (view: View, params?: any) => v
 
       // Get all images for the project
       const imagePromises = projectToExport.imageIds.map(id => 
-        import('../../../../services/storageService').then(({ getImageById }) => getImageById(id))
+        import('../../../common/services/storageService').then(({ getImageById }) => getImageById(id))
       );
       const resolvedRawImages = (await Promise.all(imagePromises)).filter(img => img !== undefined) as ImageRecord[];
 

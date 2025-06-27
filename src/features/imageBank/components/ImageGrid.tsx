@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '../../../../components/common/Button';
-import { ImageRecord, View } from '../../../../types';
+import { Button } from '../../../common/components/Button';
+import { ImageRecord, View } from '../../../types';
 import { TrashIcon, InformationCircleIcon, EmptyBankIcon } from './ImageBankIcons';
 import { ImageMetadataUserDetails } from './ImageMetadataUserDetails';
 import { EXIF_DISPLAY_MAP, formatDataUrlSize } from '../utils/imageBankUtils';

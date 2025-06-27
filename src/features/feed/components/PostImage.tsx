@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Input } from '../../../../components/common/Input';
-import { FullscreenImageViewer } from '../../../../components/common/FullscreenImageViewer';
+import { Input } from '../../../common/components/Input';
+import { FullscreenImageViewer } from '../../../common/components/FullscreenImageViewer';
 import { MagnifyingGlassPlusIcon } from './PostCardIcons';
 
 interface PostImageProps {

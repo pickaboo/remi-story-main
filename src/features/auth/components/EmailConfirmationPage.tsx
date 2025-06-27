@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AuthContainer } from '../../../../components/auth/AuthContainer';
-import { Button } from '../../../../components/common/Button';
+import { AuthContainer } from './AuthContainer';
+import { Button } from '../../../common/components/Button';
 import { User, AuthView } from '../types';
 import { simulateVerifyEmail } from '../services/authService';
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ImageRecord } from '../../../../types';
-import { getAllImages } from '../../../../services/storageService';
-import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
-import { Button } from '../../../../components/common/Button';
-import { storage } from '../../../../firebase'; // Added
+import { ImageRecord } from '../../../types';
+import { getAllImages } from '../../../common/services/storageService';
+import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
+import { Button } from '../../../common/components/Button';
+import { storage } from '../../../firebase'; // Added
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 
 interface ImageBankPickerModalProps {

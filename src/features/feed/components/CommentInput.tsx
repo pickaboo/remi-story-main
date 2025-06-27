@@ -1,9 +1,9 @@
 import React from 'react';
-import { User } from '../../../../types';
-import { TextArea } from '../../../../components/common/TextArea';
-import { Button } from '../../../../components/common/Button';
-import { AudioPlayerButton } from '../../../../components/common/AudioPlayerButton';
-import { useAudioRecorder } from '../../../../hooks/useAudioRecorder';
+import { User } from '../../../types';
+import { TextArea } from '../../../common/components/TextArea';
+import { Button } from '../../../common/components/Button';
+import { AudioPlayerButton } from '../../../common/components/AudioPlayerButton';
+import { useAudioRecorder } from '../../../common/hooks/useAudioRecorder';
 import { MicIcon, StopIcon } from './PostCardIcons';
 
 interface CommentInputProps {

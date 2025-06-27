@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ImageRecord, User, UserDescriptionEntry } from '../../../../types';
-import { saveImage } from '../../../../services/storageService';
-import { getUserById } from '../../../../services/userService';
+import { ImageRecord, User, UserDescriptionEntry } from '../../../types';
+import { saveImage } from '../../../common/services/imageService';
+import { getUserById } from '../../../common/services/userService';
 import { PostHeader } from './PostHeader';
 import { PostImage } from './PostImage';
 import { PostTags } from './PostTags';

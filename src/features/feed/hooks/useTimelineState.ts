@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ImageRecord } from '../../../../types';
+import { ImageRecord } from '../../../types';
 import { getSwedishMonthName } from '../utils/timelineUtils';
 
 interface UseTimelineStateProps {

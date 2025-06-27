@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { Button } from '../../../../components/common/Button';
-import { AudioPlayerButton } from '../../../../components/common/AudioPlayerButton';
+import { Button } from '../../../common/components/Button';
+import { AudioPlayerButton } from '../../../common/components/AudioPlayerButton';
 import { UploadIcon, ImageBankIcon, MicIcon, StopIcon } from './CreatePostIcons';
 
 interface CreatePostActionsProps {
