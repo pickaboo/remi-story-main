@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ImageRecord } from '../../../../types';
-import { getSwedishMonthName } from '../utils/timelineUtils';
+import { getSwedishMonthName, getInitialDate, getAvailableMonthsWithPosts, getDaysToDisplay } from '../utils/timelineUtils';
 import { useTimelineState } from '../hooks/useTimelineState';
 import { useTimelineSync } from '../hooks/useTimelineSync';
 import { useTimelineNavigation } from '../hooks/useTimelineNavigation';
@@ -21,52 +21,69 @@ export const Timeline: React.FC<TimelineProps> = ({
   letFeedDriveTimelineSync, 
   onTimelineUserInteraction 
 }) => {
-  // State management
+  // Core state
+  const availableMonthsWithPosts = useMemo(() => {
+    return getAvailableMonthsWithPosts(posts);
+  }, [posts]);
+
+  const [currentDate, setCurrentDate] = useState<Date>(() => 
+    getInitialDate(posts, activeFeedDateFromScroll, availableMonthsWithPosts)
+  );
+
+  // Timeline state management
   const {
+    inputYear,
+    inputMonth,
+    isEditingYear,
+    isEditingMonth,
+    yearInputRef,
+    monthInputRef,
+    handleYearChange,
+    handleMonthChange,
+    handleYearKeyDown,
+    handleMonthKeyDown,
+    handleYearBlur,
+    handleMonthBlur,
+    startEditingYear,
+    startEditingMonth,
+    setInputYear,
+    setInputMonth
+  } = useTimelineState({
     currentDate,
     setCurrentDate,
-    inputYear,
-    setInputYear,
-    inputMonth,
-    setInputMonth,
-    isEditingYear,
-    setIsEditingYear,
-    isEditingMonth,
-    setIsEditingMonth,
-    isPrevDisabled,
-    isNextDisabled,
-    availableMonthsWithPosts,
-    daysToDisplay,
-    displayedYear,
-    displayedMonthName
-  } = useTimelineState({ posts, activeFeedDateFromScroll });
+    onTimelineUserInteraction
+  });
 
   // Sync logic
   const { isTimelineInteractingInternally } = useTimelineSync({
     posts,
+    availableMonthsWithPosts,
     activeFeedDateFromScroll,
     letFeedDriveTimelineSync,
-    availableMonthsWithPosts,
     currentDate,
     setCurrentDate,
     setInputYear,
     setInputMonth,
-    isEditingYear,
     isEditingMonth,
+    isEditingYear,
     onTimelineUserInteraction
   });
 
   // Navigation logic
-  const { timelineRef, handlePrevMonth, handleNextMonth } = useTimelineNavigation({
-    currentDate,
+  const { isPrevDisabled, isNextDisabled, handlePrevMonth, handleNextMonth } = useTimelineNavigation({
+    posts,
     availableMonthsWithPosts,
-    isPrevDisabled,
-    isNextDisabled,
-    isEditingYear,
-    isEditingMonth,
-    onTimelineUserInteraction,
-    setCurrentDate
+    currentDate,
+    setCurrentDate,
+    handleTimelineInteractionInternallyAndNotifyApp: () => {
+      onTimelineUserInteraction();
+    }
   });
+
+  // Computed values
+  const daysToDisplay = useMemo(() => {
+    return getDaysToDisplay(posts, currentDate);
+  }, [posts, currentDate]);
 
   // Empty state
   if (posts.length === 0 && availableMonthsWithPosts.length === 0 && !activeFeedDateFromScroll) {
@@ -97,30 +114,27 @@ export const Timeline: React.FC<TimelineProps> = ({
   }
 
   return (
-    <div
-      ref={timelineRef}
-      className="h-full flex flex-col bg-transparent text-slate-100 p-3 rounded-lg cursor-ns-resize"
-      title="Scrolla för att byta månad, klicka år/månad för att redigera"
-    >
+    <div className="h-full flex flex-col bg-transparent text-slate-100 p-3 rounded-lg cursor-ns-resize" title="Scrolla för att byta månad, klicka år/månad för att redigera">
       <TimelineNavigation
-        currentDate={currentDate}
         inputYear={inputYear}
         inputMonth={inputMonth}
         isEditingYear={isEditingYear}
         isEditingMonth={isEditingMonth}
-        availableMonthsWithPosts={availableMonthsWithPosts}
-        displayedYear={displayedYear}
-        displayedMonthName={displayedMonthName}
-        setInputYear={setInputYear}
-        setInputMonth={setInputMonth}
-        setIsEditingYear={setIsEditingYear}
-        setIsEditingMonth={setIsEditingMonth}
-        setCurrentDate={setCurrentDate}
+        yearInputRef={yearInputRef}
+        monthInputRef={monthInputRef}
+        onYearChange={handleYearChange}
+        onMonthChange={handleMonthChange}
+        onYearKeyDown={handleYearKeyDown}
+        onMonthKeyDown={handleMonthKeyDown}
+        onYearBlur={handleYearBlur}
+        onMonthBlur={handleMonthBlur}
+        onStartEditingYear={startEditingYear}
+        onStartEditingMonth={startEditingMonth}
         onPrevMonth={handlePrevMonth}
         onNextMonth={handleNextMonth}
         isPrevDisabled={isPrevDisabled}
         isNextDisabled={isNextDisabled}
-        onTimelineUserInteraction={onTimelineUserInteraction}
+        onTimelineInteraction={onTimelineUserInteraction}
       />
 
       <div className="flex-grow overflow-y-auto no-scrollbar pt-1">

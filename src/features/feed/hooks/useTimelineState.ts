@@ -1,67 +1,135 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ImageRecord } from '../../../../types';
-import { getInitialDate, getAvailableMonthsWithPosts, getDaysToDisplay, getSwedishMonthName } from '../utils/timelineUtils';
+import { getSwedishMonthName } from '../utils/timelineUtils';
 
 interface UseTimelineStateProps {
-  posts: ImageRecord[];
-  activeFeedDateFromScroll?: Date | null;
+  currentDate: Date;
+  setCurrentDate: (date: Date) => void;
+  onTimelineUserInteraction: () => void;
 }
 
-export const useTimelineState = ({ posts, activeFeedDateFromScroll }: UseTimelineStateProps) => {
-  const availableMonthsWithPosts = useMemo(() => {
-    return getAvailableMonthsWithPosts(posts);
-  }, [posts]);
-
-  const [currentDate, setCurrentDate] = useState<Date>(() => 
-    getInitialDate(posts, activeFeedDateFromScroll, availableMonthsWithPosts)
-  );
-
-  const [inputYear, setInputYear] = useState<string>(() => currentDate.getFullYear().toString());
-  const [inputMonth, setInputMonth] = useState<string>(() => getSwedishMonthName(currentDate));
-
+export const useTimelineState = ({
+  currentDate,
+  setCurrentDate,
+  onTimelineUserInteraction
+}: UseTimelineStateProps) => {
+  const [inputYear, setInputYear] = useState(currentDate.getFullYear().toString());
+  const [inputMonth, setInputMonth] = useState(getSwedishMonthName(currentDate));
   const [isEditingYear, setIsEditingYear] = useState(false);
   const [isEditingMonth, setIsEditingMonth] = useState(false);
+  const yearInputRef = useRef<HTMLInputElement>(null);
+  const monthInputRef = useRef<HTMLInputElement>(null);
 
-  const [isPrevDisabled, setIsPrevDisabled] = useState(true);
-  const [isNextDisabled, setIsNextDisabled] = useState(true);
-
-  // Update disabled state of nav buttons
+  // Update input values when currentDate changes
   useEffect(() => {
-    if (availableMonthsWithPosts.length === 0) {
-      setIsPrevDisabled(true);
-      setIsNextDisabled(true);
-      return;
+    if (!isEditingYear) {
+      setInputYear(currentDate.getFullYear().toString());
     }
-    const currentTimelineTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getTime();
-    const firstAvailableTime = availableMonthsWithPosts[0].getTime();
-    const lastAvailableTime = availableMonthsWithPosts[availableMonthsWithPosts.length - 1].getTime();
-    setIsPrevDisabled(currentTimelineTime <= firstAvailableTime);
-    setIsNextDisabled(currentTimelineTime >= lastAvailableTime);
-  }, [currentDate, availableMonthsWithPosts]);
+    if (!isEditingMonth) {
+      setInputMonth(getSwedishMonthName(currentDate));
+    }
+  }, [currentDate, isEditingYear, isEditingMonth]);
 
-  const daysToDisplay = useMemo(() => {
-    return getDaysToDisplay(posts, currentDate);
-  }, [posts, currentDate]);
+  const handleYearChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputYear(e.target.value);
+  }, []);
 
-  const displayedYear = currentDate.getFullYear();
-  const displayedMonthName = getSwedishMonthName(currentDate).charAt(0).toUpperCase() + getSwedishMonthName(currentDate).slice(1);
+  const handleMonthChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMonth(e.target.value);
+  }, []);
+
+  const handleYearKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const year = parseInt(inputYear);
+      if (!isNaN(year) && year >= 1900 && year <= 2100) {
+        const newDate = new Date(year, currentDate.getMonth(), 1);
+        setCurrentDate(newDate);
+        setIsEditingYear(false);
+        onTimelineUserInteraction();
+      }
+    } else if (e.key === 'Escape') {
+      setInputYear(currentDate.getFullYear().toString());
+      setIsEditingYear(false);
+    }
+  }, [inputYear, currentDate, setCurrentDate, onTimelineUserInteraction]);
+
+  const handleMonthKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const monthNames = [
+        'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+        'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+      ];
+      const monthIndex = monthNames.findIndex(name => 
+        name.toLowerCase() === inputMonth.toLowerCase()
+      );
+      if (monthIndex !== -1) {
+        const newDate = new Date(currentDate.getFullYear(), monthIndex, 1);
+        setCurrentDate(newDate);
+        setIsEditingMonth(false);
+        onTimelineUserInteraction();
+      }
+    } else if (e.key === 'Escape') {
+      setInputMonth(getSwedishMonthName(currentDate));
+      setIsEditingMonth(false);
+    }
+  }, [inputMonth, currentDate, setCurrentDate, onTimelineUserInteraction]);
+
+  const handleYearBlur = useCallback(() => {
+    const year = parseInt(inputYear);
+    if (!isNaN(year) && year >= 1900 && year <= 2100) {
+      const newDate = new Date(year, currentDate.getMonth(), 1);
+      setCurrentDate(newDate);
+      onTimelineUserInteraction();
+    } else {
+      setInputYear(currentDate.getFullYear().toString());
+    }
+    setIsEditingYear(false);
+  }, [inputYear, currentDate, setCurrentDate, onTimelineUserInteraction]);
+
+  const handleMonthBlur = useCallback(() => {
+    const monthNames = [
+      'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+      'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+    ];
+    const monthIndex = monthNames.findIndex(name => 
+      name.toLowerCase() === inputMonth.toLowerCase()
+    );
+    if (monthIndex !== -1) {
+      const newDate = new Date(currentDate.getFullYear(), monthIndex, 1);
+      setCurrentDate(newDate);
+      onTimelineUserInteraction();
+    } else {
+      setInputMonth(getSwedishMonthName(currentDate));
+    }
+    setIsEditingMonth(false);
+  }, [inputMonth, currentDate, setCurrentDate, onTimelineUserInteraction]);
+
+  const startEditingYear = useCallback(() => {
+    setIsEditingYear(true);
+    setTimeout(() => yearInputRef.current?.focus(), 0);
+  }, []);
+
+  const startEditingMonth = useCallback(() => {
+    setIsEditingMonth(true);
+    setTimeout(() => monthInputRef.current?.focus(), 0);
+  }, []);
 
   return {
-    currentDate,
-    setCurrentDate,
     inputYear,
-    setInputYear,
     inputMonth,
-    setInputMonth,
     isEditingYear,
-    setIsEditingYear,
     isEditingMonth,
-    setIsEditingMonth,
-    isPrevDisabled,
-    isNextDisabled,
-    availableMonthsWithPosts,
-    daysToDisplay,
-    displayedYear,
-    displayedMonthName
+    yearInputRef,
+    monthInputRef,
+    handleYearChange,
+    handleMonthChange,
+    handleYearKeyDown,
+    handleMonthKeyDown,
+    handleYearBlur,
+    handleMonthBlur,
+    startEditingYear,
+    startEditingMonth,
+    setInputYear,
+    setInputMonth
   };
 }; 

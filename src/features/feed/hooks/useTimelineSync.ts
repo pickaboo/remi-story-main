@@ -1,38 +1,38 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { ImageRecord } from '../../../../types';
 import { findClosestAvailableMonth, isSameYearMonth, getInitialDate, getSwedishMonthName } from '../utils/timelineUtils';
 
 interface UseTimelineSyncProps {
   posts: ImageRecord[];
+  availableMonthsWithPosts: Date[];
   activeFeedDateFromScroll?: Date | null;
   letFeedDriveTimelineSync: boolean;
-  availableMonthsWithPosts: Date[];
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   setInputYear: (year: string) => void;
   setInputMonth: (month: string) => void;
-  isEditingYear: boolean;
   isEditingMonth: boolean;
+  isEditingYear: boolean;
   onTimelineUserInteraction: () => void;
 }
 
 export const useTimelineSync = ({
   posts,
+  availableMonthsWithPosts,
   activeFeedDateFromScroll,
   letFeedDriveTimelineSync,
-  availableMonthsWithPosts,
   currentDate,
   setCurrentDate,
   setInputYear,
   setInputMonth,
-  isEditingYear,
   isEditingMonth,
+  isEditingYear,
   onTimelineUserInteraction
 }: UseTimelineSyncProps) => {
   const [isTimelineInteractingInternally, setIsTimelineInteractingInternally] = useState(false);
   const internalInteractionTimeoutRef = useRef<number | null>(null);
 
-  const handleTimelineInteractionInternallyAndNotifyApp = () => {
+  const handleTimelineInteractionInternallyAndNotifyApp = useCallback(() => {
     setIsTimelineInteractingInternally(true);
     onTimelineUserInteraction(); 
     if (internalInteractionTimeoutRef.current) {
@@ -41,7 +41,7 @@ export const useTimelineSync = ({
     internalInteractionTimeoutRef.current = window.setTimeout(() => {
       setIsTimelineInteractingInternally(false);
     }, 1500);
-  };
+  }, [onTimelineUserInteraction]);
 
   // Primary sync logic: Update timeline based on feed scroll if allowed by App.tsx
   useEffect(() => {
@@ -87,8 +87,7 @@ export const useTimelineSync = ({
       // If activeFeedDateFromScroll is null, feed is driving but no specific date,
       // timeline should hold. We only ensure inputs are synced.
       if (activeFeedDateFromScroll === null) {
-        if (!isEditingYear) setInputYear(currentDate.getFullYear().toString());
-        if (!isEditingMonth) setInputMonth(getSwedishMonthName(currentDate));
+        return; 
       }
       return; 
     }
@@ -100,20 +99,16 @@ export const useTimelineSync = ({
     
     if (!isSameYearMonth(currentDate, newDateCandidate)) {
         setCurrentDate(newDateCandidate);
-    } else {
-        // Ensure inputs are synced if currentDate didn't change but was re-evaluated.
-        if (!isEditingYear) setInputYear(currentDate.getFullYear().toString());
-        if (!isEditingMonth) setInputMonth(getSwedishMonthName(currentDate));
     }
   }, [
     posts, availableMonthsWithPosts, 
     activeFeedDateFromScroll, letFeedDriveTimelineSync, 
     isEditingMonth, isEditingYear, isTimelineInteractingInternally, 
-    currentDate, setCurrentDate, setInputYear, setInputMonth
+    currentDate, setCurrentDate
   ]);
 
   return {
     isTimelineInteractingInternally,
     handleTimelineInteractionInternallyAndNotifyApp
   };
-}; 
+};

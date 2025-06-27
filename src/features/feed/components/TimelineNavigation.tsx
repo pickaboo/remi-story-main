@@ -1,65 +1,93 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { TimelineDateInput } from './TimelineDateInput';
 import { TimelineControls } from './TimelineControls';
 
 interface TimelineNavigationProps {
-  currentDate: Date;
   inputYear: string;
   inputMonth: string;
   isEditingYear: boolean;
   isEditingMonth: boolean;
-  availableMonthsWithPosts: Date[];
-  displayedYear: number;
-  displayedMonthName: string;
-  setInputYear: (year: string) => void;
-  setInputMonth: (month: string) => void;
-  setIsEditingYear: (editing: boolean) => void;
-  setIsEditingMonth: (editing: boolean) => void;
-  setCurrentDate: (date: Date) => void;
+  yearInputRef: React.RefObject<HTMLInputElement | null>;
+  monthInputRef: React.RefObject<HTMLInputElement | null>;
+  onYearChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onMonthChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onYearKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onMonthKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onYearBlur: () => void;
+  onMonthBlur: () => void;
+  onStartEditingYear: () => void;
+  onStartEditingMonth: () => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   isPrevDisabled: boolean;
   isNextDisabled: boolean;
-  onTimelineUserInteraction: () => void;
+  onTimelineInteraction: () => void;
 }
 
 export const TimelineNavigation: React.FC<TimelineNavigationProps> = ({
-  currentDate,
   inputYear,
   inputMonth,
   isEditingYear,
   isEditingMonth,
-  availableMonthsWithPosts,
-  displayedYear,
-  displayedMonthName,
-  setInputYear,
-  setInputMonth,
-  setIsEditingYear,
-  setIsEditingMonth,
-  setCurrentDate,
+  yearInputRef,
+  monthInputRef,
+  onYearChange,
+  onMonthChange,
+  onYearKeyDown,
+  onMonthKeyDown,
+  onYearBlur,
+  onMonthBlur,
+  onStartEditingYear,
+  onStartEditingMonth,
   onPrevMonth,
   onNextMonth,
   isPrevDisabled,
   isNextDisabled,
-  onTimelineUserInteraction
+  onTimelineInteraction
 }) => {
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Wheel scroll handler
+  useEffect(() => {
+    const handleWheelScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      onTimelineInteraction();
+      if (event.deltaY < 0) {
+        if(!isPrevDisabled) onPrevMonth();
+      } else if (event.deltaY > 0) {
+        if(!isNextDisabled) onNextMonth();
+      }
+    };
+    
+    const currentTimelineRef = timelineRef.current;
+    if (currentTimelineRef) {
+      currentTimelineRef.addEventListener('wheel', handleWheelScroll, { passive: false });
+    }
+    
+    return () => {
+      if (currentTimelineRef) {
+        currentTimelineRef.removeEventListener('wheel', handleWheelScroll);
+      }
+    };
+  }, [onPrevMonth, onNextMonth, onTimelineInteraction, isPrevDisabled, isNextDisabled]);
+
   return (
-    <div className="flex-shrink-0 pb-2 mb-2 border-b border-white/20">
+    <div ref={timelineRef} className="flex-shrink-0 pb-2 mb-2 border-b border-white/20">
       <TimelineDateInput
-        currentDate={currentDate}
         inputYear={inputYear}
         inputMonth={inputMonth}
         isEditingYear={isEditingYear}
         isEditingMonth={isEditingMonth}
-        availableMonthsWithPosts={availableMonthsWithPosts}
-        displayedYear={displayedYear}
-        displayedMonthName={displayedMonthName}
-        setInputYear={setInputYear}
-        setInputMonth={setInputMonth}
-        setIsEditingYear={setIsEditingYear}
-        setIsEditingMonth={setIsEditingMonth}
-        setCurrentDate={setCurrentDate}
-        onTimelineUserInteraction={onTimelineUserInteraction}
+        yearInputRef={yearInputRef}
+        monthInputRef={monthInputRef}
+        onYearChange={onYearChange}
+        onMonthChange={onMonthChange}
+        onYearKeyDown={onYearKeyDown}
+        onMonthKeyDown={onMonthKeyDown}
+        onYearBlur={onYearBlur}
+        onMonthBlur={onMonthBlur}
+        onStartEditingYear={onStartEditingYear}
+        onStartEditingMonth={onStartEditingMonth}
       />
       
       <TimelineControls
@@ -67,8 +95,6 @@ export const TimelineNavigation: React.FC<TimelineNavigationProps> = ({
         onNextMonth={onNextMonth}
         isPrevDisabled={isPrevDisabled}
         isNextDisabled={isNextDisabled}
-        isEditingYear={isEditingYear}
-        isEditingMonth={isEditingMonth}
       />
     </div>
   );

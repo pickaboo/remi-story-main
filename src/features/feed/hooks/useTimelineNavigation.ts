@@ -1,39 +1,38 @@
-import { useCallback, useRef, useEffect } from 'react';
-import { findClosestAvailableMonth, isSameYearMonth, getSwedishMonthName } from '../utils/timelineUtils';
+import { useCallback, useState, useEffect } from 'react';
+import { ImageRecord } from '../../../../types';
+import { findClosestAvailableMonth, getSwedishMonthName } from '../utils/timelineUtils';
 
 interface UseTimelineNavigationProps {
-  currentDate: Date;
+  posts: ImageRecord[];
   availableMonthsWithPosts: Date[];
-  isPrevDisabled: boolean;
-  isNextDisabled: boolean;
-  isEditingYear: boolean;
-  isEditingMonth: boolean;
-  onTimelineUserInteraction: () => void;
+  currentDate: Date;
   setCurrentDate: (date: Date) => void;
+  handleTimelineInteractionInternallyAndNotifyApp: () => void;
 }
 
 export const useTimelineNavigation = ({
-  currentDate,
+  posts,
   availableMonthsWithPosts,
-  isPrevDisabled,
-  isNextDisabled,
-  isEditingYear,
-  isEditingMonth,
-  onTimelineUserInteraction,
-  setCurrentDate
+  currentDate,
+  setCurrentDate,
+  handleTimelineInteractionInternallyAndNotifyApp
 }: UseTimelineNavigationProps) => {
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const internalInteractionTimeoutRef = useRef<number | null>(null);
+  const [isPrevDisabled, setIsPrevDisabled] = useState(true);
+  const [isNextDisabled, setIsNextDisabled] = useState(true);
 
-  const handleTimelineInteractionInternallyAndNotifyApp = useCallback(() => {
-    onTimelineUserInteraction(); 
-    if (internalInteractionTimeoutRef.current) {
-      clearTimeout(internalInteractionTimeoutRef.current);
+  // Update disabled state of nav buttons
+  useEffect(() => {
+    if (availableMonthsWithPosts.length === 0) {
+      setIsPrevDisabled(true);
+      setIsNextDisabled(true);
+      return;
     }
-    internalInteractionTimeoutRef.current = window.setTimeout(() => {
-      // Reset internal interaction state after timeout
-    }, 1500);
-  }, [onTimelineUserInteraction]);
+    const currentTimelineTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getTime();
+    const firstAvailableTime = availableMonthsWithPosts[0].getTime();
+    const lastAvailableTime = availableMonthsWithPosts[availableMonthsWithPosts.length - 1].getTime();
+    setIsPrevDisabled(currentTimelineTime <= firstAvailableTime);
+    setIsNextDisabled(currentTimelineTime >= lastAvailableTime);
+  }, [currentDate, availableMonthsWithPosts]);
 
   const handlePrevMonth = useCallback(() => {
     handleTimelineInteractionInternallyAndNotifyApp();
@@ -63,31 +62,10 @@ export const useTimelineNavigation = ({
      if (nextAvailableMonth) setCurrentDate(new Date(nextAvailableMonth));
   }, [availableMonthsWithPosts, currentDate, handleTimelineInteractionInternallyAndNotifyApp, isNextDisabled, setCurrentDate]);
 
-  // Wheel scroll handler
-  useEffect(() => {
-    const handleWheelScroll = (event: WheelEvent) => {
-      event.preventDefault();
-      handleTimelineInteractionInternallyAndNotifyApp();
-      if (event.deltaY < 0) {
-        if(!isPrevDisabled) handlePrevMonth();
-      } else if (event.deltaY > 0) {
-        if(!isNextDisabled) handleNextMonth();
-      }
-    };
-    const currentTimelineRef = timelineRef.current;
-    if (currentTimelineRef) {
-      currentTimelineRef.addEventListener('wheel', handleWheelScroll, { passive: false });
-    }
-    return () => {
-      if (currentTimelineRef) currentTimelineRef.removeEventListener('wheel', handleWheelScroll);
-      if(internalInteractionTimeoutRef.current) clearTimeout(internalInteractionTimeoutRef.current);
-    };
-  }, [handlePrevMonth, handleNextMonth, handleTimelineInteractionInternallyAndNotifyApp, isPrevDisabled, isNextDisabled]);
-
   return {
-    timelineRef,
+    isPrevDisabled,
+    isNextDisabled,
     handlePrevMonth,
-    handleNextMonth,
-    handleTimelineInteractionInternallyAndNotifyApp
+    handleNextMonth
   };
 }; 
