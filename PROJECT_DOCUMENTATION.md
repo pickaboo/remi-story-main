@@ -1,6 +1,6 @@
 # REMI Story - Complete Project Documentation
 
-*Last Updated: December 2025*
+*Last Updated: June 26, 2025*
 *Project Status: ✅ REFACTORING COMPLETED - OPTIMIZATION OPPORTUNITIES IDENTIFIED*
 
 ---
@@ -177,15 +177,17 @@ The REMI Story project is a collaborative image storytelling platform using Fire
 
 #### **Large Components Still Requiring Attention**
 
-**Timeline.tsx (480 lines) - HIGH PRIORITY**
+**Timeline.tsx (480 lines) - HIGH PRIORITY** ✅ **COMPLETED (151 lines, 68% reduction)**
 - **Location:** `src/features/feed/components/Timeline.tsx`
-- **Issues:** Complex date handling, multiple useEffects, mixed concerns
-- **Recommendations:**
-  - Extract `useTimelineNavigation` hook for date navigation logic
-  - Extract `useTimelineSync` hook for feed-timeline synchronization
-  - Create `TimelineControls` component for navigation buttons
-  - Create `TimelineDateInput` component for year/month inputs
-  - Extract utility functions to `timelineUtils.ts`
+- **Status:** ✅ **SUCCESSFULLY REFACTORED**
+- **Extracted:** 
+  - `useTimelineNavigation` hook for date navigation logic
+  - `useTimelineSync` hook for feed-timeline synchronization
+  - `useTimelineState` hook for state management
+  - `TimelineControls` component for navigation buttons
+  - `TimelineDateInput` component for year/month inputs
+  - `TimelineNavigation` component for combined navigation
+  - `timelineUtils.ts` for utility functions
 
 **EditImagePage.tsx (346 lines) - MEDIUM PRIORITY**
 - **Location:** `src/features/imageBank/components/EditImagePage.tsx`
@@ -308,25 +310,24 @@ mkdir -p components/common/icons
 
 ### **Phase 2: High Impact, Medium Effort (Week 2)**
 
-#### **1. Refactor Timeline.tsx (480 → <200 lines)**
+#### **1. Refactor Timeline.tsx (480 → <200 lines)** ✅ **COMPLETED (151 lines, 68% reduction)**
 **Extract Hooks:**
 ```typescript
-// hooks/useTimelineNavigation.ts
-// hooks/useTimelineSync.ts
-// hooks/useTimelineState.ts
+// hooks/useTimelineNavigation.ts ✅ COMPLETED
+// hooks/useTimelineSync.ts ✅ COMPLETED
+// hooks/useTimelineState.ts ✅ COMPLETED
 ```
 
 **Extract Components:**
 ```typescript
-// components/feed/TimelineControls.tsx
-// components/feed/TimelineDateInput.tsx
-// components/feed/TimelineNavigation.tsx
+// components/feed/TimelineControls.tsx ✅ COMPLETED
+// components/feed/TimelineDateInput.tsx ✅ COMPLETED
+// components/feed/TimelineNavigation.tsx ✅ COMPLETED
 ```
 
 **Extract Utilities:**
 ```typescript
-// utils/timelineUtils.ts
-// utils/dateUtils.ts
+// utils/timelineUtils.ts ✅ COMPLETED
 ```
 
 #### **2. Split storageService.ts (472 → <200 lines each)**
@@ -345,6 +346,50 @@ mkdir -p components/common/icons
 - Create Test Configuration
 - Write Initial Tests
 
+### **Phase 3: File Organization & Cleanup (Week 3)**
+
+#### **1. Audit Current File Structure**
+- **Map all files** and their current locations
+- **Identify duplicates** and unused files
+- **Document import dependencies** before moving files
+- **Create backup** of current structure
+
+#### **2. Move Feature-Specific Files**
+**Components:**
+- Move `components/feed/` → `src/features/feed/components/`
+- Move `components/auth/` → `src/features/auth/components/`
+- Verify `components/common/` and `components/layout/` stay as global
+
+**Hooks:**
+- Move feature-specific hooks to `src/features/[feature]/hooks/`
+- Keep global hooks in `hooks/` (or rename to `src/common/hooks/`)
+
+**Services:**
+- Move feature-specific services to `src/features/[feature]/services/`
+- Keep global services in `services/` (or rename to `src/common/services/`)
+
+**Types & Utils:**
+- Move feature-specific types to `src/features/[feature]/types/`
+- Move feature-specific utils to `src/features/[feature]/utils/`
+
+#### **3. Update Import Paths**
+- **Update all import statements** after file moves
+- **Test all functionality** to ensure imports work
+- **Fix any broken references** immediately
+- **Update index files** for clean exports
+
+#### **4. Remove Duplicates & Cleanup**
+- **Remove duplicate files** after confirming all references updated
+- **Delete unused files** identified in audit
+- **Clean up empty directories**
+- **Update documentation** to reflect new structure
+
+#### **5. Final Structure Validation**
+- **Verify target structure** matches planned architecture
+- **Test all features** work with new file locations
+- **Update README.md** with new project structure
+- **Document any remaining issues** for future phases
+
 ### **Implementation Checklist**
 
 #### **Week 1 Tasks**
@@ -357,13 +402,25 @@ mkdir -p components/common/icons
 - [ ] Update imports across codebase
 
 #### **Week 2 Tasks**
-- [ ] Extract Timeline.tsx hooks
-- [ ] Create Timeline sub-components
+- [x] Extract Timeline.tsx hooks
+- [x] Create Timeline sub-components
 - [ ] Split storageService.ts into domain services
 - [ ] Create firebaseUtils.ts
 - [ ] Set up Jest + React Testing Library
 - [ ] Write initial test suite
 - [ ] Update service imports
+
+#### **Week 3 Tasks**
+- [ ] Audit current file structure and create file map
+- [ ] Identify duplicates and unused files
+- [ ] Move feature-specific components to src/features/
+- [ ] Move feature-specific hooks to src/features/
+- [ ] Move feature-specific services to src/features/
+- [ ] Update all import paths across codebase
+- [ ] Remove duplicate files after verification
+- [ ] Clean up empty directories
+- [ ] Test all functionality with new structure
+- [ ] Update documentation and README
 
 ### **Success Metrics**
 
@@ -374,10 +431,19 @@ mkdir -p components/common/icons
 - [ ] Code quality tools configured
 
 #### **Week 2 Targets**
-- [ ] Timeline.tsx < 200 lines
+- [x] Timeline.tsx < 200 lines ✅ **COMPLETED (151 lines, 68% reduction)**
 - [ ] storageService.ts split into 5 domain services
 - [ ] Basic testing infrastructure working
 - [ ] 10+ component tests written
+
+#### **Week 3 Targets**
+- [ ] All feature-specific files moved to src/features/
+- [ ] All import paths updated and working
+- [ ] Duplicate files removed
+- [ ] Unused files cleaned up
+- [ ] Project structure matches planned architecture
+- [ ] All functionality tested and working
+- [ ] Documentation updated
 
 ---
 
@@ -674,4 +740,14 @@ remi-story-main-master/
 
 ---
 
-*This comprehensive documentation consolidates all project information, refactoring progress, and future recommendations into a single source of truth for the REMI Story project.* 
+## 🆕 Icon Component Extraction (2025)
+
+All icon components previously defined in `Sidebar.tsx` have been extracted and centralized into shared icon files for improved reusability and maintainability.
+
+**Extracted Icons and Their New Locations:**
+
+- `ChevronDownIcon` → `components/common/icons/ChevronIcons.tsx`
+- `ChevronLeftIcon` → `components/common/icons/ChevronIcons.tsx`
+- `ChevronRightIcon` → `components/common/icons/ChevronIcons.tsx`
+- `PlusCircleIcon` → `components/common/icons/ActionIcons.tsx`
+- `UserPlusIcon` → `components/common/icons/UserIcons.tsx`
