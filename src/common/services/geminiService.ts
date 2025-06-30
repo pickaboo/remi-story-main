@@ -4,14 +4,14 @@ import { UserDescriptionEntry } from "../../types";
 
 // Strict adherence to guideline: API key MUST be obtained from environment
 // For Vite, environment variables prefixed with VITE_ are exposed on import.meta.env
-const API_KEY = import.meta.env.VITE_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 
 if (!API_KEY) {
   // Error handling for missing API key should be done where it's critical for app operation,
   // or the SDK itself might throw an error. Alerting here can be intrusive if the service
   // isn't immediately used or if the key is conditionally provided.
   // Consider a global app initialization check or rely on SDK errors.
-  console.warn("Gemini API Key (VITE_API_KEY) is not configured in .env. Gemini features will not work.");
+  console.warn("Gemini API Key (VITE_GEMINI_API_KEY) is not configured in .env. Gemini features will not work.");
 }
 
 // Initialize with a fallback or handle the undefined case more gracefully if API_KEY might be missing.
@@ -25,7 +25,7 @@ export interface GeminiAnalysisResult {
 
 export const analyzeImageWithGemini = async (base64ImageData: string, mimeType: string): Promise<GeminiAnalysisResult> => {
   if (!API_KEY) {
-    console.error("VITE_API_KEY not configured for analyzeImageWithGemini.");
+    console.error("VITE_GEMINI_API_KEY not configured for analyzeImageWithGemini.");
     // Return a default error-indicating response that matches GeminiAnalysisResult
     return { description: "Gemini API-nyckel ej konfigurerad.", geotags: [] };
   }
@@ -83,7 +83,7 @@ interface StoryCompilationData {
 
 export const compileStoryWithGemini = async (data: StoryCompilationData): Promise<string> => {
   if (!API_KEY) {
-    console.error("VITE_API_KEY not configured for compileStoryWithGemini.");
+    console.error("VITE_GEMINI_API_KEY not configured for compileStoryWithGemini.");
     throw new Error("Gemini API Key not configured");
   }
   try {
@@ -143,7 +143,7 @@ Skapa nu berättelsen:`;
 
 export const generateEngagingQuestionFromAnalysis = async (analysisText: string): Promise<string> => {
   if (!API_KEY) {
-    console.error("VITE_API_KEY not configured for generateEngagingQuestionFromAnalysis.");
+    console.error("VITE_GEMINI_API_KEY not configured for generateEngagingQuestionFromAnalysis.");
     return "Vad får den här bilden dig att tänka på?";
   }
   if (!analysisText || analysisText.trim() === "") {

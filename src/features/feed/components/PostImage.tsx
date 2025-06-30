@@ -26,6 +26,7 @@ export const PostImage: React.FC<PostImageProps> = ({
 }) => {
   const [tagInputOnHover, setTagInputOnHover] = useState('');
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
   const handleAddTagFromHoverInput = async () => {
     await onAddTag(tagInputOnHover);
@@ -46,9 +47,13 @@ export const PostImage: React.FC<PostImageProps> = ({
   return (
     <>
       <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700/50 shadow-md">
-        <div className="relative group">
-          <img src={dataUrl} alt={name} className="w-full h-auto object-contain block max-h-[70vh]" />
-          
+        <div className="relative group aspect-square bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shadow-inner">
+          <img
+            src={dataUrl}
+            alt={name}
+            className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+            onClick={() => isUploader && setShowTagSuggestions(v => !v)}
+          />
           {/* Fullscreen Button */}
           <button
             onClick={() => handleOpenFullscreenViewer(dataUrl)}
@@ -59,11 +64,10 @@ export const PostImage: React.FC<PostImageProps> = ({
             <MagnifyingGlassPlusIcon className="w-5 h-5" />
           </button>
 
-          {/* Tag Management Overlay on Hover - only for uploader */}
-          {isUploader && (
+          {/* Tag Management Overlay on Click - only for uploader */}
+          {isUploader && showTagSuggestions && (
             <div 
-              className="absolute bottom-0 left-0 right-0 p-3 bg-black/50 backdrop-blur-sm 
-                         opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-lg"
+              className="absolute bottom-0 left-0 right-0 p-3 bg-black/70 backdrop-blur-sm rounded-b-lg z-20"
             >
               <div className="relative mb-2">
                 <Input

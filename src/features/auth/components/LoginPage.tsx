@@ -4,6 +4,7 @@ import { Input } from '../../../common/components/Input';
 import { Button } from '../../../common/components/Button';
 import { User, AuthView } from '../types';
 import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
   onLoginSuccess: (user: User, isNewOAuthUser?: boolean) => void;
@@ -34,7 +35,7 @@ const AppleIcon = () => (
 );
 
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +45,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
   const [isSendingReset, setIsSendingReset] = useState(false);
 
+  const navigate = useNavigate();
 
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -182,7 +184,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
 
       <p className="mt-8 text-center text-sm text-muted-text dark:text-slate-400">
         Inget konto?{' '}
-        <button onClick={() => onNavigate('#signup')} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
+        <button 
+          type="button"
+          onClick={() => {
+            console.log('Skapa ett här clicked. Current location:', window.location.pathname);
+            navigate('/signup');
+          }} 
+          className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
           Skapa ett här
         </button>
       </p>

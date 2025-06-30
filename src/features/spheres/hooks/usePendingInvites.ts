@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { SphereInvitation } from '../../../types';
+import { FIRESTORE_LISTENERS_ENABLED } from '../../../common/hooks/useRealTimeListeners';
 
 export const usePendingInvites = (email: string | undefined) => {
+  console.info('[usePendingInvites] Hook initialized with email:', email, '==============================>');
   const [pendingInvites, setPendingInvites] = useState<SphereInvitation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.info('[usePendingInvites] useEffect triggered for email:', email, '==============================>');
     if (!email) {
       setPendingInvites([]);
       setLoading(false);
@@ -15,28 +18,19 @@ export const usePendingInvites = (email: string | undefined) => {
     }
 
     setLoading(true);
-
-    // Create a real-time listener for pending invitations
-    const q = query(
-      collection(db, 'sphereInvitations'),
-      where('inviteeEmail', '==', email),
-      where('status', '==', 'pending')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const invites: SphereInvitation[] = [];
-      snapshot.forEach((doc) => {
-        invites.push({ id: doc.id, ...doc.data() } as SphereInvitation);
-      });
-      
+    // One-time fetch for pending invitations (replaces real-time listener)
+    const fetchInvites = async () => {
+      const q = query(
+        collection(db, 'sphereInvitations'),
+        where('inviteeEmail', '==', email),
+        where('status', '==', 'pending')
+      );
+      const snapshot = await getDocs(q);
+      const invites: SphereInvitation[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SphereInvitation));
       setPendingInvites(invites);
       setLoading(false);
-    }, (error) => {
-      console.error('Error listening to pending invites:', error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    };
+    fetchInvites();
   }, [email]);
 
   return {

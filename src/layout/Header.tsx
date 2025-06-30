@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { View } from '../types'; 
 import { DiaryPopover } from '../features/diary/components/DiaryPopover'; 
 import { UserMenuPopover } from '../common/components/UserMenuPopover';
 import { useUser } from '../context/UserContext';
 import { usePendingInvites } from '../features/spheres/hooks/usePendingInvites';
+import { acceptSphereInvitation, declineSphereInvitation } from '../features/auth/services/authService';
 
 interface HeaderProps {
   isSidebarExpanded: boolean;
-  onNavigate: (view: View, params?: any) => void;
   logoUrl?: string; 
 }
 
@@ -32,11 +33,12 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
 
 export const Header: React.FC<HeaderProps> = ({ 
     isSidebarExpanded, 
-    onNavigate, 
     logoUrl, 
 }) => {
+  const navigate = useNavigate();
+  
   // Use context instead of props
-  const { currentUser, handleLogout, handleSaveThemePreference } = useUser();
+  const { currentUser, handleLogout, handleSaveThemePreference, refreshUser } = useUser();
   
   // Use custom hook for pending invites
   const { inviteCount } = usePendingInvites(currentUser?.email);
@@ -50,13 +52,29 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Handle invitation actions
   const handleAcceptInvitation = async (invitationId: string) => {
-    // This will be implemented when we move the invitation logic to a hook
-    console.log('Accept invitation:', invitationId);
+    if (!currentUser) return;
+    await acceptSphereInvitation(invitationId, currentUser);
+    await refreshUser();
   };
 
   const handleDeclineInvitation = async (invitationId: string) => {
-    // This will be implemented when we move the invitation logic to a hook
-    console.log('Decline invitation:', invitationId);
+    if (!currentUser) return;
+    await declineSphereInvitation(invitationId, currentUser.email);
+    await refreshUser();
+  };
+
+  // Handle navigation
+  const handleNavigate = (view: View) => {
+    switch (view) {
+      case View.Home:
+        navigate('/');
+        break;
+      case View.Diary:
+        navigate('/diary');
+        break;
+      default:
+        navigate('/');
+    }
   };
 
   return (
@@ -68,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex-grow text-center">
         <a 
           href="#" 
-          onClick={(e) => { e.preventDefault(); onNavigate(View.Home);}} 
+          onClick={(e) => { e.preventDefault(); handleNavigate(View.Home);}} 
           className="inline-block hover:opacity-80 transition-opacity"
           aria-label="REMI Story Hem"
         >
@@ -86,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative" ref={diaryButtonRef}>
               <div className="flex rounded-lg border border-border-color dark:border-slate-600 shadow-sm">
                 <button
-                  onClick={() => onNavigate(View.Diary)}
+                  onClick={() => handleNavigate(View.Diary)}
                   className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
                   title="Öppna Dagbok"
                   aria-label="Öppna Dagbok"

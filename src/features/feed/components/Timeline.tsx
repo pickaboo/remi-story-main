@@ -114,50 +114,54 @@ export const Timeline: React.FC<TimelineProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col bg-transparent text-slate-100 p-3 rounded-lg cursor-ns-resize" title="Scrolla för att byta månad, klicka år/månad för att redigera">
-      <TimelineNavigation
-        inputYear={inputYear}
-        inputMonth={inputMonth}
-        isEditingYear={isEditingYear}
-        isEditingMonth={isEditingMonth}
-        yearInputRef={yearInputRef}
-        monthInputRef={monthInputRef}
-        onYearChange={handleYearChange}
-        onMonthChange={handleMonthChange}
-        onYearKeyDown={handleYearKeyDown}
-        onMonthKeyDown={handleMonthKeyDown}
-        onYearBlur={handleYearBlur}
-        onMonthBlur={handleMonthBlur}
-        onStartEditingYear={startEditingYear}
-        onStartEditingMonth={startEditingMonth}
-        onPrevMonth={handlePrevMonth}
-        onNextMonth={handleNextMonth}
-        isPrevDisabled={isPrevDisabled}
-        isNextDisabled={isNextDisabled}
-        onTimelineInteraction={onTimelineUserInteraction}
-      />
-
-      <div className="flex-grow overflow-y-auto no-scrollbar pt-1">
+    <div className="h-full flex flex-col items-center justify-center bg-transparent text-slate-100 p-3 rounded-lg" title="Scrolla för att byta månad, klicka år/månad för att redigera">
+      {/* Year */}
+      <div className="text-center text-2xl font-bold text-slate-100 mb-2 bg-black/40 backdrop-blur-sm px-6 py-2 rounded-xl shadow-md">
+        {inputYear}
+      </div>
+      {/* Month with navigation */}
+      <div className="flex items-center justify-center mb-4 gap-2">
+        <button
+          onClick={handlePrevMonth}
+          disabled={isPrevDisabled}
+          className={`p-1.5 rounded-full text-slate-200 transition-colors ${isPrevDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-700/40'}`}
+          aria-label="Föregående månad"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <div className="px-5 py-1.5 rounded-full bg-black/40 backdrop-blur-sm text-lg font-semibold capitalize shadow-md">
+          {inputMonth}
+        </div>
+        <button
+          onClick={handleNextMonth}
+          disabled={isNextDisabled}
+          className={`p-1.5 rounded-full text-slate-200 transition-colors ${isNextDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-700/40'}`}
+          aria-label="Nästa månad"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+      {/* Days */}
+      <div className="flex flex-col items-center gap-3 w-full">
         {daysToDisplay.length === 0 ? (
           <div className="text-center text-xs text-slate-400 py-4">Inga inlägg denna månad.</div>
         ) : (
-          <ul className="space-y-1.5">
-            {daysToDisplay.map((item) => (
-              <li key={`${item.day}-${item.firstPostId}`}>
-                <button
-                  className="w-full text-left rounded-md p-0 hover:scale-105 hover:shadow-lg text-slate-100 transition-all duration-150 ease-in-out transform flex items-center justify-center"
-                  onClick={() => { onScrollToPost(item.firstPostId); }}
-                  title={item.postNameSample ? `${item.postCount} inlägg, första: ${item.postNameSample}` : `Dag ${item.day}`}
-                  disabled={isEditingYear || isEditingMonth}
-                  aria-label={`Scrolla till inlägg från dag ${item.day}`}
-                >
-                  <span className="bg-black/40 backdrop-blur-sm text-slate-100 text-sm font-medium px-3 py-1.5 rounded-lg shadow-sm">
-                    {item.day}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          daysToDisplay.map((item, idx) => (
+            <button
+              key={`${item.day}-${item.firstPostId}`}
+              className="w-16 py-2 bg-black/40 backdrop-blur-sm rounded-xl text-lg font-semibold text-slate-100 shadow-md hover:bg-blue-600/70 hover:text-white transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              onClick={() => { onScrollToPost(item.firstPostId); }}
+              title={`Dag ${item.day}`}
+              disabled={isEditingYear || isEditingMonth}
+              aria-label={`Scrolla till inlägg från dag ${item.day}`}
+            >
+              {item.day}
+            </button>
+          ))
         )}
       </div>
     </div>

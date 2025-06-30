@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ImageRecord, User, UserDescriptionEntry } from '../../../types';
 import { saveImage } from '../../../common/services/imageService';
 import { getUserById } from '../../../common/services/userService';
@@ -12,10 +13,10 @@ interface PostCardProps {
   post: ImageRecord;
   currentUser: User;
   onPostUpdated: (updatedPost: ImageRecord) => void;
-  onNavigateToEdit: () => void;
 }
 
-export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }: PostCardProps) {
+export function PostCard({ post, currentUser, onPostUpdated }: PostCardProps) {
+  const navigate = useNavigate();
   const [creator, setCreator] = useState<User | null>(null);
   const [isLoadingCreator, setIsLoadingCreator] = useState(true);
   const [commenters, setCommenters] = useState<Map<string, User>>(new Map());
@@ -124,6 +125,11 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     onPostUpdated(updatedPost);
   };
 
+  // Handle navigation to edit
+  const handleNavigateToEdit = () => {
+    navigate(`/edit/${post.id}`);
+  };
+
   // Computed values
   const hasImage = post.dataUrl && post.width != null && post.height != null && post.width > 0;
   const showUploaderDescriptionInput = hasImage &&
@@ -131,7 +137,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     (!mainPostDescription || (!mainPostDescription.description.trim() && !mainPostDescription.audioRecUrl));
 
   return (
-    <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
+    <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700 max-w-md mx-auto my-8">
       {/* Post Header */}
       <PostHeader
         creator={creator}
@@ -139,7 +145,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
         dateTaken={post.dateTaken}
         currentUserId={currentUser.id}
         uploadedByUserId={post.uploadedByUserId || ''}
-        onNavigateToEdit={onNavigateToEdit}
+        onNavigateToEdit={handleNavigateToEdit}
       />
 
       {/* Main Post Content */}

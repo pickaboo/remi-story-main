@@ -24,11 +24,13 @@ export const ImagePreviewSection: React.FC<ImagePreviewSectionProps> = ({
   return (
     <div className="mb-4">
       <div className="relative inline-block">
-        <img
-          src={imagePreviewUrl || ''}
-          alt="Preview"
-          className="max-w-full h-auto max-h-64 rounded-lg border border-border-color dark:border-slate-600"
-        />
+        {imagePreviewUrl && (
+          <img
+            src={imagePreviewUrl}
+            alt="Preview"
+            className="max-w-full h-auto max-h-64 rounded-lg border border-border-color dark:border-slate-600"
+          />
+        )}
         <button
           onClick={onClearImageSelection}
           className="absolute -top-2 -right-2 bg-danger hover:bg-red-700 text-white rounded-full p-1 shadow-lg transition-colors"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../../layout/PageContainer';
 import { Button } from '../../../common/components/Button';
 import { Input } from '../../../common/components/Input';
@@ -11,10 +12,10 @@ import { useUser } from '../../../context';
 
 interface EditImagePageProps {
   imageId: string;
-  onNavigate: (view: View, params?: any) => void;
 }
 
-export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigate }) => {
+export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
+  const navigate = useNavigate();
   const { currentUser } = useUser();
   const audioRecorder = useAudioRecorder();
   
@@ -25,7 +26,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
   // Use the useImageEditing hook for all image editing logic
   const [imageState, imageActions] = useImageEditing({
     imageId,
-    onSaveSuccess: () => onNavigate(View.Home),
+    onSaveSuccess: () => navigate('/'),
     onSaveError: (error) => console.error('Save error:', error)
   });
 
@@ -82,7 +83,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
         <div className="flex justify-center py-10">
           <div className="text-center">
             <p className="text-gray-500 mb-4">Bild kunde inte hittas</p>
-            <Button onClick={() => onNavigate(View.Home)} variant="secondary">
+            <Button onClick={() => navigate('/')} variant="secondary">
               Tillbaka till startsidan
             </Button>
           </div>
@@ -254,7 +255,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
                 {isSaving ? "Sparar..." : "Spara ändringar"}
               </Button>
               <Button
-                onClick={() => onNavigate(View.Home)}
+                onClick={() => navigate('/')}
                 variant="secondary"
                 disabled={isSaving}
               >

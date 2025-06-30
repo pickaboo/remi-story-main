@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ImageRecord, SlideshowProject, View, UserDescriptionEntry } from '../../../types';
 import { getProjectById, getImageById } from '../../../common/services/storageService';
 import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
@@ -8,12 +9,12 @@ import { storage } from '../../../firebase'; // Added
 
 interface SlideshowPlayerPageProps {
   projectId: string;
-  onNavigate: (view: View, params?: any) => void;
 }
 
 const animationNames = ['kenburns-zoom-in', 'kenburns-pan-tl-br', 'kenburns-pan-br-tl'];
 
-export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projectId, onNavigate }) => {
+export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projectId }) => {
+  const navigate = useNavigate();
   const [project, setProject] = useState<SlideshowProject | null>(null);
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -35,7 +36,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
         const projectImageRecords = resolvedRawImages.filter(img => img !== undefined) as ImageRecord[];
         
         const imagesWithResolvedUrls = await Promise.all(
-          projectImageRecords.map(async (img) => {
+          projectImageRecords.map(async (img: ImageRecord) => {
             let displayUrl = img.dataUrl;
             // If dataUrl is not a base64 string or an http/s URL, AND filePath exists, try to get downloadURL
             if ((!displayUrl || (!displayUrl.startsWith('data:') && !displayUrl.startsWith('http'))) && img.filePath) {
@@ -147,13 +148,13 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
         if (document.fullscreenElement) {
           document.exitFullscreen().then(() => setIsFullScreen(false));
         } else {
-          onNavigate(View.SlideshowProjects); 
+          navigate('/projects'); 
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLoading, error, images.length, goToNextImage, goToPrevImage, toggleFullScreen, onNavigate]);
+  }, [isLoading, error, images.length, goToNextImage, goToPrevImage, toggleFullScreen, navigate]);
 
   if (isLoading) {
     return (
@@ -169,7 +170,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
         <h2 className="text-2xl font-semibold mb-3">Hoppsan!</h2>
         <p className="text-xl text-yellow-300 mb-6 text-center">{error || "Inga bilder att visa i detta bildspel."}</p>
         <button 
-            onClick={() => onNavigate(View.SlideshowProjects)} 
+            onClick={() => navigate('/projects')} 
             className="px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors duration-150"
         >
             Tillbaka till Projekt
@@ -219,7 +220,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
           {isFullScreen ? 'Avsluta Fullskärm' : 'Fullskärm (F)'}
         </button>
         <button 
-            onClick={() => onNavigate(View.SlideshowProjects)} 
+            onClick={() => navigate('/projects')} 
             className="text-white rounded-full px-3 py-1.5 text-xs sm:text-sm hover:bg-white/20 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/70"
         >
           Stäng (Esc)

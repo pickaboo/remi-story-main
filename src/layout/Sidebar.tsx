@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { View } from '../types';
 import { SphereDisplay } from '../features/spheres/components/SphereDisplay'; 
 import { useSphere } from '../context/SphereContext';
@@ -9,8 +10,6 @@ import { PlusCircleIcon, UserPlusIcon, Cog6ToothIcon, PaintBrushIcon, UsersIcon 
 import { PhotoIcon } from '../common/components/icons/ActionIcons';
 
 interface SidebarProps {
-  currentPath: string;
-  onNavigate: (view: View, params?: any) => void;
   isExpanded: boolean;
   onToggle: () => void;
 }
@@ -47,11 +46,13 @@ const NAV_ITEMS_SIDEBAR = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
-    currentPath, 
-    onNavigate, 
     isExpanded, 
     onToggle, 
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   // Use context instead of props
   const { currentUser } = useUser();
   const { 
@@ -91,6 +92,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSwitchSphereClick = async (sphereId: string) => {
     await handleSwitchSphere(sphereId);
     setIsSphereDropdownOpen(false);
+  };
+
+  // Handle navigation
+  const handleNavigate = (view: View) => {
+    switch (view) {
+      case View.Home:
+        navigate('/');
+        break;
+      case View.ImageBank:
+        navigate('/image-bank');
+        break;
+      case View.SlideshowProjects:
+        navigate('/projects');
+        break;
+      case View.Diary:
+        navigate('/diary');
+        break;
+      default:
+        navigate('/');
+    }
   };
 
   return (
@@ -218,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.path}
-                onClick={() => onNavigate(item.view)}
+                onClick={() => handleNavigate(item.view)}
                 title={isExpanded ? undefined : item.label}
                 className={`
                   flex items-center text-left text-sm font-medium transition-all duration-150 ease-in-out group

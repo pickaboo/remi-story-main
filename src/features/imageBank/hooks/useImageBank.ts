@@ -50,13 +50,15 @@ export const useImageBank = () => {
       );
       
       // Filter for images that actually have a dataUrl to display
-      const displayableSphereImages = imagesWithDisplayUrls.filter(img => img.dataUrl);
+      const displayableSphereImages = imagesWithDisplayUrls.filter((img: ImageRecord) => img.dataUrl);
       
-      setBankedImagesInViewMode(displayableSphereImages.sort((a,b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-        const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-        return dateB - dateA; // Sort descending by date
-      }));
+      const sortedImages = displayableSphereImages.sort((a: ImageRecord, b: ImageRecord) => {
+        const dateA = new Date(a.dateTaken || a.createdAt || 0);
+        const dateB = new Date(b.dateTaken || b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      setBankedImagesInViewMode(sortedImages);
     } catch (e: any) {
       console.error("[ImageBankPage] Error fetching images for bank view:", e);
       setBankViewError("Kunde inte ladda bilder till bildbanken. " + e.message);

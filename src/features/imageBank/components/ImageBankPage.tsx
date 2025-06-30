@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../../layout/PageContainer';
 import { Button } from '../../../common/components/Button';
 import { LoadingSpinner } from '../../../common/components/LoadingSpinner';
@@ -12,13 +13,10 @@ import { ImageGrid } from './ImageGrid';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { UploadIcon } from './ImageBankIcons';
 
-interface ImageBankPageProps {
-  onNavigate: (view: View, params?: any) => void;
-}
-
 type ImageBankViewMode = 'view' | 'upload';
 
-export const ImageBankPage: React.FC<ImageBankPageProps> = ({ onNavigate }) => {
+export const ImageBankPage: React.FC = () => {
+  const navigate = useNavigate();
   const { currentUser } = useUser();
   const { activeSphere } = useSphere();
   const [imageBankView, setImageBankView] = useState<ImageBankViewMode>('view');
@@ -69,6 +67,22 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ onNavigate }) => {
     setImageBankView('upload');
   };
 
+  // Handle navigation
+  const handleNavigate = (view: View, params?: any) => {
+    switch (view) {
+      case View.Home:
+        navigate('/');
+        break;
+      case View.EditImage:
+        if (params?.imageId) {
+          navigate(`/edit/${params.imageId}`);
+        }
+        break;
+      default:
+        navigate('/');
+    }
+  };
+
   if (!currentUser || !activeSphere) {
     return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata och sfär..." /></div>;
   }
@@ -103,7 +117,7 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ onNavigate }) => {
               images={bankedImagesInViewMode}
               currentUser={currentUser}
               expandedMetadataImageId={expandedMetadataImageId}
-              onNavigate={onNavigate}
+              onNavigate={handleNavigate}
               onDeleteImage={initiateDeleteImageFromBank}
               onToggleMetadata={toggleMetadata}
               onDateChange={handleDateChange}

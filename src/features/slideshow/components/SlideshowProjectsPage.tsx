@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../../layout/PageContainer';
 import { Button } from '../../../common/components/Button';
 import { Input } from '../../../common/components/Input';
@@ -11,13 +12,26 @@ import { ConfirmDeleteProjectModal } from './ConfirmDeleteProjectModal';
 import { ProjectListItem } from './ProjectListItem';
 import { CreationOptionCard } from './CreationOptionCard';
 
-interface SlideshowProjectsPageProps {
-  onNavigate: (view: View, params?: any) => void;
-}
-
-export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ onNavigate }) => {
+export const SlideshowProjectsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { currentUser } = useUser();
   const { activeSphere } = useSphere();
+  
+  // Handle navigation
+  const handleNavigate = (view: View, params?: any) => {
+    switch (view) {
+      case View.SlideshowProjects:
+        navigate('/projects');
+        break;
+      case View.PlaySlideshow:
+        if (params?.projectId) {
+          navigate(`/play/${params.projectId}`);
+        }
+        break;
+      default:
+        navigate('/projects');
+    }
+  };
   
   const {
     // State
@@ -47,7 +61,7 @@ export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ on
     confirmDeleteProject,
     cancelDeleteProject,
     handleGeneratePdfForProject,
-  } = useProjectManagement(onNavigate);
+  } = useProjectManagement(handleNavigate);
 
   if (isLoading) return <PageContainer><div className="flex justify-center items-center h-64"><LoadingSpinner message={`Laddar projekt för sfären "${activeSphere?.name}"...`} /></div></PageContainer>;
 
@@ -178,7 +192,7 @@ export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ on
           {projects.map(proj => {
             const handlePrimaryAction = () => {
                 if (proj.projectType === 'slideshow') {
-                    onNavigate(View.PlaySlideshow, { projectId: proj.id });
+                    handleNavigate(View.PlaySlideshow, { projectId: proj.id });
                 } else if (proj.projectType === 'photoAlbum') {
                     handleGeneratePdfForProject(proj.id);
                 }

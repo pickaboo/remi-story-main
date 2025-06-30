@@ -14,6 +14,8 @@ import {
 import { 
     MOCK_SPHERES 
 } from '../constants';
+import { collection, query, where, getDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export interface SphereContextType {
   // State
@@ -213,6 +215,23 @@ export const SphereProvider: React.FC<SphereProviderProps> = ({ children, curren
       // Keep allSpheres as it might be needed for other users
     }
   }, [currentUserId]);
+
+  // One-time fetch for active sphere (replaces real-time listener)
+  useEffect(() => {
+    if (activeSphere && activeSphere.id) {
+      const fetchSphere = async () => {
+        const sphereDocRef = doc(db, 'spheres', activeSphere.id);
+        const docSnap = await getDoc(sphereDocRef);
+        if (docSnap.exists()) {
+          const sphereData = { id: docSnap.id, ...docSnap.data() } as Sphere;
+          if (JSON.stringify(sphereData) !== JSON.stringify(activeSphere)) {
+            setActiveSphere(sphereData);
+          }
+        }
+      };
+      fetchSphere();
+    }
+  }, [activeSphere?.id]);
 
   const value: SphereContextType = {
     activeSphere,

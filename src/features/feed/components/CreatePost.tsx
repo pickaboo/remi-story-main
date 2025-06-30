@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import { TextArea } from '../../../common/components/TextArea';
 import { ImageRecord, User } from '../../../types';
 import { saveImage } from '../../../common/services/imageService';
@@ -7,6 +7,8 @@ import { ImageBankPickerModal } from '../../imageBank/components/ImageBankPicker
 import { useImageProcessing } from '../hooks/useImageProcessing';
 import { ImagePreviewSection } from './ImagePreviewSection';
 import { CreatePostActions } from './CreatePostActions';
+import { MdImage, MdCollections, MdMic, MdStop } from 'react-icons/md';
+import { PostTags } from './PostTags';
 
 interface CreatePostProps {
   currentUser: User;
@@ -15,7 +17,7 @@ interface CreatePostProps {
   initialImageIdToLoad?: string | null; 
 }
 
-export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
+export const CreatePost = forwardRef<HTMLDivElement, CreatePostProps>(({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }, ref) => {
   const [postText, setPostText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
   const [showImageBankModal, setShowImageBankModal] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiTags, setAiTags] = useState<string[]>([]);
   
   const audioRecorder = useAudioRecorder();
   const { resetAudio } = audioRecorder;
@@ -34,6 +37,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
     processAndAnalyzeImage,
     setUploadedFileDetails,
   } = useImageProcessing();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const triggerFileInput = () => fileInputRef.current?.click();
 
   useEffect(() => {
     const loadImage = async () => {
@@ -74,19 +80,14 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
 
     try {
       const { imageRecord } = await processAndAnalyzeImage(file, currentUser, activeSphereId);
-      
       setImagePreviewUrl(imageRecord.dataUrl || null);
       setPostText(imageRecord.aiGeneratedPlaceholder || '');
-      
-      // Save the image to storage
-      await saveImage(imageRecord);
-      
-      // Update the image record with the saved data
-      setSelectedBankedImageInfo(imageRecord);
+      setAiTags(imageRecord.tags || []);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to process image');
       setImageFile(null);
       setImagePreviewUrl(null);
+      setAiTags([]);
     }
   };
 
@@ -116,6 +117,14 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
     setError(null);
   };
 
+  const handleAddTag = (tag: string) => {
+    if (tag && !aiTags.includes(tag)) setAiTags([...aiTags, tag]);
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setAiTags(aiTags.filter(t => t !== tag));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
@@ -131,9 +140,11 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
       let finalImageRecord: ImageRecord;
 
       if (selectedBankedImageInfo) {
-        // Use existing banked image
         finalImageRecord = {
           ...selectedBankedImageInfo,
+          sphereId: activeSphereId,
+          isPublishedToFeed: true,
+          tags: aiTags,
           userDescriptions: [
             ...selectedBankedImageInfo.userDescriptions,
             {
@@ -145,11 +156,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
           ],
         };
       } else if (imageFile && uploadedFileDetails) {
-        // Create new image record from uploaded file
         const { imageRecord } = await processAndAnalyzeImage(imageFile, currentUser, activeSphereId);
-        
         finalImageRecord = {
           ...imageRecord,
+          sphereId: activeSphereId,
+          isPublishedToFeed: true,
+          tags: aiTags,
           userDescriptions: [
             {
               userId: currentUser.id,
@@ -175,6 +187,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
       setSelectedBankedImageInfo(null);
       setImagePreviewUrl(null);
       setUploadedFileDetails(null);
+      setAiTags([]);
       resetAudio();
       setError(null);
     } catch (error) {
@@ -193,24 +206,92 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
   const hasAudio = !!audioRecorder.audioUrl;
 
   return (
-    <div className="bg-card-bg dark:bg-slate-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">
-        Skapa nytt inlägg
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="postText" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Beskrivning
-          </label>
-          <TextArea
-            id="postText"
+    <div ref={ref} className="bg-slate-800/90 dark:bg-slate-900/90 rounded-2xl shadow-2xl border border-slate-700/60 max-w-2xl mx-auto mt-8 mb-12 p-6">
+      <div className="flex items-center gap-3 mb-4">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-lg select-none">
+          {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'NY'}
+        </div>
+        {/* Input with mic icon */}
+        <div className="relative flex-1">
+          <textarea
+            id="create-post-textarea"
+            className="w-full rounded-lg bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 p-3 pr-12 resize-none shadow-inner"
+            rows={2}
+            placeholder={`Vad tänker du på, ${currentUser?.name?.split(' ')[0] || ''}?`}
             value={postText}
             onChange={handleTextChange}
-            placeholder="Beskriv vad du ser i bilden eller berätta en historia..."
-            rows={4}
-            className="w-full"
           />
+          {/* Mic icon inside input */}
+          <button
+            type="button"
+            onClick={audioRecorder.isRecording ? audioRecorder.stopRecording : audioRecorder.startRecording}
+            className={`absolute top-1/2 right-3 -translate-y-1/2 p-2 rounded-full border ${audioRecorder.isRecording ? 'bg-red-600 border-red-700 text-white' : 'bg-slate-800 border-slate-600 text-slate-400 hover:bg-slate-700'} transition focus:outline-none focus:ring-2 focus:ring-blue-400/30`}
+            aria-label={audioRecorder.isRecording ? 'Stoppa inspelning' : 'Spela in ljud'}
+          >
+            {audioRecorder.isRecording ? <MdStop size={22} /> : <MdMic size={22} />}
+          </button>
+        </div>
+      </div>
+      {/* Button row */}
+      <div className="flex flex-row gap-4 mt-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={triggerFileInput}
+          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition"
+        >
+          <MdImage size={22} />
+          <span className="ml-1">Ladda upp bild</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowImageBankModal(true)}
+          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition"
+        >
+          <MdCollections size={22} />
+          <span className="ml-1">Bildbank</span>
+        </button>
+        {(imagePreviewUrl || selectedBankedImageInfo) && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-300 mb-1">AI-förslag på taggar:</label>
+            <PostTags
+              tags={aiTags}
+              currentUserId={currentUser.id}
+              uploadedByUserId={currentUser.id}
+              onRemoveTag={handleRemoveTag}
+            />
+            <input
+              type="text"
+              className="mt-2 p-2 rounded border border-slate-600 bg-slate-800 text-slate-100"
+              placeholder="Lägg till tagg och tryck Enter"
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const value = (e.target as HTMLInputElement).value.trim();
+                  if (value) {
+                    handleAddTag(value);
+                    (e.target as HTMLInputElement).value = '';
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!postText.trim() && !imageFile && !selectedBankedImageInfo}
+          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+        >
+          Publicera
+        </button>
         </div>
 
         <ImagePreviewSection
@@ -227,19 +308,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
           </div>
         )}
 
-        <CreatePostActions
-          onFileSelect={handleFileChange}
-          onImageBankSelect={() => setShowImageBankModal(true)}
-          onPostSubmit={handleSubmit}
-          onResetAudio={handleResetAudio}
-          audioRecorder={audioRecorder}
-          isPosting={isPosting}
-          hasImage={hasImage}
-          hasText={hasText}
-          hasAudio={hasAudio}
-        />
-      </form>
-
       {showImageBankModal && (
         <ImageBankPickerModal
           isOpen={showImageBankModal}
@@ -250,4 +318,4 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
       )}
     </div>
   );
-};
+});

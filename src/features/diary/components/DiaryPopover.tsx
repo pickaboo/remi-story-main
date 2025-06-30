@@ -32,11 +32,16 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = ({ isOpen, onClose, anc
   const [isSaving, setIsSaving] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const audioRecorder = useAudioRecorder();
+  const wasOpen = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setContent(''); // Reset content when opened
+    if (isOpen && !wasOpen.current) {
+      setContent('');
       audioRecorder.resetAudio();
+      wasOpen.current = true;
+    }
+    if (!isOpen) {
+      wasOpen.current = false;
     }
   }, [isOpen, audioRecorder]);
   

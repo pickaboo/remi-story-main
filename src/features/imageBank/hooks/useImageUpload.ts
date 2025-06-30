@@ -41,6 +41,10 @@ export const useImageUpload = () => {
         setUploadError(`Filen "${file.name}" är inte en giltig bildtyp.`);
         continue;
       }
+      if (file.type === 'image/avif') {
+        setUploadError(`Bilden "${file.name}" är i AVIF-format. AVIF-bilder stöds inte för AI-analys. Vänligen ladda upp JPEG, PNG eller WebP.`);
+        continue;
+      }
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
         setUploadError(`Bilden "${file.name}" är för stor (max 10MB).`);
         continue;

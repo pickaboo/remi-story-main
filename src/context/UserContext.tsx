@@ -4,6 +4,8 @@ import { useAuth } from '../features/auth/hooks/useAuth';
 import { logout as authLogout, updateUserProfile } from '../features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../common/services/storageService';
 import { getUserById } from '../common/services/userService';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export interface UserContextType {
   // State
@@ -26,7 +28,11 @@ interface UserProviderProps {
   children: ReactNode;
 }
 
+let userProviderRenderCount = 0;
+
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+  userProviderRenderCount += 1;
+  console.info(`[UserProvider] Render #${userProviderRenderCount} at ${new Date().toISOString()}`);
   // Use the original useAuth hook for authentication logic
   const { 
     isAuthenticated, 
@@ -36,6 +42,27 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     handleProfileComplete: authHandleProfileComplete,
     setIsAuthenticated
   } = useAuth();
+
+  React.useEffect(() => {
+    console.log('[UserContext] State update:', { isAuthenticated, currentUser });
+  }, [isAuthenticated, currentUser]);
+
+  // One-time fetch for user profile (replaces real-time listener)
+  React.useEffect(() => {
+    if (currentUser && currentUser.id) {
+      const fetchUser = async () => {
+        const userDocRef = doc(db, 'users', currentUser.id);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = { id: docSnap.id, ...docSnap.data() } as User;
+          if (JSON.stringify(userData) !== JSON.stringify(currentUser)) {
+            setCurrentUser(userData);
+          }
+        }
+      };
+      fetchUser();
+    }
+  }, [currentUser?.id]);
 
   const handleLogout = async () => {
     console.log('[UserContext] handleLogout called');

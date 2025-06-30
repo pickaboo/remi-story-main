@@ -42,7 +42,7 @@ export const useProjectManagement = (onNavigate: (view: View, params?: any) => v
         setProjects(sphereProjects);
 
         // Filter images for current sphere and prepare for selection
-        const sphereImages = imagesData.filter(img => 
+        const sphereImages = imagesData.filter((img: ImageRecord) => 
           img.sphereId === activeSphere.id && 
           img.userDescriptions && 
           img.userDescriptions.length > 0 && 
@@ -68,7 +68,7 @@ export const useProjectManagement = (onNavigate: (view: View, params?: any) => v
           })
         );
 
-        const validImages = imagesWithResolvedUrls.filter(img => img.dataUrl);
+        const validImages = imagesWithResolvedUrls.filter((img: ImageRecord) => img.dataUrl);
         setAvailableImagesForSelection(validImages);
       } catch (error: any) {
         console.error('Error loading projects data:', error);
@@ -167,7 +167,7 @@ export const useProjectManagement = (onNavigate: (view: View, params?: any) => v
       const imagePromises = projectToExport.imageIds.map(id => 
         import('../../../common/services/storageService').then(({ getImageById }) => getImageById(id))
       );
-      const resolvedRawImages = (await Promise.all(imagePromises)).filter(img => img !== undefined) as ImageRecord[];
+      const resolvedRawImages = (await Promise.all(imagePromises)).filter((img: ImageRecord | undefined) => img !== undefined) as ImageRecord[];
 
       // Resolve image URLs
       const imagesWithResolvedUrls = await Promise.all(

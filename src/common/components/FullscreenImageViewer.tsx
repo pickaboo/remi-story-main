@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
 interface FullscreenImageViewerProps {
   imageUrl: string | null | undefined;
@@ -79,44 +80,55 @@ export const FullscreenImageViewer: React.FC<FullscreenImageViewerProps> = ({ im
     return null;
   }
 
-  return (
+  const [animateIn, setAnimateIn] = useState(false);
+  useEffect(() => {
+    setAnimateIn(false);
+    const timeout = setTimeout(() => setAnimateIn(true), 10); // allow mount, then animate
+    return () => clearTimeout(timeout);
+  }, [isOpen, imageUrl]);
+
+  const modalContent = (
     <div
       ref={viewerRef}
-      className="fixed inset-0 bg-slate-900/60 dark:bg-black/20 backdrop-blur-xl flex flex-col items-center justify-center z-[200] p-4 select-none"
+      className="fixed inset-0 bg-black/30 backdrop-blur-2xl flex items-center justify-center z-[200] select-none transition-all duration-300"
       role="dialog"
       aria-modal="true"
       aria-label={`Helskärmsvy av ${imageName || 'bild'}`}
     >
+      <div className={`flex items-center justify-center w-full h-full transition-all duration-300 ease-in-out transform ${animateIn ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}
+        style={{ willChange: 'transform, opacity' }}>
+        <img
+          src={imageUrl}
+          alt={imageName || 'Bild'}
+          className="max-w-[98vw] max-h-[98vh] object-contain rounded-xl shadow-2xl transition-all duration-300"
+          draggable={false}
+        />
+        {imageName && (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-lg bg-black/40 text-white text-xs shadow-md backdrop-blur-sm select-text pointer-events-auto">
+            {imageName}
+          </div>
+        )}
+      </div>
       <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex space-x-2 z-10">
         <button
             onClick={handleToggleBrowserFullscreen}
-            className="text-white rounded-full px-3 py-1.5 text-xs sm:text-sm bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/70"
-            title={isBrowserFullscreen ? 'Avsluta webbläsarens helskärmsläge (F)' : 'Starta webbläsarens helskärmsläge (F)'}
+            className="bg-white/80 dark:bg-slate-900/80 rounded-full p-2 hover:bg-white/90 dark:hover:bg-slate-700/90 shadow-lg border border-white/40 dark:border-slate-700/40 transition"
+            title="Växla helskärm"
         >
+          <span className="sr-only">Växla helskärm</span>
             {isBrowserFullscreen ? <ArrowsPointingInIcon /> : <ArrowsPointingOutIcon />}
         </button>
         <button
             onClick={onClose}
-            className="text-white rounded-full p-1.5 sm:p-2 bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/70"
-            title="Stäng helskärmsvy (Esc)"
-            aria-label="Stäng helskärmsvy"
+          className="bg-white/80 dark:bg-slate-900/80 rounded-full p-2 hover:bg-white/90 dark:hover:bg-slate-700/90 shadow-lg border border-white/40 dark:border-slate-700/40 transition"
+          title="Stäng"
         >
+          <span className="sr-only">Stäng</span>
             <CloseIcon className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
-
-      <div className="max-w-full max-h-full flex items-center justify-center">
-        <img
-          src={imageUrl}
-          alt={imageName || 'Helskärmsbild'}
-          className="block max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl"
-        />
-      </div>
-      {imageName && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-white bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-              {imageName}
-          </div>
-      )}
     </div>
   );
+
+  return ReactDOM.createPortal(modalContent, document.body);
 };

@@ -24,5 +24,9 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
-  await setDoc(docRef, sphere);
+  // Remove undefined fields
+  const cleanedSphere = Object.fromEntries(
+    Object.entries(sphere).filter(([_, v]) => v !== undefined)
+  );
+  await setDoc(docRef, cleanedSphere);
 }; 

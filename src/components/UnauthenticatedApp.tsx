@@ -12,10 +12,15 @@ export const UnauthenticatedApp: React.FC = () => {
   const { currentView, viewParams, navigate } = useNavigation();
   const { allUsersForManageModal } = useSphereManagement(currentUser);
 
+  console.log('[UnauthenticatedApp] currentView:', currentView);
+
   // Ensure we always land on a valid auth view
   useEffect(() => {
     const validAuthViews = [View.Login, View.Signup, View.ForgotPassword, View.EmailConfirmation, View.ProfileCompletion];
+    console.log('[UnauthenticatedApp] useEffect: currentView =', currentView, 'typeof:', typeof currentView);
+    console.log('[UnauthenticatedApp] useEffect: validAuthViews =', validAuthViews);
     if (!validAuthViews.includes(currentView)) {
+      console.log('[UnauthenticatedApp] useEffect: currentView not in validAuthViews, navigating to Login');
       navigate(View.Login);
     }
   }, [currentView, navigate]);

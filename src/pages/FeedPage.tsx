@@ -5,10 +5,11 @@ import { LoadingSpinner } from '../common/components/LoadingSpinner';
 import { ImageRecord, View } from '../types';
 import { getSphereFeedPostsListener } from '../common/services/storageService';
 import { useUser, useSphere } from '../context';
+import { useAppState } from "../context/AppStateContext";
+import { useNavigation } from "../context/NavigationContext";
 
 interface FeedPageProps {
   onNavigate: (view: View, params?: any) => void;
-  onFeedPostsUpdate: (posts: ImageRecord[]) => void;
   onVisiblePostsDateChange: (date: Date | null) => void;
   prefillPostWithImageId?: string | null;
   scrollToPostIdFromParams?: string | null;
@@ -16,12 +17,12 @@ interface FeedPageProps {
 
 export const FeedPage: React.FC<FeedPageProps> = ({
     onNavigate,
-    onFeedPostsUpdate,
     onVisiblePostsDateChange,
     prefillPostWithImageId,
     scrollToPostIdFromParams
 }) => {
   const { currentUser } = useUser();
+  const { setFeedPostsForTimeline } = useAppState();
   const { activeSphere } = useSphere();
 
   if (!currentUser || !activeSphere) {
@@ -42,7 +43,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       activeSphere.id,
       (updatedPosts) => {
         setPosts(updatedPosts);
-        onFeedPostsUpdate(updatedPosts); // Notify App.tsx for Timeline
+        setFeedPostsForTimeline(updatedPosts); // Use the setter directly
         setIsLoading(false);
       },
       (err, sphereIdOnError?: string) => {
@@ -54,8 +55,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     );
 
     return () => unsubscribe(); // Cleanup listener on unmount or when activeSphere changes
-  }, [activeSphere.id, activeSphere.name, onFeedPostsUpdate]);
-
+  }, [activeSphere.id, activeSphere.name, setFeedPostsForTimeline]);
 
   useEffect(() => {
     if (prefillPostWithImageId && createPostRef.current) {
@@ -102,8 +102,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     }
 
     const observer = new IntersectionObserver((entries) => {
-      const visibleCandidates: { post: ImageRecord; top: number }[] = [];
-
+      const visibleCandidates: any[] = [];
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
           const postId = entry.target.id.replace('post-item-', '');
@@ -117,9 +116,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       if (visibleCandidates.length > 0) {
         visibleCandidates.sort((a, b) => a.top - b.top);
         const activePostCandidate = visibleCandidates[0].post; 
-
-        const dateTakenValue = activePostCandidate.dateTaken || activePostCandidate.createdAt; // Fallback to createdAt for timeline
-
+        const dateTakenValue = activePostCandidate.dateTaken || activePostCandidate.createdAt;
         if (dateTakenValue && typeof dateTakenValue === 'string' && dateTakenValue.length > 0) {
           try {
             const dateObj = new Date(dateTakenValue);
@@ -153,55 +150,32 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     };
   }, [posts, onVisiblePostsDateChange]);
 
-
   return (
-    <div className="py-8 sm:px-6 lg:px-8 w-full flex justify-center">
-      <div className="max-w-7xl w-full">
-        <div className="max-w-2xl mx-auto">
-          <div className="space-y-8">
-            <div ref={createPostRef} className="scroll-mt-8">
-              <CreatePost
-                currentUser={currentUser}
-                activeSphereId={activeSphere.id}
-                onPostCreated={handlePostCreatedOrUpdated} // Changed from onPostCreated
-                initialImageIdToLoad={prefillPostWithImageId}
+    <div className="w-full max-w-2xl mx-auto py-10">
+      {isLoading ? <LoadingSpinner message="Laddar inlägg..." /> : error ? <div>{error}</div> : (
+        <div className="flex flex-col items-center w-full">
+          <CreatePost
+            ref={createPostRef}
+            currentUser={currentUser}
+            activeSphereId={activeSphere.id}
+            onPostCreated={(newPost) => {
+              setPosts(prev => [newPost, ...prev]);
+              setFeedPostsForTimeline([newPost, ...posts]);
+            }}
+            initialImageIdToLoad={prefillPostWithImageId}
+          />
+          <div className="flex flex-col items-center w-full">
+            {posts.filter(post => post && post.id).map(post => (
+              <PostCard 
+                key={post.id}
+                post={post} 
+                currentUser={currentUser} 
+                onPostUpdated={handlePostCreatedOrUpdated} 
               />
-            </div>
-
-            {isLoading && <div className="flex justify-center py-10"><LoadingSpinner message="Laddar inlägg..." /></div>}
-
-            {error && <div className="bg-red-100 border border-red-400 text-danger dark:text-red-400 px-4 py-3 rounded-lg" role="alert">
-                <strong className="font-bold">Fel:</strong>
-                <span className="block sm:inline"> {error}</span>
-            </div>}
-
-            {!isLoading && !error && posts.length === 0 && (
-              <div className="text-center py-16 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-dashed border-border-color dark:border-slate-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mx-auto text-slate-400 dark:text-slate-500 mb-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-2">Inga inlägg i flödet än</h3>
-                <p className="text-muted-text dark:text-slate-400">Skapa det första inlägget i sfären "{activeSphere.name}"!</p>
-              </div>
-            )}
-
-            {!isLoading && !error && posts.length > 0 && (
-              <div className="space-y-8">
-                {posts.map((post) => (
-                  <div key={post.id} id={`post-item-${post.id}`} className="scroll-mt-8">
-                     <PostCard 
-                        post={post} 
-                        currentUser={currentUser} 
-                        onPostUpdated={handlePostCreatedOrUpdated} 
-                        onNavigateToEdit={() => onNavigate(View.EditImage, { imageId: post.id })}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

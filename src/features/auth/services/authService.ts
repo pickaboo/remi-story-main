@@ -157,7 +157,7 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
   console.log('[AuthService] getCurrentAuthenticatedUser called');
   return new Promise((resolve, reject) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('[AuthService] onAuthStateChanged triggered:', { hasFirebaseUser: !!firebaseUser, uid: firebaseUser?.uid });
+      console.log('[AuthService] onAuthStateChanged triggered:', { hasFirebaseUser: !!firebaseUser, uid: firebaseUser?.uid, emailVerified: firebaseUser?.emailVerified });
       unsubscribe(); 
       if (firebaseUser) {
         // Användare kan vara autentiserad men inte ha verifierat sin e-post
@@ -170,7 +170,7 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
         const firestoreData = await getAppUserRecord(firebaseUser.uid);
         console.log('[AuthService] Firestore data:', { hasData: !!firestoreData, userId: firestoreData?.id });
         const user = mapFirebaseUserToAppUser(firebaseUser, firestoreData || undefined);
-        console.log('[AuthService] Mapped user:', { userId: user.id, userName: user.name });
+        console.log('[AuthService] Mapped user:', { userId: user.id, userName: user.name, userEmailVerified: user.emailVerified });
         resolve(user);
       } else {
         console.log('[AuthService] No Firebase user found');

@@ -4,13 +4,20 @@ import { getActiveSphere as getActiveSphereFromService, setCurrentSphereId as pe
 import { getAllSpheres as getAllSpheresFromStorage, getPendingInvitationsForEmail } from '../services/storageService';
 import { updateUserProfile } from '../../features/auth/services/authService';
 import { MOCK_SPHERES } from '../../constants';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
+import React from 'react';
 
 type Theme = User['themePreference'];
 
-export const useAppLogic = () => {
+export const useAppLogic = (currentUser: User | null) => {
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
   const [activeSphere, setActiveSphere] = useState<Sphere | null>(null);
   const [userSpheres, setUserSpheres] = useState<Sphere[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [diaryEntries, setDiaryEntries] = useState<any[]>([]);
+  // Placeholder for admin users state
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
 
   const applyThemePreference = useCallback((theme: Theme) => {
     const root = document.documentElement;
@@ -126,6 +133,39 @@ export const useAppLogic = () => {
     }
   }, [activeSphere, allSpheres, applyBackgroundPreference]);
 
+  // One-time fetch for notifications
+  React.useEffect(() => {
+    if (activeSphere && activeSphere.id) {
+      const fetchNotifications = async () => {
+        const q = query(collection(db, 'notifications'), where('userId', '==', activeSphere.id));
+        const snapshot = await getDocs(q);
+        setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      };
+      fetchNotifications();
+    }
+  }, [activeSphere?.id]);
+
+  // One-time fetch for diary entries
+  React.useEffect(() => {
+    if (currentUser && currentUser.id) {
+      const fetchDiaryEntries = async () => {
+        const q = query(collection(db, 'diaryEntries'), where('userId', '==', currentUser.id));
+        const snapshot = await getDocs(q);
+        setDiaryEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      };
+      fetchDiaryEntries();
+    }
+  }, [currentUser?.id]);
+
+  // One-time fetch for admin users
+  React.useEffect(() => {
+    const fetchAdminUsers = async () => {
+      const snapshot = await getDocs(collection(db, 'users'));
+      setAdminUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+    fetchAdminUsers();
+  }, []);
+
   return {
     allSpheres,
     activeSphere,
@@ -134,5 +174,8 @@ export const useAppLogic = () => {
     applyBackgroundPreference,
     fetchUserAndSphereData,
     handleSwitchSphere,
+    notifications,
+    diaryEntries,
+    adminUsers,
   };
 }; 

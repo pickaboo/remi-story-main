@@ -1,16 +1,17 @@
 import React from 'react';
-import { useBackgroundVisibility } from './common/hooks/useBackgroundVisibility';
+import { BrowserRouter } from 'react-router-dom';
+import { AppProviders } from './context/AppProviders';
 import { AppRouter } from './AppRouter';
+import './index.css';
 
-const App: React.FC = () => {
-  // Background visibility management
-  useBackgroundVisibility();
-
+function App() {
   return (
-    <div className="App">
+    <AppProviders>
+      <BrowserRouter>
       <AppRouter />
-    </div>
+      </BrowserRouter>
+    </AppProviders>
   );
-};
+}
 
 export default App;

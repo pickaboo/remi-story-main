@@ -7,7 +7,7 @@ import { useSphere } from '../../../context/SphereContext';
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const { applyThemePreference } = useAppLogic();
+  const { applyThemePreference } = useAppLogic(currentUser);
   const { fetchUserAndSphereData } = useSphere();
 
   // Initial auth check and data load

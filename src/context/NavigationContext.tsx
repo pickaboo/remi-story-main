@@ -26,164 +26,160 @@ interface NavigationProviderProps {
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [currentView, setCurrentView] = useState<View>(View.Login);
   const [viewParams, setViewParams] = useState<any>(null);
-  const { isAuthenticated } = useUser();
+  const { isAuthenticated, currentUser } = useUser();
 
   const navigate = (viewOrPath: View | string, params?: any) => {
+    let targetPath = '';
     if (typeof viewOrPath === 'string') {
-      const path = viewOrPath.startsWith('/') ? viewOrPath.slice(1) : viewOrPath;
-      window.location.hash = `#/${path}`;
-      // Set currentView based on path
-      switch (path) {
-        case '':
-        case 'home':
-          setCurrentView(View.Home);
-          break;
-        case 'login':
-          setCurrentView(View.Login);
-          break;
-        case 'signup':
-          setCurrentView(View.Signup);
-          break;
-        case 'forgot-password':
-          setCurrentView(View.ForgotPassword);
-          break;
-        case 'confirm-email':
-          setCurrentView(View.EmailConfirmation);
-          break;
-        case 'complete-profile':
-          setCurrentView(View.ProfileCompletion);
-          break;
-        case 'image-bank':
-          setCurrentView(View.ImageBank);
-          break;
-        case 'diary':
-          setCurrentView(View.Diary);
-          break;
-        case 'projects':
-          setCurrentView(View.SlideshowProjects);
-          break;
-        case 'edit':
-          setCurrentView(View.EditImage);
-          break;
-        case 'play':
-          setCurrentView(View.PlaySlideshow);
-          break;
-        default:
-          setCurrentView(View.Home);
-      }
+      targetPath = viewOrPath.startsWith('/') ? viewOrPath.slice(1) : viewOrPath;
+      targetPath = targetPath.toLowerCase();
     } else {
-      setCurrentView(viewOrPath);
+      targetPath = String(viewOrPath).toLowerCase();
     }
-    setViewParams(params || null);
+    const newHash = `#/${targetPath}`;
+    if (window.location.hash !== newHash) {
+      window.location.hash = newHash;
+    }
   };
 
   const handleHashChange = () => {
+    if (isAuthenticated === null) {
+      // Auth state not known yet, don't change view
+      return;
+    }
     const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
     const [path, queryString] = hash.split('?');
+    const normalizedPath = (path || '').toLowerCase();
+    if (normalizedPath === '_tmp') return; // Ignore dummy hash
     const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {};
 
     // Debug log
-    console.log('[NavigationContext] handleHashChange:', { path, isAuthenticated });
+    console.log('[NavigationContext] handleHashChange:', { path, normalizedPath, isAuthenticated });
 
     // Define auth views
     const authViews = ['login', 'signup', 'forgot-password', 'confirm-email', 'complete-profile'];
-    const isAuthView = authViews.includes(path);
+    const isAuthView = authViews.includes(normalizedPath);
 
-    switch (path) {
+    let viewToSet = null;
+    switch (normalizedPath) {
       case '':
       case 'home':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
+          viewToSet = View.Home;
           setCurrentView(View.Home);
           setViewParams(params);
+          console.log('[NavigationContext] Setting currentView to View.Home (feed)');
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
+          console.log('[NavigationContext] Setting currentView to View.Login (not authenticated)');
         }
         break;
       case 'login':
+        viewToSet = View.Login;
         setCurrentView(View.Login);
         setViewParams(params);
         break;
       case 'signup':
+        viewToSet = View.Signup;
         setCurrentView(View.Signup);
         setViewParams(params);
         break;
       case 'forgot-password':
+        viewToSet = View.ForgotPassword;
         setCurrentView(View.ForgotPassword);
         setViewParams(params);
         break;
       case 'confirm-email':
+        viewToSet = View.EmailConfirmation;
         setCurrentView(View.EmailConfirmation);
         setViewParams(params);
         break;
       case 'complete-profile':
+        viewToSet = View.ProfileCompletion;
         setCurrentView(View.ProfileCompletion);
         setViewParams(params);
         break;
       case 'image-bank':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
+          viewToSet = View.ImageBank;
           setCurrentView(View.ImageBank);
           setViewParams(params);
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
         break;
       case 'diary':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
+          viewToSet = View.Diary;
           setCurrentView(View.Diary);
           setViewParams(params);
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
         break;
       case 'projects':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
+          viewToSet = View.SlideshowProjects;
           setCurrentView(View.SlideshowProjects);
           setViewParams(params);
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
         break;
       case 'edit':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
           if (params.imageId) {
+            viewToSet = View.EditImage;
             setCurrentView(View.EditImage);
             setViewParams({ imageId: params.imageId });
           } else {
+            viewToSet = View.Home;
             setCurrentView(View.Home);
             setViewParams(params);
           }
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
         break;
       case 'play':
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
           if (params.projectId) {
+            viewToSet = View.PlaySlideshow;
             setCurrentView(View.PlaySlideshow);
             setViewParams({ projectId: params.projectId });
           } else {
+            viewToSet = View.SlideshowProjects;
             setCurrentView(View.SlideshowProjects);
             setViewParams(params);
           }
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
         break;
       default:
-        if (isAuthenticated) {
+        if (isAuthenticated && currentUser) {
+          viewToSet = View.Home;
           setCurrentView(View.Home);
           setViewParams(params);
         } else {
+          viewToSet = View.Login;
           setCurrentView(View.Login);
           setViewParams(params);
         }
     }
+    console.log('[NavigationContext] After switch, viewToSet:', viewToSet);
   };
 
   const getCurrentPathForSidebar = () => {
@@ -201,6 +197,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     window.addEventListener('hashchange', handleHashChangeEvent);
     return () => window.removeEventListener('hashchange', handleHashChangeEvent);
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated !== null) {
+      handleHashChange();
+    }
+  }, [isAuthenticated]);
 
   const value: NavigationContextType = {
     currentView,
