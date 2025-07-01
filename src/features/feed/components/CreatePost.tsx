@@ -206,116 +206,86 @@ export const CreatePost = forwardRef<HTMLDivElement, CreatePostProps>(({ current
   const hasAudio = !!audioRecorder.audioUrl;
 
   return (
-    <div ref={ref} className="bg-slate-800/90 dark:bg-slate-900/90 rounded-2xl shadow-2xl border border-slate-700/60 max-w-2xl mx-auto mt-8 mb-12 p-6">
-      <div className="flex items-center gap-3 mb-4">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-lg select-none">
-          {currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'NY'}
+    <form onSubmit={handleSubmit} className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700 max-w-xl mx-auto font-sans mt-8">
+      {/* Avatar and Input Row */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-10 h-10 rounded-full bg-slate-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+          {currentUser.initials}
         </div>
-        {/* Input with mic icon */}
-        <div className="relative flex-1">
-          <textarea
-            id="create-post-textarea"
-            className="w-full rounded-lg bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 p-3 pr-12 resize-none shadow-inner"
-            rows={2}
-            placeholder={`Vad tänker du på, ${currentUser?.name?.split(' ')[0] || ''}?`}
-            value={postText}
-            onChange={handleTextChange}
-          />
-          {/* Mic icon inside input */}
-          <button
-            type="button"
-            onClick={audioRecorder.isRecording ? audioRecorder.stopRecording : audioRecorder.startRecording}
-            className={`absolute top-1/2 right-3 -translate-y-1/2 p-2 rounded-full border ${audioRecorder.isRecording ? 'bg-red-600 border-red-700 text-white' : 'bg-slate-800 border-slate-600 text-slate-400 hover:bg-slate-700'} transition focus:outline-none focus:ring-2 focus:ring-blue-400/30`}
-            aria-label={audioRecorder.isRecording ? 'Stoppa inspelning' : 'Spela in ljud'}
-          >
-            {audioRecorder.isRecording ? <MdStop size={22} /> : <MdMic size={22} />}
-          </button>
-        </div>
-      </div>
-      {/* Button row */}
-      <div className="flex flex-row gap-4 mt-4">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
+        <TextArea
+          value={postText}
+          onChange={handleTextChange}
+          placeholder={`Vad tänker du på, ${currentUser.name.split(' ')[0]}?`}
+          className="rounded-lg bg-slate-100 dark:bg-slate-700/50 border border-border-color dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 transition w-full"
+          rows={2}
         />
+      </div>
+      {/* Image Preview Section */}
+      {(imagePreviewUrl || isProcessingFile) && (
+        <div className="mb-4">
+          <ImagePreviewSection
+            imagePreviewUrl={imagePreviewUrl}
+            selectedBankedImageInfo={selectedBankedImageInfo}
+            uploadedFileDetails={uploadedFileDetails}
+            onClearImageSelection={clearImageSelection}
+            isProcessingFile={isProcessingFile}
+          />
+        </div>
+      )}
+      {/* Tag Pills */}
+      {aiTags.length > 0 && (
+        <div className="mb-4">
+          <PostTags
+            tags={aiTags}
+            currentUserId={currentUser.id}
+            uploadedByUserId={currentUser.id}
+            onRemoveTag={handleRemoveTag}
+          />
+        </div>
+      )}
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-3 mt-2">
         <button
           type="button"
           onClick={triggerFileInput}
-          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition"
+          className="rounded-lg bg-primary text-white hover:bg-primary-hover transition font-semibold flex items-center gap-2 px-4 py-2"
         >
-          <MdImage size={22} />
-          <span className="ml-1">Ladda upp bild</span>
+          <MdImage className="w-5 h-5" /> Ladda upp bild
         </button>
         <button
           type="button"
           onClick={() => setShowImageBankModal(true)}
-          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition"
+          className="rounded-lg bg-primary text-white hover:bg-primary-hover transition font-semibold flex items-center gap-2 px-4 py-2"
         >
-          <MdCollections size={22} />
-          <span className="ml-1">Bildbank</span>
+          <MdCollections className="w-5 h-5" /> Bildbank
         </button>
-        {(imagePreviewUrl || selectedBankedImageInfo) && (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-slate-300 mb-1">AI-förslag på taggar:</label>
-            <PostTags
-              tags={aiTags}
-              currentUserId={currentUser.id}
-              uploadedByUserId={currentUser.id}
-              onRemoveTag={handleRemoveTag}
-            />
-            <input
-              type="text"
-              className="mt-2 p-2 rounded border border-slate-600 bg-slate-800 text-slate-100"
-              placeholder="Lägg till tagg och tryck Enter"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const value = (e.target as HTMLInputElement).value.trim();
-                  if (value) {
-                    handleAddTag(value);
-                    (e.target as HTMLInputElement).value = '';
-                  }
-                }
-              }}
-            />
-          </div>
-        )}
         <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!postText.trim() && !imageFile && !selectedBankedImageInfo}
-          className="flex items-center gap-2 px-6 py-2 rounded-full border border-blue-500 text-blue-500 bg-transparent hover:bg-blue-500/10 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+          type="submit"
+          disabled={isPosting}
+          className="rounded-lg bg-primary text-white hover:bg-primary-hover transition font-semibold flex items-center gap-2 px-4 py-2"
         >
-          Publicera
+          {isPosting ? 'Publicerar...' : 'Publicera'}
         </button>
-        </div>
-
-        <ImagePreviewSection
-          imagePreviewUrl={imagePreviewUrl}
-          selectedBankedImageInfo={selectedBankedImageInfo}
-          uploadedFileDetails={uploadedFileDetails}
-          onClearImageSelection={clearImageSelection}
-          isProcessingFile={isProcessingFile}
-        />
-
-        {error && (
-          <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-md">
-            {error}
-          </div>
-        )}
-
+      </div>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      {/* Image Bank Modal */}
       {showImageBankModal && (
         <ImageBankPickerModal
           isOpen={showImageBankModal}
-          onImageSelect={handleBankedImageSelect}
           onClose={() => setShowImageBankModal(false)}
+          onImageSelect={handleBankedImageSelect}
           activeSphereId={activeSphereId}
         />
       )}
-    </div>
+      {/* Error Message */}
+      {error && <div className="text-danger dark:text-red-400 mt-2">{error}</div>}
+    </form>
   );
 });

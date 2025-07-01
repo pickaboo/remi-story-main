@@ -22,7 +22,7 @@ export const useAppModals = (currentUser: any) => {
   const modalManagerProps = {
     modalState,
     currentUser,
-    sphereToInviteTo,
+    sphereToInviteTo: modalState.inviteToSphere.sphereToInviteTo,
     allUsersForManageModal,
     isLookAndFeelModalOpen: modalState.lookAndFeel.isOpen,
     isManageSphereModalOpen: modalState.manageSphere.isOpen,
@@ -38,6 +38,8 @@ export const useAppModals = (currentUser: any) => {
     onRemoveUserFromSphere: handleRemoveUserFromSphere,
     onSaveShowImageMetadataPreference: handleSaveShowImageMetadataPreferenceWithUpdate,
   };
+
+  console.log('%c🧩 [useAppModals] modalManagerProps:', 'background: #00bcd4; color: #fff; font-weight: bold; padding: 2px 8px; border-radius: 4px;', modalManagerProps);
 
   return {
     modalManagerProps,

@@ -3,7 +3,8 @@ import { User } from '../types';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { logout as authLogout, updateUserProfile } from '../features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../common/services/storageService';
-import { getUserById } from '../common/services/userService';
+import { getUserById, addSphereToUser } from '../common/services/userService';
+import { updateSphereInvitationStatus } from '../common/services/invitationService';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -20,6 +21,8 @@ export interface UserContextType {
   handleSaveThemePreference: (theme: User['themePreference']) => Promise<void>;
   handleSaveShowImageMetadataPreference: (show: boolean) => Promise<void>;
   refreshUser: () => Promise<void>;
+  handleAcceptInvitation: (invitationId: string) => Promise<void>;
+  handleDeclineInvitation: (invitationId: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -120,6 +123,68 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
+  const handleAcceptInvitation = async (invitationId: string) => {
+    if (!currentUser?.id) {
+      console.error('No current user found');
+      return;
+    }
+
+    try {
+      console.log('🚀 ACCEPTING INVITATION:', invitationId, 'for user:', currentUser.id);
+      
+      // Update the invitation status to accepted
+      const updatedInvitation = await updateSphereInvitationStatus(invitationId, 'accepted', currentUser.id);
+      
+      if (!updatedInvitation) {
+        console.error('Failed to update invitation status');
+        return;
+      }
+
+      // Add the sphere to the user's membership
+      const sphereAdded = await addSphereToUser(currentUser.id, updatedInvitation.sphereId);
+      
+      if (!sphereAdded) {
+        console.error('Failed to add sphere to user membership');
+        return;
+      }
+
+      console.log('✅ Successfully accepted invitation and added sphere to user');
+      
+      // Refresh user data to reflect the new sphere membership
+      await refreshUser();
+      
+    } catch (error) {
+      console.error('Error accepting invitation:', error);
+    }
+  };
+
+  const handleDeclineInvitation = async (invitationId: string) => {
+    if (!currentUser?.id) {
+      console.error('No current user found');
+      return;
+    }
+
+    try {
+      console.log('❌ DECLINING INVITATION:', invitationId, 'for user:', currentUser.id);
+      
+      // Update the invitation status to declined
+      const updatedInvitation = await updateSphereInvitationStatus(invitationId, 'declined');
+      
+      if (!updatedInvitation) {
+        console.error('Failed to update invitation status');
+        return;
+      }
+
+      console.log('✅ Successfully declined invitation');
+      
+      // Refresh user data (invitations will be updated via usePendingInvites)
+      await refreshUser();
+      
+    } catch (error) {
+      console.error('Error declining invitation:', error);
+    }
+  };
+
   const value: UserContextType = {
     currentUser,
     isAuthenticated,
@@ -130,6 +195,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     handleSaveThemePreference,
     handleSaveShowImageMetadataPreference,
     refreshUser,
+    handleAcceptInvitation,
+    handleDeclineInvitation,
   };
 
   return (

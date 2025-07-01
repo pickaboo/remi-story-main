@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../../layout/PageContainer';
 import { Button } from '../../../common/components/Button';
 import { TextArea } from '../../../common/components/TextArea';
@@ -57,6 +58,8 @@ const ConfirmDeleteDiaryEntryModal: React.FC<ConfirmDeleteDiaryEntryModalProps> 
 
 export const DiaryPage: React.FC = () => {
   const { currentUser } = useUser();
+  const navigate = useNavigate();
+  
   if (!currentUser) {
     return <div className="flex justify-center py-10"><LoadingSpinner message="Laddar användardata..." /></div>;
   }
@@ -158,6 +161,19 @@ export const DiaryPage: React.FC = () => {
 
   return (
     <PageContainer title={`Min Dagbok - ${currentUser.name}`}>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Min Dagbok</h1>
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span className="ml-2">Stäng</span>
+        </Button>
+      </div>
       <div className="space-y-8">
         {/* Entry Form */}
         <section className="bg-slate-50 dark:bg-slate-700/50 p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-slate-600">

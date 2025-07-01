@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
 import { useUser } from './context/UserContext';
+import { User } from './types';
 import { useAppState } from './context/AppStateContext';
 import { useSphere } from './context/SphereContext';
 import { useSphereManagement } from './features/spheres/hooks/useSphereManagement';
@@ -18,13 +19,21 @@ import { FeedbackDisplay } from './common/components/FeedbackDisplay';
 import { LoginPage } from './features/auth/components/LoginPage';
 import { SignupPage } from './features/auth/components/SignupPage';
 import { EmailConfirmationPage } from './features/auth/components/EmailConfirmationPage';
+import { ProfileCompletionPage } from './features/auth/components/ProfileCompletionPage';
 import { useModal } from './context';
 
 const RouterLoginPage = () => {
   const navigate = useNavigate();
+  const { handleLoginSuccess } = useUser();
+  
+  const handleLoginSuccessAndNavigate = async (user: User) => {
+    await handleLoginSuccess(user);
+    navigate('/');
+  };
+  
   return (
     <LoginPage
-      onLoginSuccess={() => navigate('/')}
+      onLoginSuccess={handleLoginSuccessAndNavigate}
       onNavigate={(view) => {
         if (view === 'SIGNUP') navigate('/signup');
         else if (view === 'LOGIN') navigate('/login');
@@ -35,9 +44,16 @@ const RouterLoginPage = () => {
 
 const RouterSignupPage = () => {
   const navigate = useNavigate();
+  const { handleLoginSuccess } = useUser();
+  
+  const handleLoginSuccessAndNavigate = async (user: User) => {
+    await handleLoginSuccess(user);
+    navigate('/');
+  };
+  
   return (
     <SignupPage
-      onLoginSuccess={() => navigate('/')}
+      onLoginSuccess={handleLoginSuccessAndNavigate}
       onNavigate={(view, params) => {
         if (view === 'LOGIN' || view === '#login') navigate('/login');
         else if (view === 'EMAIL_CONFIRMATION' && params?.email) navigate(`/email-confirmation?email=${encodeURIComponent(params.email)}`);
@@ -55,6 +71,31 @@ const RouterEmailConfirmationPage = () => {
     <EmailConfirmationPage
       email={email}
       onLoginSuccess={() => navigate('/login')}
+      onNavigate={(view) => {
+        if (view === 'LOGIN' || view === '#login') navigate('/login');
+        else if (view === 'SIGNUP' || view === '#signup') navigate('/signup');
+      }}
+    />
+  );
+};
+
+const RouterProfileCompletionPage = () => {
+  const navigate = useNavigate();
+  const { currentUser, handleProfileComplete } = useUser();
+  
+  const handleProfileCompleteAndNavigate = async (updatedUser: User) => {
+    await handleProfileComplete(updatedUser);
+    navigate('/');
+  };
+  
+  if (!currentUser) {
+    return <LoadingSpinner message="Laddar användardata..." />;
+  }
+  
+  return (
+    <ProfileCompletionPage
+      initialUser={currentUser}
+      onProfileComplete={handleProfileCompleteAndNavigate}
       onNavigate={(view) => {
         if (view === 'LOGIN' || view === '#login') navigate('/login');
         else if (view === 'SIGNUP' || view === '#signup') navigate('/signup');
@@ -164,6 +205,24 @@ export const AppRouter: React.FC = () => {
     }
   }, [isAuthenticated, navigate, location.pathname]);
 
+  // Redirect to /profile-completion if profile is incomplete
+  React.useEffect(() => {
+    const publicPaths = [
+      '/login',
+      '/signup',
+      '/email-confirmation',
+      '/profile-completion'
+    ];
+    if (
+      isAuthenticated &&
+      currentUser &&
+      (!currentUser.name || currentUser.name === 'Ny Användare') &&
+      !publicPaths.includes(location.pathname)
+    ) {
+      navigate('/profile-completion', { replace: true });
+    }
+  }, [isAuthenticated, currentUser, location.pathname, navigate]);
+
   // Show loading spinner while checking authentication
   if (isAuthenticated === null) {
     return (
@@ -189,6 +248,7 @@ export const AppRouter: React.FC = () => {
         <Route path="/login" element={<RouterLoginPage />} />
         <Route path="/signup" element={<RouterSignupPage />} />
         <Route path="/email-confirmation" element={<RouterEmailConfirmationPage />} />
+        <Route path="/profile-completion" element={<RouterProfileCompletionPage />} />
         
         {/* Authenticated routes */}
         <Route path="/" element={

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { SphereInvitation } from '../../../types';
@@ -9,8 +9,7 @@ export const usePendingInvites = (email: string | undefined) => {
   const [pendingInvites, setPendingInvites] = useState<SphereInvitation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    console.info('[usePendingInvites] useEffect triggered for email:', email, '==============================>');
+  const fetchInvites = useCallback(async () => {
     if (!email) {
       setPendingInvites([]);
       setLoading(false);
@@ -18,8 +17,7 @@ export const usePendingInvites = (email: string | undefined) => {
     }
 
     setLoading(true);
-    // One-time fetch for pending invitations (replaces real-time listener)
-    const fetchInvites = async () => {
+    try {
       const q = query(
         collection(db, 'sphereInvitations'),
         where('inviteeEmail', '==', email),
@@ -28,14 +26,23 @@ export const usePendingInvites = (email: string | undefined) => {
       const snapshot = await getDocs(q);
       const invites: SphereInvitation[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SphereInvitation));
       setPendingInvites(invites);
+    } catch (error) {
+      console.error('Error fetching pending invites:', error);
+      setPendingInvites([]);
+    } finally {
       setLoading(false);
-    };
-    fetchInvites();
+    }
   }, [email]);
+
+  useEffect(() => {
+    console.info('[usePendingInvites] useEffect triggered for email:', email, '==============================>');
+    fetchInvites();
+  }, [fetchInvites]);
 
   return {
     pendingInvites,
     loading,
     inviteCount: pendingInvites.length,
+    refreshInvites: fetchInvites,
   };
 }; 

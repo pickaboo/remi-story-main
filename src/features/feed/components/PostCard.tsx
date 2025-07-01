@@ -137,7 +137,7 @@ export function PostCard({ post, currentUser, onPostUpdated }: PostCardProps) {
     (!mainPostDescription || (!mainPostDescription.description.trim() && !mainPostDescription.audioRecUrl));
 
   return (
-    <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700 max-w-md mx-auto my-8">
+    <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700 max-w-2xl mx-auto my-8">
       {/* Post Header */}
       <PostHeader
         creator={creator}
@@ -171,6 +171,7 @@ export function PostCard({ post, currentUser, onPostUpdated }: PostCardProps) {
           uploadedByUserId={post.uploadedByUserId || ''}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
+          tagClassName="bg-primary/10 text-primary dark:bg-blue-400/20 dark:text-blue-300 px-2.5 py-1 rounded-full text-xs font-medium"
         />
       )}
 
@@ -181,7 +182,7 @@ export function PostCard({ post, currentUser, onPostUpdated }: PostCardProps) {
           currentUserId={currentUser.id}
           uploadedByUserId={post.uploadedByUserId || ''}
           onRemoveTag={handleRemoveTag}
-          className="mb-4"
+          className="mb-4 bg-primary/10 text-primary dark:bg-blue-400/20 dark:text-blue-300 px-2.5 py-1 rounded-full text-xs font-medium"
         />
       )}
       
@@ -194,6 +195,7 @@ export function PostCard({ post, currentUser, onPostUpdated }: PostCardProps) {
           placeholder={showUploaderDescriptionInput ? (post.aiGeneratedPlaceholder || "Säg något om bilden...") : "Berätta vad du vet om bilden...."}
           isUploaderDescription={!!showUploaderDescriptionInput}
           onSubmit={showUploaderDescriptionInput ? handleSaveUploaderDescription : handleAddComment}
+          buttonClassName="rounded-lg bg-primary text-white hover:bg-primary-hover transition"
         />
       </div>
 

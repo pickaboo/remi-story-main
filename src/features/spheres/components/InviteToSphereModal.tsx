@@ -21,7 +21,6 @@ export const InviteToSphereModal: React.FC<InviteToSphereModalProps> = ({ isOpen
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFeedback(null);
     if (!email.trim()) {
       setFeedback({ type: 'error', message: "E-postadress måste anges." });
       return;

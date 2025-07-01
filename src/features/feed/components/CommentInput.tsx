@@ -136,6 +136,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
           disabled={!canSubmitInput} 
           variant={buttonVariant} 
           size="md"
+          className="rounded-lg bg-primary text-white hover:bg-primary-hover transition"
         >
           {buttonText}
         </Button>

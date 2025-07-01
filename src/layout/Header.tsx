@@ -5,7 +5,6 @@ import { DiaryPopover } from '../features/diary/components/DiaryPopover';
 import { UserMenuPopover } from '../common/components/UserMenuPopover';
 import { useUser } from '../context/UserContext';
 import { usePendingInvites } from '../features/spheres/hooks/usePendingInvites';
-import { acceptSphereInvitation, declineSphereInvitation } from '../features/auth/services/authService';
 
 interface HeaderProps {
   isSidebarExpanded: boolean;
@@ -38,7 +37,13 @@ export const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   
   // Use context instead of props
-  const { currentUser, handleLogout, handleSaveThemePreference, refreshUser } = useUser();
+  const { 
+    currentUser, 
+    handleLogout, 
+    handleSaveThemePreference, 
+    handleAcceptInvitation,
+    handleDeclineInvitation
+  } = useUser();
   
   // Use custom hook for pending invites
   const { inviteCount } = usePendingInvites(currentUser?.email);
@@ -49,19 +54,6 @@ export const Header: React.FC<HeaderProps> = ({
   const diaryButtonRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuButtonRef = useRef<HTMLDivElement>(null);
-
-  // Handle invitation actions
-  const handleAcceptInvitation = async (invitationId: string) => {
-    if (!currentUser) return;
-    await acceptSphereInvitation(invitationId, currentUser);
-    await refreshUser();
-  };
-
-  const handleDeclineInvitation = async (invitationId: string) => {
-    if (!currentUser) return;
-    await declineSphereInvitation(invitationId, currentUser.email);
-    await refreshUser();
-  };
 
   // Handle navigation
   const handleNavigate = (view: View) => {

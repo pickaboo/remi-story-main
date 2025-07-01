@@ -185,6 +185,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); 
+                      console.log('%c👤➕ INVITE ICON CLICKED%c openInviteToSphereModal called for sphere:', 'background: #1976d2; color: #fff; font-weight: bold; padding: 2px 8px; border-radius: 4px;', 'color: #1976d2; font-weight: bold;', activeSphere);
                       openInviteToSphereModal(activeSphere);
                     }}
                     className="p-1 rounded-full hover:bg-primary/10 dark:hover:bg-blue-400/10 text-primary dark:text-blue-400 flex-shrink-0"

@@ -57,7 +57,7 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
         />
       )}
       
-      {currentUser && sphereToInviteTo && ( 
+      {currentUser && sphereToInviteTo && (
         <InviteToSphereModal
           isOpen={modalState.inviteToSphere.isOpen}
           onClose={onCloseInviteToSphereModal}

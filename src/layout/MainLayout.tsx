@@ -31,7 +31,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           isSidebarExpanded={isSidebarExpanded} 
           logoUrl={YOUR_LOGO_URL.startsWith("https://example.com") ? undefined : YOUR_LOGO_URL}
         />
-        <div className="flex-1 pt-16 h-full flex justify-center">
+        <div className="flex-1 h-full flex justify-center">
           <div className="h-full overflow-y-auto no-scrollbar w-full" ref={mainScrollContainerRef}>
             {children}
           </div>

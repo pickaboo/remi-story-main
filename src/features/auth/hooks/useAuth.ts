@@ -26,7 +26,7 @@ export const useAuth = () => {
       }
     };
     checkAuthAndLoadData();
-  }, [applyThemePreference, fetchUserAndSphereData]);
+  }, []); // Remove dependencies to prevent re-running on every render
 
   // Theme management
   useEffect(() => {

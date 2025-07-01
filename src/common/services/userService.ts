@@ -102,5 +102,41 @@ export const getUserSpheres = async (user: User | null, allSpheresList?: Sphere[
   return userSpheresData;
 };
 
+// Add sphere to user's membership when they accept an invite
+export const addSphereToUser = async (userId: string, sphereId: string): Promise<boolean> => {
+  try {
+    const userDocRef = doc(db, USERS_COLLECTION_NAME, userId);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (!userDoc.exists()) {
+      console.error('User not found:', userId);
+      return false;
+    }
+
+    const userData = userDoc.data();
+    const currentSphereIds = userData.sphereIds || [];
+    
+    // Don't add if already a member
+    if (currentSphereIds.includes(sphereId)) {
+      console.log('User already a member of sphere:', sphereId);
+      return true; // Consider this a success
+    }
+
+    // Add the new sphereId
+    const updatedSphereIds = [...currentSphereIds, sphereId];
+    
+    await setDoc(userDocRef, {
+      ...userData,
+      sphereIds: updatedSphereIds
+    }, { merge: true });
+
+    console.log('Successfully added sphere', sphereId, 'to user', userId);
+    return true;
+  } catch (error) {
+    console.error('Error adding sphere to user:', error);
+    return false;
+  }
+};
+
 // IIFE för initialisering (tas bort eftersom detta hanteras av App.tsx's auth-flöde)
 // ;(async () => { ... })();

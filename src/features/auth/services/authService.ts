@@ -156,6 +156,24 @@ export const logout = async (): Promise<void> => {
 export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
   console.log('[AuthService] getCurrentAuthenticatedUser called');
   return new Promise((resolve, reject) => {
+    // First, check if there's already a current user
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      console.log('[AuthService] Current user found immediately:', { uid: currentUser.uid, emailVerified: currentUser.emailVerified });
+      getAppUserRecord(currentUser.uid)
+        .then(firestoreData => {
+          const user = mapFirebaseUserToAppUser(currentUser, firestoreData || undefined);
+          console.log('[AuthService] Mapped user from current user:', { userId: user.id, userName: user.name, userEmailVerified: user.emailVerified });
+          resolve(user);
+        })
+        .catch(error => {
+          console.error('[AuthService] Error getting Firestore data for current user:', error);
+          reject(error);
+        });
+      return;
+    }
+
+    // If no current user, wait for auth state change
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('[AuthService] onAuthStateChanged triggered:', { hasFirebaseUser: !!firebaseUser, uid: firebaseUser?.uid, emailVerified: firebaseUser?.emailVerified });
       unsubscribe(); 
