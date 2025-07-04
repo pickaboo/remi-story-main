@@ -1,5 +1,4 @@
-
-import { auth, db } from '../firebase'; // Importera från den riktiga Firebase-initieraren
+import { auth, db } from '../../firebase'; // Importera från den riktiga Firebase-initieraren
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -15,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, arrayUnion, arrayRemove, Timestamp, collection, getDocs, where, query } from 'firebase/firestore';
 import { User, AuthUserRecord, SphereInvitation, Sphere } from '../types'; 
-import { MOCK_SPHERES } from '../constants'; // För initial sfärtilldelning
+import { MOCK_SPHERES } from "../constants"; // För initial sfärtilldelning
 import { 
     createSphereInvitation as storageCreateSphereInvitation, 
     updateSphereInvitationStatus, 

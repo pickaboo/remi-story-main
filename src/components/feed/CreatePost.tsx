@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../common/Button';
 import { TextArea } from '../common/TextArea';
@@ -10,7 +9,7 @@ import { AudioPlayerButton } from '../common/AudioPlayerButton';
 import { ImageBankPickerModal } from '../common/ImageBankPickerModal';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
-import { storage } from '../../firebase'; 
+import { storage } from '../../../firebase'; 
 
 interface CreatePostProps {
   currentUser: User;

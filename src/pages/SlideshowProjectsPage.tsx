@@ -8,7 +8,7 @@ import { ImageRecord, SlideshowProject, View, Sphere, User } from '../types';
 import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
 import { generatePhotoAlbumPdf } from '../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
-import { storage } from '../firebase'; 
+import { storage } from '../../firebase'; 
 
 interface SlideshowProjectsPageProps {
   onNavigate: (view: View, params?: any) => void;

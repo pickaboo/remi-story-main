@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { User, View } from '../../types'; 
 import { DiaryPopover } from '../common/DiaryPopover'; 
@@ -102,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
                 currentUser={currentUser} 
                 isOpen={isDiaryPopoverOpen} 
                 onClose={() => setIsDiaryPopoverOpen(false)}
-                anchorRef={diaryButtonRef}
+                anchorRef={diaryButtonRef.current}
               />
             </div>
           )}
@@ -142,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({
                   currentUser={currentUser}
                   isOpen={isUserMenuOpen}
                   onClose={() => setIsUserMenuOpen(false)}
-                  anchorRef={userMenuButtonRef}
+                  anchorRef={userMenuButtonRef.current}
                   onAcceptInvitation={onAcceptInvitation}
                   onDeclineInvitation={onDeclineInvitation}
                   onSaveThemePreference={onSaveThemePreference} // Pass down the prop

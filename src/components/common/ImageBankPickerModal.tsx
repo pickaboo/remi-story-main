@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { ImageRecord } from '../../types';
 import { getAllImages } from '../../services/storageService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Button } from './Button';
-import { getDownloadURL, ref } from 'firebase/storage'; // Added
-import { storage } from '../../firebase'; // Added
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../../../firebase';
 
 interface ImageBankPickerModalProps {
   isOpen: boolean;

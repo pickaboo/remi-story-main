@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { User, SphereInvitation, Sphere } from '../../types';
 import { Button } from './Button';
@@ -13,7 +12,7 @@ interface UserMenuPopoverProps {
   currentUser: User;
   isOpen: boolean;
   onClose: () => void;
-  anchorRef: React.RefObject<HTMLElement>;
+  anchorRef: HTMLElement | null;
   onAcceptInvitation: (invitationId: string) => Promise<void>;
   onDeclineInvitation: (invitationId: string) => Promise<void>;
   onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // New prop
@@ -94,8 +93,8 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
         isOpen &&
         popoverRef.current &&
         !popoverRef.current.contains(event.target as Node) &&
-        anchorRef.current &&
-        !anchorRef.current.contains(event.target as Node)
+        anchorRef &&
+        !anchorRef.contains(event.target as Node)
       ) {
         onClose();
       }

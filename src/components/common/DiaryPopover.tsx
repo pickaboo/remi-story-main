@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { User, DiaryEntry } from '../../types';
 import { saveDiaryEntry, generateId } from '../../services/storageService';
@@ -10,7 +9,7 @@ interface DiaryPopoverProps {
   currentUser: User;
   isOpen: boolean;
   onClose: () => void;
-  anchorRef: React.RefObject<HTMLElement>; // To position the popover
+  anchorRef: HTMLElement | null; // To position the popover
 }
 
 const MicIcon: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-4 h-4" }) => (
@@ -54,8 +53,8 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = ({ currentUser, isOpen,
         isOpen &&
         popoverRef.current &&
         !popoverRef.current.contains(event.target as Node) &&
-        anchorRef.current &&
-        !anchorRef.current.contains(event.target as Node)
+        anchorRef &&
+        !anchorRef.contains(event.target as Node)
       ) {
         onClose();
       }

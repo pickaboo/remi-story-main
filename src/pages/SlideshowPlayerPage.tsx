@@ -4,7 +4,7 @@ import { ImageRecord, SlideshowProject, View, UserDescriptionEntry } from '../ty
 import { getProjectById, getImageById } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
-import { storage } from '../firebase'; // Added
+import { storage } from '../../firebase'; // Added
 // Removed Button import as top controls are now raw buttons
 
 interface SlideshowPlayerPageProps {

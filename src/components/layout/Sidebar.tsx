@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Sphere, User } from '../../types';
-import { SphereDisplay } from '../common/SphereDisplay'; 
+import { View, Sphere, User } from '@/types';
+import { SphereDisplay } from '@/components/common/SphereDisplay'; 
 
 interface SidebarProps {
   currentPath: string;

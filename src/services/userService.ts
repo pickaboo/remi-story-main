@@ -1,11 +1,10 @@
-
-import { db, auth } from '../firebase'; // Importera från den riktiga Firebase-initieraren
+import { db, auth } from '../../firebase'; // Importera från den riktiga Firebase-initieraren
 import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { User, Sphere, AuthUserRecord } from '../types';
 import {
   LOCAL_STORAGE_CURRENT_SPHERE_ID_KEY,
   // LOCAL_STORAGE_CURRENT_USER_ID_KEY, // Hanteras nu av onAuthStateChanged
-} from '../constants';
+} from "../constants";
 import { getAllSpheres as storageGetAllSpheres, getSphereById as storageGetSphereById } from './storageService'; // Använd .real versionen
 
 const USERS_COLLECTION_NAME = 'users';

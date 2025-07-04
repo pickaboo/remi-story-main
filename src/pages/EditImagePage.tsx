@@ -8,7 +8,7 @@ import { ImageRecord, View, User, UserDescriptionEntry } from '../types';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
-import { storage } from '../firebase'; // Added
+import { storage } from '../../firebase'; // Added
 
 
 interface EditImagePageProps {
