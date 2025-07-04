@@ -11,6 +11,8 @@ export const FeedPage: React.FC = () => {
     currentUser,
     activeSphere,
     handleNavigate,
+    viewParams,
+    setViewParams,
   } = useAppContext();
 
   const [posts, setPosts] = useState<ImageRecord[]>([]);
@@ -18,7 +20,7 @@ export const FeedPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const createPostRef = useRef<HTMLDivElement>(null);
 
-  console.log("[FeedPage] Render - currentUser:", currentUser?.id, "activeSphere:", activeSphere?.id, "activeSphere.name:", activeSphere?.name);
+  console.log("[FeedPage] Render - currentUser:", currentUser?.id, "activeSphere:", activeSphere?.id, "activeSphere.name:", activeSphere?.name, "viewParams:", viewParams);
 
   useEffect(() => {
     console.log("[FeedPage] useEffect - activeSphere changed:", activeSphere?.id, activeSphere?.name);
@@ -67,8 +69,13 @@ export const FeedPage: React.FC = () => {
               <CreatePost
                 currentUser={currentUser}
                 activeSphereId={activeSphere.id}
-                onPostCreated={() => {}}
-                initialImageIdToLoad={undefined}
+                onPostCreated={() => {
+                  // Clear prefill param after post is created
+                  if (viewParams?.prefillPostWithImageId) {
+                    setViewParams({});
+                  }
+                }}
+                initialImageIdToLoad={viewParams?.prefillPostWithImageId}
               />
             </div>
 
