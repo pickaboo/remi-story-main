@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Sphere, User } from '../types';
+import { Sphere, User, SphereCreationResult, InvitationResult } from '../types';
 import { 
   getActiveSphere as getActiveSphereFromService,
   setCurrentSphereId as persistCurrentSphereId,
@@ -23,7 +23,7 @@ export const useSphereManagement = () => {
   const [activeSphere, setActiveSphere] = useState<Sphere | null>(null);
   const [userSpheres, setUserSpheres] = useState<Sphere[]>([]);
 
-  const fetchUserAndSphereData = useCallback(async (user: User) => {
+  const fetchUserAndSphereData = useCallback(async (user: User): Promise<Sphere | null> => {
     console.log("[useSphereManagement] fetchUserAndSphereData called for user:", user.id, "with sphereIds:", user.sphereIds);
     
     let spheresFromStorage = await getAllSpheres();
@@ -36,7 +36,7 @@ export const useSphereManagement = () => {
     return currentActiveSphere;
   }, []);
 
-  const handleSwitchSphere = useCallback(async (sphereId: string, user: User) => {
+  const handleSwitchSphere = useCallback(async (sphereId: string, user: User): Promise<boolean> => {
     console.log("[useSphereManagement] Switching to sphere:", sphereId);
     
     const sphereToSwitchTo = allSpheres.find(s => s.id === sphereId);
@@ -62,7 +62,7 @@ export const useSphereManagement = () => {
     }
   }, [allSpheres]);
 
-  const handleCreateSphere = useCallback(async (name: string, gradientColors: [string, string], user: User) => {
+  const handleCreateSphere = useCallback(async (name: string, gradientColors: [string, string], user: User): Promise<SphereCreationResult> => {
     console.log("[useSphereManagement] Creating new sphere:", name);
     
     try {
@@ -71,7 +71,10 @@ export const useSphereManagement = () => {
         id: generateSphereId(),
         name,
         gradientColors,
-        ownerUserId: user.id,
+        memberIds: [user.id],
+        ownerId: user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       console.log("[useSphereManagement] Sphere object created:", newSphere);
 
@@ -106,7 +109,7 @@ export const useSphereManagement = () => {
     }
   }, []);
 
-  const handleSaveSphereBackground = useCallback(async (sphereId: string, backgroundUrl: string) => {
+  const handleSaveSphereBackground = useCallback(async (sphereId: string, backgroundUrl: string): Promise<void> => {
     console.log("[useSphereManagement] Saving sphere background:", sphereId, backgroundUrl);
     
     try {
@@ -128,17 +131,17 @@ export const useSphereManagement = () => {
     }
   }, []);
 
-  const handleInviteUserToSphere = useCallback(async (email: string, sphereId: string, message?: string) => {
+  const handleInviteUserToSphere = useCallback(async (email: string, sphereId: string, message?: string): Promise<InvitationResult> => {
     console.log("[useSphereManagement] Inviting user to sphere:", email, sphereId);
     
     try {
       // Find the sphere to get the owner ID
       const sphere = allSpheres.find(s => s.id === sphereId);
-      if (!sphere?.ownerUserId) {
+      if (!sphere?.ownerId) {
         return { success: false, message: "Could not determine sphere owner" };
       }
       
-      const result = await mock_inviteUserToSphereByEmail(sphere.ownerUserId, sphereId, email, message);
+              const result = await mock_inviteUserToSphereByEmail(sphere.ownerId, sphereId, email, message);
       return result;
     } catch (error) {
       console.error("[useSphereManagement] Failed to invite user:", error);
@@ -146,7 +149,7 @@ export const useSphereManagement = () => {
     }
   }, [allSpheres]);
 
-  const handleRemoveUserFromSphere = useCallback(async (userIdToRemove: string, sphereId: string) => {
+  const handleRemoveUserFromSphere = useCallback(async (userIdToRemove: string, sphereId: string): Promise<boolean> => {
     console.log("[useSphereManagement] Removing user from sphere:", userIdToRemove, sphereId);
     
     try {

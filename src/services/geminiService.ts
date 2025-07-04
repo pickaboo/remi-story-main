@@ -23,13 +23,15 @@ const ai = new GoogleGenAI({ apiKey: API_KEY! });
 export interface GeminiAnalysisResult {
   description: string;
   geotags: string[];
+  aiGeneratedPlaceholder: string;
+  timestamp: string;
 }
 
 export const analyzeImageWithGemini = async (base64ImageData: string, mimeType: string): Promise<GeminiAnalysisResult> => {
   if (!API_KEY) {
     console.error("VITE_API_KEY not configured for analyzeImageWithGemini.");
     // Return a default error-indicating response that matches GeminiAnalysisResult
-    return { description: "Gemini API-nyckel ej konfigurerad.", geotags: [] };
+    return { description: "Gemini API-nyckel ej konfigurerad.", geotags: [], aiGeneratedPlaceholder: '', timestamp: new Date().toISOString() };
   }
   try {
     const imagePart: Part = {
@@ -51,7 +53,7 @@ export const analyzeImageWithGemini = async (base64ImageData: string, mimeType: 
 
     if (rawText === undefined) {
         console.error("[GeminiService] analyzeImageWithGemini: Gemini response text is undefined.");
-        return { description: "Kunde inte analysera bilden (tomt svar från AI).", geotags: [] };
+        return { description: "Kunde inte analysera bilden (tomt svar från AI).", geotags: [], aiGeneratedPlaceholder: '', timestamp: new Date().toISOString() };
     }
 
     let description = rawText;
@@ -68,11 +70,18 @@ export const analyzeImageWithGemini = async (base64ImageData: string, mimeType: 
       }
     }
     
-    return { description, geotags };
+    const analysisResult: GeminiAnalysisResult = {
+      description: description || '',
+      geotags: geotags || [],
+      aiGeneratedPlaceholder: '',
+      timestamp: new Date().toISOString(),
+    };
+
+    return analysisResult;
   } catch (error) {
     console.error("Error analyzing image with Gemini:", error);
     // Return a default or error-indicating response that matches GeminiAnalysisResult
-    return { description: "Ett fel uppstod vid bildanalys.", geotags: [] };
+    return { description: "Ett fel uppstod vid bildanalys.", geotags: [], aiGeneratedPlaceholder: '', timestamp: new Date().toISOString() };
   }
 };
 

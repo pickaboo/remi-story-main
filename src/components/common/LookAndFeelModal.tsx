@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
+import { Sphere } from '../../types';
 import { Button } from './Button';
-import { Sphere, User } from '../../types'; // User type is kept as it was part of the original props
 
 interface LookAndFeelModalProps {
   isOpen: boolean;
   onClose: () => void;
   activeSphere: Sphere;
-  currentUser: User; 
   onSaveSphereBackground: (sphereId: string, backgroundUrl: string) => Promise<void>;
-  // onSaveThemePreference prop removed
+  onSaveThemePreference: (theme: string) => void;
+  onSaveShowImageMetadataPreference: (show: boolean) => void;
 }
 
 const PREDEFINED_BACKGROUND_IMAGES: { name: string; url: string; thumbnailUrl: string }[] = [
@@ -25,9 +24,9 @@ export const LookAndFeelModal: React.FC<LookAndFeelModalProps> = ({
   isOpen,
   onClose,
   activeSphere,
-  currentUser, // currentUser is kept for potential future use or consistency
   onSaveSphereBackground,
-  // onSaveThemePreference removed
+  onSaveThemePreference,
+  onSaveShowImageMetadataPreference,
 }) => {
   const [selectedBackgroundUrl, setSelectedBackgroundUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -35,10 +34,10 @@ export const LookAndFeelModal: React.FC<LookAndFeelModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedBackgroundUrl(activeSphere.backgroundUrl || null);
+      setSelectedBackgroundUrl(null);
       setError(null);
     }
-  }, [isOpen, activeSphere]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -72,7 +71,7 @@ export const LookAndFeelModal: React.FC<LookAndFeelModalProps> = ({
         <div className="p-4 sm:p-5 space-y-8 flex-grow overflow-y-auto">
           {/* Background Image Section */}
           <section>
-            <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-3">Bakgrundsbild för Sfär "{activeSphere.name}"</h3>
+            <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-3">Bakgrundsbild för Sfär</h3>
             <p className="text-sm text-muted-text dark:text-slate-400 mb-4">
               Välj en bakgrundsbild som kommer att visas när denna sfär är aktiv.
               Om ingen specifik bild väljs här, används din personliga standardbakgrund eller appens standard.

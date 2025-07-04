@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Sphere, User } from '@/types';
+import { View, Sphere, User, ViewParams } from '@/types';
 import { SphereDisplay } from '@/components/common/SphereDisplay'; 
 
 interface SidebarProps {
   currentPath: string;
-  onNavigate: (view: View, params?: any) => void;
+  onNavigate: (view: View, params?: ViewParams) => void;
   isExpanded: boolean;
   onToggle: () => void;
   activeSphere: Sphere | null;
@@ -269,7 +269,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <div className="flex-grow flex flex-col">
-        <nav className="mt-4 flex-grow">
+        <nav className="mt-4 flex-grow" role="navigation" aria-label="Huvudnavigation">
           {NAV_ITEMS_SIDEBAR.map((item) => {
             const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
             return (
@@ -277,6 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.path}
                 onClick={() => onNavigate(item.view)}
                 title={isExpanded ? undefined : item.label}
+                aria-label={isExpanded ? undefined : item.label}
                 className={`
                   flex items-center text-left text-sm font-medium transition-all duration-150 ease-in-out group
                   ${isExpanded
@@ -356,6 +357,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onToggle}
             title={isExpanded ? "Förminska sidofältet" : "Expandera sidofältet"}
+            aria-label={isExpanded ? "Förminska sidofältet" : "Expandera sidofältet"}
             className={`w-full flex items-center py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out
               text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200
               ${isExpanded ? 'px-2 justify-start' : 'justify-center'}

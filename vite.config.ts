@@ -12,6 +12,49 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, './src'),
         }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: (id) => {
+              // Vendor chunks
+              if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+                return 'react-vendor';
+              }
+              if (id.includes('node_modules/firebase')) {
+                return 'firebase-vendor';
+              }
+              if (id.includes('node_modules/@google/genai') || id.includes('node_modules/jspdf') || id.includes('node_modules/exifreader')) {
+                return 'ui-vendor';
+              }
+              // Feature chunks
+              if (id.includes('/pages/auth/')) {
+                return 'auth';
+              }
+              if (id.includes('/pages/')) {
+                return 'pages';
+              }
+              if (id.includes('/components/')) {
+                return 'components';
+              }
+              if (id.includes('/services/')) {
+                return 'services';
+              }
+            }
+          }
+        },
+        chunkSizeWarningLimit: 1000,
+        sourcemap: mode === 'development',
+        minify: mode === 'production' ? 'terser' : false,
+        terserOptions: mode === 'production' ? {
+          compress: {
+            drop_console: true,
+            drop_debugger: true
+          }
+        } : undefined
+      },
+      optimizeDeps: {
+        include: ['react', 'react-dom', 'firebase']
       }
     };
 });

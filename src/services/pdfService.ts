@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { ImageRecord, SlideshowProject } from '../types';
 
@@ -95,6 +94,9 @@ export const generatePhotoAlbumPdf = async (project: SlideshowProject, images: I
       }
 
       // Add Image
+      if (!imageDataForPdf) {
+        throw new Error('Image data is undefined');
+      }
       const imgProps = doc.getImageProperties(imageDataForPdf); // Now this should work reliably
       const aspectRatio = imgProps.width / imgProps.height;
       

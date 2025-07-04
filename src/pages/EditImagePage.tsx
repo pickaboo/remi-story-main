@@ -4,7 +4,7 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { TextArea } from '../components/common/TextArea';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, View, User, UserDescriptionEntry } from '../types';
+import { ImageRecord, View, UserDescriptionEntry } from '../types';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
@@ -148,7 +148,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
         updatedUserDescriptions[userEntryIndex] = {
           ...existingEntry,
           description: currentUserTextDescription.trim(),
-          audioRecUrl: audioRecorder.audioUrl || existingEntry.audioRecUrl || null,
+          audioRecUrl: audioRecorder.audioUrl || existingEntry.audioRecUrl || undefined,
           createdAt: new Date().toISOString(),
         };
       } else {
@@ -156,7 +156,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
           updatedUserDescriptions.push({
             userId: currentUser.id,
             description: currentUserTextDescription.trim(),
-            audioRecUrl: audioRecorder.audioUrl || null, 
+            audioRecUrl: audioRecorder.audioUrl || undefined, 
             createdAt: new Date().toISOString(),
           });
         }
@@ -190,7 +190,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
         if (!prev || !currentUser) return prev;
         const newUserDescriptions = prev.userDescriptions.map(ud => {
             if (ud.userId === currentUser.id) {
-                return { ...ud, audioRecUrl: null }; // Set to null
+                return { ...ud, audioRecUrl: undefined };
             }
             return ud;
         });

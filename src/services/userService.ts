@@ -1,5 +1,5 @@
 import { db, auth } from '../../firebase'; // Importera från den riktiga Firebase-initieraren
-import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { User, Sphere, AuthUserRecord } from '../types';
 import {
   LOCAL_STORAGE_CURRENT_SPHERE_ID_KEY,
@@ -23,16 +23,18 @@ export const getUserById = async (userId: string | undefined | null): Promise<Us
     // Skapa ett User-objekt. Om firebaseUser finns och matchar, använd dess data.
     let finalUser: User = {
       id: docSnap.id,
-      name: firestoreData.name || "Okänt Namn",
-      initials: firestoreData.initials || "NN",
-      avatarColor: firestoreData.avatarColor || 'bg-gray-500',
-      sphereIds: firestoreData.sphereIds || [],
-      email: firestoreData.email, // Firestore bör vara master för email som visas i appen
-      emailVerified: firestoreData.emailVerified, // Firestore bör vara master
-      backgroundPreference: firestoreData.backgroundPreference,
-      themePreference: firestoreData.themePreference || 'system',
-      showImageMetadataInBank: firestoreData.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
-      pendingInvitationCount: firestoreData.pendingInvitationCount,
+      name: firestoreData?.name || "Ny Användare",
+      initials: firestoreData?.initials || "NY",
+      avatarColor: firestoreData?.avatarColor || 'bg-gray-500',
+      sphereIds: firestoreData?.sphereIds || [],
+      email: firestoreData?.email,
+      emailVerified: firestoreData?.emailVerified || false,
+      backgroundPreference: firestoreData?.backgroundPreference,
+      themePreference: firestoreData?.themePreference || 'system',
+      showImageMetadataInBank: firestoreData?.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
+      pendingInvitationCount: firestoreData?.pendingInvitationCount,
+      createdAt: firestoreData?.createdAt || new Date().toISOString(),
+      updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
     };
 
     if (firebaseUser && firebaseUser.uid === docSnap.id) {

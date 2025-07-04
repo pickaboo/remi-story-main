@@ -3,15 +3,9 @@ import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
+import { User } from '../../types';
 import { updateUserProfile } from '../../services/authService';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-
-interface ProfileCompletionPageProps {
-  initialUser: User;
-  onProfileComplete: (updatedUser: User) => void;
-  onNavigate: (viewOrPath: View | string, params?: any) => void; // For potential logout or other navigation
-}
 
 const AVATAR_COLORS = [
   'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500', 
@@ -20,7 +14,7 @@ const AVATAR_COLORS = [
 ];
 
 export const ProfileCompletionPage: React.FC = () => {
-  const { currentUser, handleNavigate, handleProfileComplete } = useAppContext();
+  const { currentUser, handleProfileComplete } = useAppContext();
 
   if (!currentUser) {
     return <LoadingSpinner message="Laddar användare..." />;
@@ -107,7 +101,7 @@ export const ProfileCompletionPage: React.FC = () => {
               <button
                 key={colorClass}
                 type="button"
-                onClick={() => setAvatarColor(colorClass)}
+                onClick={() => setAvatarColor(colorClass as User['avatarColor'])}
                 className={`w-10 h-10 rounded-full ${colorClass} transition-all duration-150 ease-in-out
                             ${avatarColor === colorClass 
                               ? 'ring-4 ring-offset-2 ring-primary dark:ring-blue-400 dark:ring-offset-slate-800 scale-110' 

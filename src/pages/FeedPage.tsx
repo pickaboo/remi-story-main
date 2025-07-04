@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord } from '../types';
 import { getSphereFeedPostsListener } from '../services/storageService';
 import { useAppContext } from '../context/AppContext';
+import { View } from '../types';
 
 export const FeedPage: React.FC = () => {
   const {
@@ -87,18 +88,18 @@ export const FeedPage: React.FC = () => {
         let mostVisiblePost: ImageRecord | null = null;
         let highestRatio = 0;
 
-                 entries.forEach((entry) => {
-           if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
-             const postId = entry.target.id.replace('post-item-', '');
-             const post = posts.find((p) => p.id === postId) as ImageRecord | undefined;
-             if (post && post.dateTaken) {
-               highestRatio = entry.intersectionRatio;
-               mostVisiblePost = post;
-             }
-           }
-         });
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
+            const postId = entry.target.id.replace('post-item-', '');
+            const post = posts.find((p) => p.id === postId);
+            if (post && post.dateTaken) {
+              highestRatio = entry.intersectionRatio;
+              mostVisiblePost = post;
+            }
+          }
+        }
 
-        if (mostVisiblePost && mostVisiblePost.dateTaken) {
+        if (mostVisiblePost?.dateTaken) {
           const postDate = new Date(mostVisiblePost.dateTaken);
           console.log("[FeedPage] Setting activeFeedDateFromScroll to:", postDate, "for post:", mostVisiblePost.id);
           setActiveFeedDateFromScroll(postDate);
@@ -173,7 +174,7 @@ export const FeedPage: React.FC = () => {
                         post={post} 
                         currentUser={currentUser} 
                         onPostUpdated={() => {}} 
-                        onNavigateToEdit={() => handleNavigate('EDIT_IMAGE', { imageId: post.id })}
+                        onNavigateToEdit={() => handleNavigate(View.EditImage, { imageId: post.id })}
                     />
                   </div>
                 ))}

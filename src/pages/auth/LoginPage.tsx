@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
+import { View } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
+import { Input } from '../../components/common/Input';
 import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../../services/authService';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 // Simple SVG Icons for OAuth providers
 const GoogleIcon = () => (

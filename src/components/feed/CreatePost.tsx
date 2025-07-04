@@ -42,6 +42,7 @@ interface ExtractedFileDetails {
   dateTaken: string;
   exifData?: Record<string, { description: string | number }>;
   filePath: string; 
+  size: number;
 }
 
 async function extractImageDetailsFromFile(file: File): Promise<ExtractedFileDetails> {
@@ -115,6 +116,7 @@ async function extractImageDetailsFromFile(file: File): Promise<ExtractedFileDet
     dateTaken: imageDateTaken,
     exifData: parsedExifData,
     filePath, 
+    size: file.size,
   };
 }
 
@@ -175,7 +177,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
           try {
             const imageFromDb = await getImageById(initialImageIdToLoad);
             if (imageFromDb && imageFromDb.sphereId === activeSphereId) {
-              let dataUrlForPreview = imageFromDb.dataUrl; 
+              let dataUrlForPreview = imageFromDb.dataUrl || '';
 
               if ((!dataUrlForPreview || !dataUrlForPreview.startsWith('data:')) && imageFromDb.filePath) {
                 try {
@@ -183,13 +185,14 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
                 } catch (urlError) {
                   console.error(`Failed to get download URL for ${imageFromDb.filePath}:`, urlError);
                   setError(`Kunde inte ladda förhandsgranskning för vald bild (ID: ${initialImageIdToLoad}). Fel vid hämtning av URL.`);
-                  dataUrlForPreview = imageFromDb.dataUrl || undefined; 
+                  dataUrlForPreview = imageFromDb.dataUrl || ''; 
                 }
               }
               
               const finalImageToLoad: ImageRecord = {
                 ...imageFromDb,
-                dataUrl: dataUrlForPreview || undefined, 
+                dataUrl: dataUrlForPreview || '', 
+                size: imageFromDb.size,
               };
 
               setSelectedBankedImageInfo(finalImageToLoad);
@@ -331,7 +334,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
       const currentUserDescEntry: UserDescriptionEntry = {
         userId: currentUser.id,
         description: postText.trim(),
-        audioRecUrl: audioRecorder.audioUrl || null,
+        audioRecUrl: audioRecorder.audioUrl || undefined,
         createdAt: new Date().toISOString(),
       };
 
@@ -388,9 +391,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
             ...banked,
             id: banked.id, 
             userDescriptions: finalUserDescriptions,
-            geminiAnalysis: analysisResultFromGemini.description ?? banked.geminiAnalysis ?? null,
+            geminiAnalysis: analysisResultFromGemini.description ?? banked.geminiAnalysis ?? undefined,
             suggestedGeotags: analysisResultFromGemini.geotags.length > 0 ? analysisResultFromGemini.geotags : (banked.suggestedGeotags ?? []),
-            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? banked.aiGeneratedPlaceholder ?? null,
+            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? banked.aiGeneratedPlaceholder ?? undefined,
             isPublishedToFeed: true, 
             isProcessed: !!(analysisResultFromGemini.description || banked.isProcessed),
             processedByHistory: analysisResultFromGemini.description 
@@ -398,17 +401,13 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
                                 : (banked.processedByHistory || []),
             dataUrl: banked.dataUrl, 
             createdAt: banked.createdAt, 
-            updatedAt: undefined, 
+            updatedAt: new Date().toISOString(), 
+            filePath: banked.filePath ?? undefined,
+            exifData: banked.exifData ?? undefined,
+            tags: banked.tags ?? [],
+            compiledStory: banked.compiledStory ?? undefined,
+            size: banked.size,
         };
-        // Ensure these fields are correctly retained or set to null/default
-        finalImageRecord.filePath = banked.filePath ?? null;
-        finalImageRecord.width = banked.width ?? null;
-        finalImageRecord.height = banked.height ?? null;
-        finalImageRecord.dateTaken = banked.dateTaken ?? new Date().toISOString().split('T')[0];
-        finalImageRecord.exifData = banked.exifData ?? null;
-        finalImageRecord.tags = banked.tags ?? []; 
-        finalImageRecord.compiledStory = banked.compiledStory ?? null;
-
 
       } else if (imageFile && imagePreviewUrl && uploadedFileDetails) { 
         const newImageId = generateId();
@@ -426,25 +425,26 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
             id: newImageId,
             name: imageFile.name,
             type: imageFile.type,
-            dataUrl: imagePreviewUrl, 
+            size: 0, // Default size for text/audio posts
+            dataUrl: '',
             dateTaken: uploadedFileDetails.dateTaken, 
-            exifData: uploadedFileDetails.exifData ?? null, 
+            exifData: uploadedFileDetails.exifData ?? undefined, 
             filePath: uploadedFileDetails.filePath, 
             tags: [],
-            geminiAnalysis: analysisResultFromGemini.description ?? null,
+            geminiAnalysis: analysisResultFromGemini.description ?? undefined,
             suggestedGeotags: analysisResultFromGemini.geotags ?? [],
             userDescriptions: [currentUserDescEntry],
-            compiledStory: null,
+            compiledStory: undefined,
             isProcessed: !!analysisResultFromGemini.description,
             width: uploadedFileDetails.width, 
             height: uploadedFileDetails.height, 
             uploadedByUserId: currentUser.id,
             processedByHistory: analysisResultFromGemini.description ? [currentUser.id] : [],
-            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? null,
+            aiGeneratedPlaceholder: aiPlaceholderFromGemini ?? undefined,
             sphereId: activeSphereId,
             isPublishedToFeed: true, 
-            createdAt: undefined, 
-            updatedAt: undefined, 
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(), 
         };
       } else { 
         const newPostId = generateId();
@@ -462,25 +462,26 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
             id: newPostId,
             name: postNameText,
             type: audioRecorder.audioUrl && !postText.trim() ? "audio/generic" : "text/plain",
-            dataUrl: undefined, 
+            size: 0, // Default size for text/audio posts
+            dataUrl: '',
             dateTaken: new Date().toISOString().split('T')[0], 
             tags: [],
-            geminiAnalysis: null,
+            geminiAnalysis: undefined,
             suggestedGeotags: [],
             userDescriptions: [currentUserDescEntry],
-            compiledStory: null,
+            compiledStory: undefined,
             isProcessed: true, 
             width: null, 
             height: null, 
             uploadedByUserId: currentUser.id,
             processedByHistory: [],
-            aiGeneratedPlaceholder: null, 
-            filePath: null, 
-            exifData: null, 
+            aiGeneratedPlaceholder: undefined, 
+            filePath: undefined, 
+            exifData: undefined, 
             sphereId: activeSphereId,
             isPublishedToFeed: true, 
-            createdAt: undefined, 
-            updatedAt: undefined,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
       }
 

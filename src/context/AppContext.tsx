@@ -3,22 +3,31 @@ import { useAppState } from '../hooks/useAppState';
 import { useSphereManagement } from '../hooks/useSphereManagement';
 import { useModalState } from '../hooks/useModalState';
 import { useAuth } from '../hooks/useAuth';
-import { User, Sphere } from '../types';
+import { 
+  User, 
+  Sphere, 
+  View, 
+  ViewParams, 
+  NavigationHandler, 
+  LegacyFeedback,
+  SphereCreationResult,
+  InvitationResult
+} from '../types';
 
 interface AppContextType {
   // App State
-  currentView: any;
-  viewParams: any;
+  currentView: View;
+  viewParams: ViewParams | null;
   isAuthenticated: boolean | null;
   currentUser: User | null;
   isSidebarExpanded: boolean;
-  globalFeedback: { message: string; type: 'success' | 'error' } | null;
-  setCurrentView: (view: any) => void;
-  setViewParams: (params: any) => void;
+  globalFeedback: LegacyFeedback | null;
+  setCurrentView: (view: View) => void;
+  setViewParams: (params: ViewParams | null) => void;
   setIsAuthenticated: (auth: boolean | null) => void;
   setCurrentUser: (user: User | null) => void;
-  setGlobalFeedback: (feedback: { message: string; type: 'success' | 'error' } | null) => void;
-  handleNavigate: (viewOrPath: any, params?: any) => void;
+  setGlobalFeedback: (feedback: LegacyFeedback | null) => void;
+  handleNavigate: NavigationHandler;
   toggleSidebar: () => void;
   showGlobalFeedback: (message: string, type: 'success' | 'error') => void;
 
@@ -28,9 +37,9 @@ interface AppContextType {
   userSpheres: Sphere[];
   fetchUserAndSphereData: (user: User) => Promise<Sphere | null>;
   handleSwitchSphere: (sphereId: string, user: User) => Promise<boolean>;
-  handleCreateSphere: (name: string, gradientColors: [string, string], user: User) => Promise<{ success: boolean; sphere?: Sphere; updatedUser?: User; error?: string }>;
+  handleCreateSphere: (name: string, gradientColors: [string, string], user: User) => Promise<SphereCreationResult>;
   handleSaveSphereBackground: (sphereId: string, backgroundUrl: string) => Promise<void>;
-  handleInviteUserToSphere: (email: string, sphereId: string, message?: string) => Promise<{ success: boolean; message: string }>;
+  handleInviteUserToSphere: (email: string, sphereId: string, message?: string) => Promise<InvitationResult>;
   handleRemoveUserFromSphere: (userIdToRemove: string, sphereId: string) => Promise<boolean>;
   setAllSpheres: (spheres: Sphere[]) => void;
   setActiveSphere: (sphere: Sphere | null) => void;

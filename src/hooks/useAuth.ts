@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { User } from '../types';
 import { 
-  getCurrentAuthenticatedUser, 
   logout as authLogout, 
   updateUserProfile, 
   getAllUsers as authGetAllUsers, 
@@ -11,7 +10,7 @@ import {
 import { getPendingInvitationsForEmail } from '../services/storageService';
 
 export const useAuth = () => {
-  const handleLoginSuccess = useCallback(async (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => {
+  const handleLoginSuccess = useCallback(async (user: User): Promise<User> => {
     console.log("[useAuth] Login success for user:", user.id);
     
     // Update user's sphereIds if they accepted invitations during login
@@ -28,12 +27,12 @@ export const useAuth = () => {
     return user;
   }, []);
 
-  const handleProfileComplete = useCallback(async (updatedUser: User) => {
+  const handleProfileComplete = useCallback(async (updatedUser: User): Promise<User> => {
     console.log("[useAuth] Profile completion for user:", updatedUser.id);
     return updatedUser;
   }, []);
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback(async (): Promise<boolean> => {
     console.log("[useAuth] Logging out user");
     try {
       await authLogout();
@@ -44,7 +43,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleAcceptSphereInvitation = useCallback(async (invitationId: string, currentUser: User) => {
+  const handleAcceptSphereInvitation = useCallback(async (invitationId: string, currentUser: User): Promise<boolean> => {
     console.log("[useAuth] Accepting sphere invitation:", invitationId);
     try {
       await authAcceptSphereInvitation(invitationId, currentUser);
@@ -55,7 +54,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleDeclineSphereInvitation = useCallback(async (invitationId: string, currentUserEmail?: string) => {
+  const handleDeclineSphereInvitation = useCallback(async (invitationId: string, currentUserEmail?: string): Promise<boolean> => {
     console.log("[useAuth] Declining sphere invitation:", invitationId);
     try {
       await authDeclineSphereInvitation(invitationId, currentUserEmail);
@@ -66,7 +65,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleSaveThemePreference = useCallback(async (theme: User['themePreference'], userId: string) => {
+  const handleSaveThemePreference = useCallback(async (theme: User['themePreference'], userId: string): Promise<boolean> => {
     console.log("[useAuth] Saving theme preference:", theme, "for user:", userId);
     try {
       await updateUserProfile(userId, { themePreference: theme });
@@ -77,7 +76,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleSaveShowImageMetadataPreference = useCallback(async (show: boolean, userId: string) => {
+  const handleSaveShowImageMetadataPreference = useCallback(async (show: boolean, userId: string): Promise<boolean> => {
     console.log("[useAuth] Saving image metadata preference:", show, "for user:", userId);
     try {
       await updateUserProfile(userId, { showImageMetadataInBank: show });
@@ -88,7 +87,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  const fetchAllUsers = useCallback(async () => {
+  const fetchAllUsers = useCallback(async (): Promise<User[]> => {
     console.log("[useAuth] Fetching all users");
     try {
       return await authGetAllUsers();

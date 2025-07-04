@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, User } from '../types';
+import { View, ViewParams, LegacyFeedback, User } from '../types';
 
 const viewToPathMap: Record<View, string> = {
   [View.Home]: '',
@@ -10,7 +10,7 @@ const viewToPathMap: Record<View, string> = {
   [View.PlaySlideshow]: 'play-slideshow',
   [View.Login]: 'login',
   [View.Signup]: 'signup',
-  [View.ForgotPassword]: 'forgot-password',
+
   [View.EmailConfirmation]: 'confirm-email',
   [View.ProfileCompletion]: 'complete-profile',
 };
@@ -24,25 +24,25 @@ const pathToViewMap: Record<string, View> = {
   'play-slideshow': View.PlaySlideshow,
   'login': View.Login,
   'signup': View.Signup,
-  'forgot-password': View.ForgotPassword,
+
   'confirm-email': View.EmailConfirmation,
   'complete-profile': View.ProfileCompletion,
 };
 
 export const useAppState = () => {
   const [currentView, setCurrentView] = useState<View>(View.Login);
-  const [viewParams, setViewParams] = useState<any>(null);
+  const [viewParams, setViewParams] = useState<ViewParams | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [globalFeedback, setGlobalFeedback] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [globalFeedback, setGlobalFeedback] = useState<LegacyFeedback | null>(null);
 
   // Navigera till en vy och synka hash
-  const navigate = useCallback((view: View, params?: any) => {
+  const navigate = useCallback((view: View, params?: ViewParams) => {
     setCurrentView(view);
     setViewParams(params || null);
     const path = viewToPathMap[view] || '';
-    const hash = params ? `#/${path}?${new URLSearchParams(params).toString()}` : `#/${path}`;
+    const hash = params ? `#/${path}?${new URLSearchParams(params as Record<string, string>).toString()}` : `#/${path}`;
     if (window.location.hash !== hash) {
       window.location.hash = hash;
     }
@@ -54,9 +54,9 @@ export const useAppState = () => {
       const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
       const [basePath, paramString] = hash.split('?');
       const newView = pathToViewMap[basePath] || View.Home;
-      let params = null;
+      let params: ViewParams | null = null;
       if (paramString) {
-        params = Object.fromEntries(new URLSearchParams(paramString));
+        params = Object.fromEntries(new URLSearchParams(paramString)) as ViewParams;
       }
       setCurrentView(newView);
       setViewParams(params);

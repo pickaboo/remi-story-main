@@ -33,6 +33,7 @@ export const ModalManager: React.FC = () => {
     handleCloseImageBankSettingsModal,
     
     // Auth functions
+    handleSaveThemePreference,
     handleSaveShowImageMetadataPreference,
     setCurrentUser,
     showGlobalFeedback,
@@ -86,6 +87,20 @@ export const ModalManager: React.FC = () => {
     }
   };
 
+  const handleSaveThemePreferenceWrapper = async (theme: string) => {
+    if (!currentUser) {
+      throw new Error('No user logged in');
+    }
+    await handleSaveThemePreference(theme as any, currentUser.id);
+  };
+
+  const handleSaveShowImageMetadataPreferenceWrapper = async (show: boolean) => {
+    if (!currentUser) {
+      throw new Error('No user logged in');
+    }
+    await handleSaveShowImageMetadataPreference(show, currentUser.id);
+  };
+
   return (
     <>
       {isCreateSphereModalOpen && (
@@ -105,13 +120,14 @@ export const ModalManager: React.FC = () => {
         />
       )}
 
-      {isLookAndFeelModalOpen && activeSphere && currentUser && (
+      {isLookAndFeelModalOpen && activeSphere && (
         <LookAndFeelModal
           isOpen={isLookAndFeelModalOpen}
           onClose={handleCloseLookAndFeelModal}
           activeSphere={activeSphere}
-          currentUser={currentUser}
           onSaveSphereBackground={handleSaveSphereBackground}
+          onSaveThemePreference={handleSaveThemePreferenceWrapper}
+          onSaveShowImageMetadataPreference={handleSaveShowImageMetadataPreferenceWrapper}
         />
       )}
 

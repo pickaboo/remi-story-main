@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
-import { ImageRecord, User, View, Sphere } from '../types';
+import { ImageRecord, View } from '../types';
 import { getAllImages, saveImage, generateId, deleteImage, getSphereById } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { getUserById } from '../services/userService'; // Import for getting user details
@@ -10,12 +10,6 @@ import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../../firebase'; // Added
 import { useAppContext } from '../context/AppContext';
 // Removed: import { generateImageBankExportPdf } from '../services/pdfService'; 
-
-interface ImageBankPageProps {
-  currentUser: User;
-  activeSphere: Sphere;
-  onNavigate: (view: View, params?: any) => void;
-}
 
 interface UploadPreview {
   id: string; // Temp ID for list key
@@ -223,11 +217,11 @@ export const ImageBankPage: React.FC = () => {
             } catch (error) {
               console.error(`Failed to get download URL for ${img.filePath} in ImageBankPage:`, error);
               // Return image without dataUrl if fetch fails, will be filtered out.
-              return { ...img, dataUrl: undefined }; 
+              return { ...img, dataUrl: img.dataUrl || '' }; 
             }
           }
           // If no filePath and no usable dataUrl, it's not displayable.
-          return { ...img, dataUrl: undefined };
+          return { ...img, dataUrl: img.dataUrl || '' };
         })
       );
       
@@ -371,7 +365,7 @@ export const ImageBankPage: React.FC = () => {
           id: generateId(), // Generate a new final ID for the stored record
           name: preview.file.name,
           type: preview.file.type,
-          dataUrl: preview.dataUrl,
+          dataUrl: preview.dataUrl || '',
           dateTaken: preview.dateTaken, 
           tags: [],
           userDescriptions: [],
@@ -385,11 +379,13 @@ export const ImageBankPage: React.FC = () => {
           sphereId: activeSphere.id,
           isPublishedToFeed: false, 
           createdAt: new Date().toISOString(),
+          size: preview.file.size,
+          updatedAt: new Date().toISOString(),
           // Explicitly set optional fields that might otherwise be undefined to null
-          geminiAnalysis: null, 
-          compiledStory: null, 
-          aiGeneratedPlaceholder: null, 
-          exifData: preview.exifData || null, // if preview.exifData is undefined, use null
+          geminiAnalysis: undefined,
+          compiledStory: undefined,
+          aiGeneratedPlaceholder: undefined,
+          exifData: preview.exifData || undefined,
         };
         await saveImage(newImageRecord);
         savedCount++;

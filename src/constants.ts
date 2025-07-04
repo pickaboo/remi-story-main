@@ -37,17 +37,17 @@ export const NAV_ITEMS = [
 export const MAX_AUDIO_DURATION_MS = 60000; // 1 minute
 
 export const MOCK_SPHERES: Sphere[] = [
-  { id: 'sphere1', name: 'Familjen Hemma', gradientColors: ['#a855f7', '#ec4899'], ownerUserId: 'user1' },
-  { id: 'sphere2', name: 'Vännerna på Stan', gradientColors: ['#22d3ee', '#0ea5e9'], ownerUserId: 'user1' },
-  { id: 'sphere3', name: 'Jobbkollegor', gradientColors: ['#f59e0b', '#facc15'], ownerUserId: 'user2' },
-  { id: 'sphere4', name: 'Resekompisar', gradientColors: ['#10b981', '#34d399'], ownerUserId: 'user3' },
+  { id: 'sphere1', name: 'Familjen Hemma', gradientColors: ['#a855f7', '#ec4899'], memberIds: ['user1'], ownerId: 'user1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sphere2', name: 'Vännerna på Stan', gradientColors: ['#22d3ee', '#0ea5e9'], memberIds: ['user1'], ownerId: 'user1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sphere3', name: 'Jobbkollegor', gradientColors: ['#f59e0b', '#facc15'], memberIds: ['user2'], ownerId: 'user2', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
+  { id: 'sphere4', name: 'Resekompisar', gradientColors: ['#10b981', '#34d399'], memberIds: ['user3'], ownerId: 'user3', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
 ];
 
 export const MOCK_USERS: User[] = [
-  { id: 'user1', name: 'Alice Andersson', initials: 'AA', avatarColor: 'bg-pink-500', sphereIds: ['sphere1', 'sphere2', 'sphere4'], email: 'alice@example.com', emailVerified: true, backgroundPreference: { type: 'url', value: 'https://images.unsplash.com/photo-1500964757637-c85e8a162699?q=80&w=1000&auto=format&fit=crop' }, themePreference: 'light', showImageMetadataInBank: true },
-  { id: 'user2', name: 'Bob Berg', initials: 'BB', avatarColor: 'bg-indigo-500', sphereIds: ['sphere1', 'sphere3'], email: 'bob@example.com', emailVerified: true, backgroundPreference: { type: 'color', value: '#334155' }, themePreference: 'dark', showImageMetadataInBank: false },
-  { id: 'user3', name: 'Cecilia Carlsson', initials: 'CC', avatarColor: 'bg-teal-500', sphereIds: ['sphere2', 'sphere3', 'sphere4'], email: 'cecilia@example.com', emailVerified: true, themePreference: 'system', showImageMetadataInBank: true },
-  { id: 'user4', name: 'David Dahl', initials: 'DD', avatarColor: 'bg-orange-500', sphereIds: ['sphere1', 'sphere4'], email: 'david@example.com', emailVerified: false, showImageMetadataInBank: false }
+  { id: 'user1', name: 'Alice Andersson', initials: 'AA', avatarColor: 'bg-pink-500', sphereIds: ['sphere1', 'sphere2', 'sphere4'], email: 'alice@example.com', emailVerified: true, backgroundPreference: { type: 'url', value: 'https://images.unsplash.com/photo-1500964757637-c85e8a162699?q=80&w=1000&auto=format&fit=crop' }, themePreference: 'light', showImageMetadataInBank: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'user2', name: 'Bob Berg', initials: 'BB', avatarColor: 'bg-indigo-500', sphereIds: ['sphere1', 'sphere3'], email: 'bob@example.com', emailVerified: true, backgroundPreference: { type: 'color', value: '#334155' }, themePreference: 'dark', showImageMetadataInBank: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'user3', name: 'Cecilia Carlsson', initials: 'CC', avatarColor: 'bg-teal-500', sphereIds: ['sphere2', 'sphere3', 'sphere4'], email: 'cecilia@example.com', emailVerified: true, themePreference: 'system', showImageMetadataInBank: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'user4', name: 'David Dahl', initials: 'DD', avatarColor: 'bg-orange-500', sphereIds: ['sphere1', 'sphere4'], email: 'david@example.com', emailVerified: false, themePreference: 'light', showImageMetadataInBank: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
 ];
 
 export const PREDEFINED_SPHERE_GRADIENTS: { name: string, colors: [string, string] }[] = [

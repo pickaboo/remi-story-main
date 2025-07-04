@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Button } from '../../components/common/Button';
-import { User, View } from '../../types';
+import { View } from '../../types';
 import { simulateVerifyEmail } from '../../services/authService';
 import { useAppContext } from '../../context/AppContext';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { AuthContainer } from '../../components/auth/AuthContainer';
+import { Button } from '../../components/common/Button';
 
 export const EmailConfirmationPage: React.FC = () => {
   const { handleNavigate, handleLoginSuccess } = useAppContext();

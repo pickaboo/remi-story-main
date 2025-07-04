@@ -16,12 +16,6 @@ interface ManageSphereModalProps {
   onRemoveUserFromSphere: (userIdToRemove: string, sphereId: string) => Promise<boolean>;
 }
 
-const UserIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-    </svg>
-);
-
 interface CrownIconProps {
     className?: string;
     title?: string;
@@ -92,7 +86,7 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
     }
   };
   
-  const isCurrentUserOwner = activeSphere.ownerUserId === currentUser.id;
+  const isCurrentUserOwner = activeSphere.ownerId === currentUser.id;
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="manage-sphere-modal-title">
@@ -128,7 +122,7 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
                         {member.initials}
                       </div>
                       <span className="text-sm text-slate-700 dark:text-slate-200">{member.name}</span>
-                      {member.id === activeSphere.ownerUserId && (
+                      {member.id === activeSphere.ownerId && (
                         <CrownIcon className="w-4 h-4 text-amber-500 dark:text-amber-400" title="Sfärägare" />
                       )}
                     </div>

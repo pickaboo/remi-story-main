@@ -35,11 +35,11 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
                 } catch (error) {
                   console.error(`Misslyckades att hämta download URL för ${img.filePath}:`, error);
                   // Behåll bilden men utan dataUrl om länken misslyckas, den filtreras bort senare
-                  return { ...img, dataUrl: undefined }; 
+                  return { ...img, dataUrl: '' }; 
                 }
               }
               // Om ingen filePath, behåll bilden utan dataUrl, den filtreras bort senare
-              return { ...img, dataUrl: img.dataUrl || undefined }; // Behåll befintlig dataUrl om den finns (t.ex. nyligen uppladdad men ej sparad än)
+              return { ...img, dataUrl: '' }; // Behåll befintlig dataUrl om den finns (t.ex. nyligen uppladdad men ej sparad än)
             })
           );
           

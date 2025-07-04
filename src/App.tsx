@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { View } from './types';
+import React, { useEffect, useRef, Suspense, useState } from 'react';
+import { View, User } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppLayout } from './components/AppLayout';
 import { ModalManager } from './components/ModalManager';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { PageLoadingSpinner } from './components/common/LazyLoadingSpinner';
 import { applyThemePreference, setupThemeListener } from './utils/themeUtils';
 import { applyBackgroundPreference } from './utils/backgroundUtils';
 import { getCurrentAuthenticatedUser } from './services/authService';
@@ -13,7 +15,6 @@ import {
   ProfileCompletionPage 
 } from './pages/auth';
 import { 
-  HomePage, 
   FeedPage, 
   DiaryPage, 
   EditImagePage, 
@@ -24,19 +25,61 @@ import {
 
 const AppContent: React.FC = () => {
   const {
+    currentUser,
+    activeSphere,
+    userSpheres,
+    isSidebarExpanded,
     currentView,
     viewParams,
     isAuthenticated,
-    currentUser,
-    activeSphere,
+    handleNavigate,
+    handleSwitchSphere,
+    toggleSidebar,
+    handleOpenCreateSphereModal,
+    handleOpenInviteModal,
+    handleOpenLookAndFeelModal,
+    handleOpenManageSphereModal,
+    handleOpenImageBankSettingsModal,
+    handleAcceptSphereInvitation,
+    handleDeclineSphereInvitation,
+    handleSaveThemePreference,
+    fetchAllUsers,
     setCurrentView,
     setIsAuthenticated,
     setCurrentUser,
     handleLoginSuccess,
-    handleLogout,
     fetchUserAndSphereData,
-    showGlobalFeedback,
   } = useAppContext();
+
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchAllUsers().then(setAllUsers);
+    }
+  }, [currentUser, fetchAllUsers]);
+
+  const handleAcceptInvitation = async (invitationId: string) => {
+    if (currentUser) {
+      await handleAcceptSphereInvitation(invitationId, currentUser);
+    }
+  };
+
+  const handleDeclineInvitation = async (invitationId: string) => {
+    await handleDeclineSphereInvitation(invitationId, currentUser?.email);
+  };
+
+  const handleSaveThemePreferenceWrapper = async (theme: User['themePreference']) => {
+    if (currentUser) {
+      await handleSaveThemePreference(theme, currentUser.id);
+    }
+  };
+
+  const handleSwitchSphereWrapper = async (sphereId: string) => {
+    if (currentUser) {
+      await handleSwitchSphere(sphereId, currentUser);
+    }
+  };
 
   const themeCleanupRef = useRef<(() => void) | null>(null);
 
@@ -96,28 +139,35 @@ const AppContent: React.FC = () => {
 
   // URL hash effect - removed duplicate handler since useAppState already handles this
 
-  // Handle logout
-  const handleLogoutWithNavigation = async () => {
-    const success = await handleLogout();
-    if (success) {
-      setCurrentView(View.Login);
-      showGlobalFeedback('Du har loggats ut', 'success');
-    } else {
-      showGlobalFeedback('Kunde inte logga ut', 'error');
-    }
-  };
+
 
   // Render unauthenticated views
   if (isAuthenticated === false) {
     switch (currentView) {
       case View.Signup:
-        return <SignupPage />;
+        return (
+          <Suspense fallback={<PageLoadingSpinner message="Laddar registreringssida..." />}>
+            <SignupPage />
+          </Suspense>
+        );
       case View.EmailConfirmation:
-        return <EmailConfirmationPage />;
+        return (
+          <Suspense fallback={<PageLoadingSpinner message="Laddar e-postbekräftelse..." />}>
+            <EmailConfirmationPage />
+          </Suspense>
+        );
       case View.ProfileCompletion:
-        return <ProfileCompletionPage />;
+        return (
+          <Suspense fallback={<PageLoadingSpinner message="Laddar profilkomplettering..." />}>
+            <ProfileCompletionPage />
+          </Suspense>
+        );
       default:
-        return <LoginPage />;
+        return (
+          <Suspense fallback={<PageLoadingSpinner message="Laddar inloggningssida..." />}>
+            <LoginPage />
+          </Suspense>
+        );
     }
   }
 
@@ -138,21 +188,25 @@ const AppContent: React.FC = () => {
     <AppLayout>
       <ModalManager />
       
-      {currentView === View.Home && <FeedPage />}
-      {currentView === View.Diary && <DiaryPage />}
-      {currentView === View.EditImage && <EditImagePage imageId={viewParams?.imageId} />}
-      {currentView === View.ImageBank && <ImageBankPage />}
-      {currentView === View.SlideshowProjects && <SlideshowProjectsPage />}
-      {currentView === View.PlaySlideshow && <SlideshowPlayerPage projectId={viewParams?.projectId} />}
+      <Suspense fallback={<PageLoadingSpinner message="Laddar sida..." />}>
+        {currentView === View.Home && <FeedPage />}
+        {currentView === View.Diary && <DiaryPage />}
+        {currentView === View.EditImage && viewParams?.imageId && <EditImagePage imageId={viewParams.imageId} />}
+        {currentView === View.ImageBank && <ImageBankPage />}
+        {currentView === View.SlideshowProjects && <SlideshowProjectsPage />}
+        {currentView === View.PlaySlideshow && viewParams?.projectId && <SlideshowPlayerPage projectId={viewParams.projectId} />}
+      </Suspense>
     </AppLayout>
   );
 };
 
 const App: React.FC = () => {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { User, View } from '../../types'; 
+import { User, View, ViewParams } from '../../types'; 
 import { DiaryPopover } from '../common/DiaryPopover'; 
 import { UserMenuPopover } from '../common/UserMenuPopover'; // Added
 
@@ -8,7 +8,7 @@ type ThemePreference = User['themePreference']; // Define ThemePreference type
 interface HeaderProps {
   currentUser: User | null;
   isSidebarExpanded: boolean;
-  onNavigate: (view: View, params?: any) => void;
+  onNavigate: (view: View, params?: ViewParams) => void;
   logoUrl?: string; 
   onLogout?: () => void; 
   onAcceptInvitation: (invitationId: string) => Promise<void>; 
@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
   const userMenuButtonRef = useRef<HTMLDivElement>(null);
 
   return (
-    <header className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-slate-700 px-4 sm:px-6 lg:px-8 shadow-sm`}>
+    <header className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-slate-700 px-4 sm:px-6 lg:px-8 shadow-sm`} role="banner">
       {/* Left Spacer for balance - can be empty or used for other header elements if needed */}
       <div className="w-1/3"></div>
 
@@ -120,6 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <div 
                   className={`w-8 h-8 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center text-sm font-semibold shadow-sm`}
+                  aria-hidden="true"
                 >
                   {currentUser.initials}
                 </div>
@@ -127,8 +128,8 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentUser.name.split(' ')[0]}
                 </span>
                 {Number(currentUser.pendingInvitationCount) > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4" aria-label={`${currentUser.pendingInvitationCount} väntande inbjudningar`}>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" aria-hidden="true"></span>
                         <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
                             {currentUser.pendingInvitationCount! > 9 ? '9+' : currentUser.pendingInvitationCount}
                         </span>

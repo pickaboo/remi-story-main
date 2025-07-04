@@ -77,6 +77,7 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = ({ currentUser, isOpen,
       date: entryDate,
       content: content.trim(),
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       audioRecUrl: audioRecorder.audioUrl || undefined,
       transcribedText: audioRecorder.audioUrl ? (audioRecorder.transcribedText.trim() || content.trim()) : undefined,
     };

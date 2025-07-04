@@ -11,11 +11,8 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
-  writeBatch,
-  arrayUnion,
-  arrayRemove,
-  FieldValue,
   onSnapshot, // Added for real-time listener
+  FieldValue,
   QuerySnapshot // Added for type
 } from 'firebase/firestore';
 import {
@@ -26,7 +23,7 @@ import {
   uploadBytesResumable,
   UploadTaskSnapshot
 } from 'firebase/storage';
-import { ImageRecord, SlideshowProject, DiaryEntry, Sphere, SphereInvitation, UserDescriptionEntry } from '../types';
+import { ImageRecord, SlideshowProject, DiaryEntry, Sphere, SphereInvitation } from '../types';
 
 const IMAGES_COLLECTION = 'images';
 const PROJECTS_COLLECTION = 'projects';
@@ -166,7 +163,7 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
     restOfImageDetails.userDescriptions = restOfImageDetails.userDescriptions.map(desc => {
       const newDesc = { ...desc };
       if (newDesc.audioRecUrl === undefined) {
-        newDesc.audioRecUrl = null;
+        newDesc.audioRecUrl = undefined;
       }
       if (desc.createdAt && desc.createdAt.trim() !== "") {
         newDesc.createdAt = desc.createdAt;
@@ -398,7 +395,7 @@ export const createSphereInvitation = async (invitationData: Omit<SphereInvitati
     ...invitationData,
     id: newId,
     status: 'pending',
-    createdAt: Timestamp.now().toDate().toISOString(),
+    createdAt: new Date().toISOString(),
   };
   const invitationDocRef = doc(db, SPHERE_INVITATIONS_COLLECTION, newId);
   // Remove undefined fields (especially message)
@@ -415,17 +412,16 @@ export const getPendingInvitationsForEmail = async (email: string): Promise<Sphe
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
-      const createdAtValue = data.createdAt;
-      const respondedAtValue = data.respondedAt;
       return {
         id: docSnap.id,
-        ...data,
-        createdAt: (createdAtValue instanceof Timestamp)
-          ? createdAtValue.toDate().toISOString()
-          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
-        respondedAt: (respondedAtValue instanceof Timestamp)
-          ? respondedAtValue.toDate().toISOString()
-          : (typeof respondedAtValue === 'string' ? respondedAtValue : undefined),
+        sphereId: data.sphereId || '',
+        inviteeEmail: data.inviteeEmail || '',
+        invitedUserId: data.invitedUserId,
+        invitedByUserId: data.invitedByUserId || '',
+        status: data.status || 'pending',
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        message: data.message,
       } as SphereInvitation
   });
 };
@@ -437,7 +433,7 @@ export const updateSphereInvitationStatus = async (invitationId: string, status:
     respondedAt: serverTimestamp(),
   };
   if (status === 'accepted' && inviteeUserId) {
-    updateData.inviteeUserId = inviteeUserId;
+    updateData.invitedUserId = inviteeUserId;
   }
   await setDoc(invitationDocRef, updateData, { merge: true });
   const updatedDocSnap = await getDoc(invitationDocRef);
@@ -447,13 +443,19 @@ export const updateSphereInvitationStatus = async (invitationId: string, status:
     const respondedAtValue = data.respondedAt; // This will be server-set, won't be available immediately client-side
     return {
         id: updatedDocSnap.id,
-        ...data,
+        sphereId: data.sphereId || '',
+        inviteeEmail: data.inviteeEmail || '',
+        invitedUserId: data.invitedUserId,
+        invitedByUserId: data.invitedByUserId || '',
+        status: data.status || 'pending',
         createdAt: (createdAtValue instanceof Timestamp)
           ? createdAtValue.toDate().toISOString()
-          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
+          : (typeof createdAtValue === 'string' ? createdAtValue : new Date().toISOString()),
+        updatedAt: data.updatedAt || new Date().toISOString(),
         respondedAt: (respondedAtValue instanceof Timestamp)
           ? respondedAtValue.toDate().toISOString()
           : (typeof respondedAtValue === 'string' ? respondedAtValue : undefined),
+        message: data.message,
     } as SphereInvitation;
   }
   return null;
@@ -468,7 +470,7 @@ export const uploadAudioFile = async (audioDataUrl: string, userId: string, entr
 
   return new Promise((resolve, reject) => {
     uploadTask.on('state_changed',
-      (snapshot: UploadTaskSnapshot) => {},
+      () => {},
       (error) => {
         console.error("Error uploading audio file:", error);
         reject(error);

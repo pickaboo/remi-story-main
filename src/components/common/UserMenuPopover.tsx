@@ -61,7 +61,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
           const pendingRawInvitations = await getPendingInvitationsForEmail(currentUser.email);
           const enrichedInvitations: InvitationDisplayData[] = await Promise.all(
             pendingRawInvitations.map(async (inv) => {
-              const inviter = await getUserById(inv.inviterUserId);
+              const inviter = await getUserById(inv.invitedByUserId);
               const sphere = await getSphereById(inv.sphereId);
               return {
                 ...inv,
@@ -165,7 +165,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
                     </div>
                     <span className="text-xs text-muted-text dark:text-slate-400">från {inv.inviterName}</span>
                 </div>
-                {inv.message && <p className="text-xs text-slate-600 dark:text-slate-300 italic mb-2 border-l-2 border-slate-300 dark:border-slate-500 pl-2 py-1">"{inv.message}"</p>}
+
                 <div className="flex justify-end space-x-2">
                   <Button
                     variant="ghost"

@@ -13,7 +13,7 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, arrayUnion, arrayRemove, Timestamp, collection, getDocs, where, query } from 'firebase/firestore';
-import { User, AuthUserRecord, SphereInvitation, Sphere } from '../types'; 
+import { User, AuthUserRecord, SphereInvitation } from '../types'; 
 import { MOCK_SPHERES } from "../constants"; // För initial sfärtilldelning
 import { 
     createSphereInvitation as storageCreateSphereInvitation, 
@@ -32,12 +32,14 @@ const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Om
     emailVerified: firebaseUser.emailVerified,
     name: firestoreData?.name || firebaseUser.displayName || "Ny Användare",
     initials: firestoreData?.initials || "NY",
-    avatarColor: firestoreData?.avatarColor || 'bg-slate-500',
+    avatarColor: firestoreData?.avatarColor || 'bg-gray-500',
     sphereIds: firestoreData?.sphereIds || [],
     backgroundPreference: firestoreData?.backgroundPreference,
     themePreference: firestoreData?.themePreference || 'system',
     showImageMetadataInBank: firestoreData?.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
     pendingInvitationCount: firestoreData?.pendingInvitationCount,
+    createdAt: firestoreData?.createdAt || new Date().toISOString(),
+    updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
   };
 };
 
@@ -76,7 +78,7 @@ const createFirestoreUserRecord = async (firebaseUser: FirebaseUser, additionalD
     emailVerified: firebaseUser.emailVerified, 
     name: firebaseUser.displayName || "Ny Användare",
     initials: "NY",
-    avatarColor: 'bg-slate-500',
+    avatarColor: 'bg-gray-500',
     sphereIds: initialSphereIds,
     themePreference: 'system',
     showImageMetadataInBank: false,
@@ -277,11 +279,12 @@ export const mock_inviteUserToSphereByEmail = async ( // Behåll namnet "mock_" 
 
   try {
     const newInvitation = await storageCreateSphereInvitation({
-        inviterUserId,
+        invitedByUserId: inviterUserId,
         inviteeEmail: inviteeEmail.toLowerCase(),
         sphereId,
         message: message?.trim() || undefined,
-        inviteeUserId: inviteeRecord?.id,
+        invitedUserId: inviteeRecord?.id,
+        updatedAt: new Date().toISOString(),
     });
     // Här kan man implementera att skicka ett riktigt e-postmeddelande via en backend-funktion
     console.log(`[AuthService] Inbjudan skapad (ID: ${newInvitation.id}) till ${inviteeEmail} för sfär "${sphere.name}". Meddelande: "${message}"`);

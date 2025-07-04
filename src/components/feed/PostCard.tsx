@@ -211,7 +211,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
 
   return (
     <>
-    <div className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700">
+    <article className="bg-card-bg/80 dark:bg-slate-800/80 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xl border border-border-color dark:border-slate-700" role="article" aria-labelledby={`post-${post.id}-title`}>
       {/* Post Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
@@ -497,7 +497,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
       )}
       
       {/* Removed old custom tag input section */}
-    </div>
+    </article>
 
     {fullscreenImageUrl && (
         <FullscreenImageViewer

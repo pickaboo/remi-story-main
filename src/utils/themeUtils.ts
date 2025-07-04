@@ -16,7 +16,7 @@ export const applyThemePreference = (theme: Theme) => {
 export const setupThemeListener = (currentUser: User | null, applyTheme: (theme: Theme) => void) => {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   
-  const handleChange = (e: MediaQueryListEvent) => {
+  const handleChange = () => {
     if (currentUser?.themePreference === 'system' || !currentUser) {
       applyTheme('system');
     }
