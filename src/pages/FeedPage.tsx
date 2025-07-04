@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
+import { Timeline } from '../components/feed/Timeline';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord } from '../types';
 import { getSphereFeedPostsListener } from '../services/storageService';
@@ -18,9 +19,12 @@ export const FeedPage: React.FC = () => {
   const [posts, setPosts] = useState<ImageRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFeedDateFromScroll, setActiveFeedDateFromScroll] = useState<Date | null>(null);
+  const [letFeedDriveTimelineSync, setLetFeedDriveTimelineSync] = useState(true);
   const createPostRef = useRef<HTMLDivElement>(null);
 
   console.log("[FeedPage] Render - currentUser:", currentUser?.id, "activeSphere:", activeSphere?.id, "activeSphere.name:", activeSphere?.name, "viewParams:", viewParams);
+  console.log("[FeedPage] Posts:", posts);
 
   useEffect(() => {
     console.log("[FeedPage] useEffect - activeSphere changed:", activeSphere?.id, activeSphere?.name);
@@ -56,12 +60,77 @@ export const FeedPage: React.FC = () => {
     }
   }, []);
 
+  const handleScrollToPost = useCallback((postId: string) => {
+    const postElement = document.getElementById(`post-item-${postId}`);
+    if (postElement) {
+      postElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
+  const handleTimelineUserInteraction = useCallback(() => {
+    setLetFeedDriveTimelineSync(false);
+    // Re-enable feed-driven sync after a delay
+    setTimeout(() => setLetFeedDriveTimelineSync(true), 2000);
+  }, []);
+
+  // Monitor which post is most visible to update timeline
+  useEffect(() => {
+    if (!posts.length || !letFeedDriveTimelineSync) return;
+
+    console.log("[FeedPage] Setting up intersection observer for posts");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        console.log("[FeedPage] Intersection observer triggered, entries:", entries.length);
+        
+        // Find the post with the highest intersection ratio (most visible)
+        let mostVisiblePost: ImageRecord | null = null;
+        let highestRatio = 0;
+
+                 entries.forEach((entry) => {
+           if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
+             const postId = entry.target.id.replace('post-item-', '');
+             const post = posts.find((p) => p.id === postId) as ImageRecord | undefined;
+             if (post && post.dateTaken) {
+               highestRatio = entry.intersectionRatio;
+               mostVisiblePost = post;
+             }
+           }
+         });
+
+        if (mostVisiblePost && mostVisiblePost.dateTaken) {
+          const postDate = new Date(mostVisiblePost.dateTaken);
+          console.log("[FeedPage] Setting activeFeedDateFromScroll to:", postDate, "for post:", mostVisiblePost.id);
+          setActiveFeedDateFromScroll(postDate);
+        }
+      },
+             {
+         threshold: [0.5], // Only trigger when 50% of the post is visible
+         rootMargin: '-30% 0px -30% 0px' // Only consider posts in the center 40% of the viewport
+       }
+    );
+
+    // Observe all post elements
+    posts.forEach((post) => {
+      const element = document.getElementById(`post-item-${post.id}`);
+      if (element) {
+        observer.observe(element);
+        console.log("[FeedPage] Observing post element:", post.id);
+      }
+    });
+
+    return () => {
+      console.log("[FeedPage] Cleaning up intersection observer");
+      observer.disconnect();
+    };
+  }, [posts, letFeedDriveTimelineSync]);
+
   if (!currentUser || !activeSphere) {
     return <LoadingSpinner message="Laddar användare och sfär..." />;
   }
 
   return (
-    <div className="py-8 sm:px-6 lg:px-8 w-full flex justify-center">
+    <div className="py-8 sm:px-6 lg:px-8 w-full flex justify-center relative">
       <div className="max-w-7xl w-full">
         <div className="max-w-2xl mx-auto">
           <div className="space-y-8">
@@ -111,6 +180,17 @@ export const FeedPage: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Timeline Sidebar - Centered between posts and right edge */}
+        <div className="hidden lg:block fixed right-20 top-24 w-64">
+          <Timeline
+            posts={posts}
+            onScrollToPost={handleScrollToPost}
+            activeFeedDateFromScroll={activeFeedDateFromScroll}
+            letFeedDriveTimelineSync={letFeedDriveTimelineSync}
+            onTimelineUserInteraction={handleTimelineUserInteraction}
+          />
         </div>
       </div>
     </div>
