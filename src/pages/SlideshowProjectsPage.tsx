@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
@@ -9,12 +8,7 @@ import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, g
 import { generatePhotoAlbumPdf } from '../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../firebase'; 
-
-interface SlideshowProjectsPageProps {
-  onNavigate: (view: View, params?: any) => void;
-  currentUser: User; 
-  activeSphere: Sphere; 
-}
+import { useAppContext } from '../context/AppContext';
 
 // Custom Confirmation Modal Component (Local to SlideshowProjectsPage)
 interface ConfirmDeleteProjectModalProps {
@@ -212,8 +206,11 @@ const CreationOptionCard: React.FC<CreationOptionCardProps> = ({
   );
 };
 
-
-export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ onNavigate, currentUser, activeSphere }) => {
+export const SlideshowProjectsPage: React.FC = () => {
+  const { currentUser, activeSphere, handleNavigate } = useAppContext();
+  if (!currentUser || !activeSphere) {
+    return <LoadingSpinner message="Laddar användare och sfär..." />;
+  }
   const [projects, setProjects] = useState<SlideshowProject[]>([]);
   const [availableImagesForSelection, setAvailableImagesForSelection] = useState<ImageRecord[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -226,7 +223,6 @@ export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ on
 
   const [projectForDeletionConfirmation, setProjectForDeletionConfirmation] = useState<SlideshowProject | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
-
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -524,7 +520,7 @@ export const SlideshowProjectsPage: React.FC<SlideshowProjectsPageProps> = ({ on
           {projects.map(proj => {
             const handlePrimaryAction = () => {
                 if (proj.projectType === 'slideshow') {
-                    onNavigate(View.PlaySlideshow, { projectId: proj.id });
+                    handleNavigate(View.PlaySlideshow, { projectId: proj.id });
                 } else if (proj.projectType === 'photoAlbum') {
                     handleGeneratePdfForProject(proj.id);
                 }

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
@@ -10,6 +8,7 @@ import { getUserById } from '../services/userService'; // Import for getting use
 import ExifReader from 'exifreader';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../../firebase'; // Added
+import { useAppContext } from '../context/AppContext';
 // Removed: import { generateImageBankExportPdf } from '../services/pdfService'; 
 
 interface ImageBankPageProps {
@@ -176,7 +175,13 @@ const ImageMetadataUserDetails: React.FC<{ userId?: string; sphereId?: string }>
 };
 
 
-export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activeSphere, onNavigate }) => {
+export const ImageBankPage: React.FC = () => {
+  const { currentUser, activeSphere, handleNavigate } = useAppContext();
+
+  if (!currentUser || !activeSphere) {
+    return <LoadingSpinner message="Laddar användare och sfär..." />;
+  }
+
   const [imageBankView, setImageBankView] = useState<ImageBankViewMode>('view'); // Default to 'view'
   
   // States for 'upload' view
@@ -671,7 +676,7 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
                                 <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onNavigate(View.Home, { scrollToPostId: image.id });
+                                    handleNavigate(View.Home, { scrollToPostId: image.id });
                                 }}
                                 className="text-xs text-accent dark:text-emerald-400 hover:underline mb-2 font-medium focus:outline-none focus:ring-1 focus:ring-accent/50 dark:focus:ring-emerald-400/50 rounded"
                                 title="Gå till publicerat inlägg i flödet"
@@ -685,7 +690,10 @@ export const ImageBankPage: React.FC<ImageBankPageProps> = ({ currentUser, activ
                                         size="sm"
                                         variant="accent"
                                         className="w-full text-xs !font-medium"
-                                        onClick={() => onNavigate(View.Home, { prefillPostWithImageId: image.id })}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleNavigate(View.Home, { prefillPostWithImageId: image.id });
+                                        }}
                                         title={`Skapa inlägg med "${image.name}"`}
                                     >
                                         Använd i Inlägg

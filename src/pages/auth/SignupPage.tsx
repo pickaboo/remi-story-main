@@ -1,15 +1,11 @@
-
 import React, { useState } from 'react';
 import { AuthContainer } from '../../components/auth/AuthContainer';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { User, View } from '../../types';
 import { signupWithEmailPassword, loginWithOAuth } from '../../services/authService';
-
-interface SignupPageProps {
-  onLoginSuccess: (user: User, isNewOAuthUser?: boolean) => void; // For OAuth flow that might "log in" directly
-  onNavigate: (viewOrPath: View | string, params?: any) => void;
-}
+import { useAppContext } from '../../context/AppContext';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 // Simple SVG Icons for OAuth providers (can be reused or moved to a common place)
 const GoogleIcon = () => (
@@ -32,7 +28,8 @@ const AppleIcon = () => (
   </svg>
 );
 
-export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNavigate }) => {
+export const SignupPage: React.FC = () => {
+  const { handleNavigate, handleLoginSuccess } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -41,46 +38,51 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    if (password !== confirmPassword) {
-      setError('Lösenorden matchar inte.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Lösenordet måste vara minst 6 tecken långt.');
-      return;
-    }
     setIsLoading(true);
+    setError(null);
     try {
       const result = await signupWithEmailPassword(email, password);
       if (result.user) {
-        onNavigate(View.EmailConfirmation, { email: result.user.email });
+        handleLoginSuccess(result.user);
+        if (!result.user.name || result.user.name === "Ny Användare") {
+          handleNavigate(View.ProfileCompletion);
+        } else if (!result.user.emailVerified) {
+          handleNavigate(View.EmailConfirmation);
+        } else {
+          handleNavigate(View.Home);
+        }
       } else {
         setError(result.error || 'Kunde inte skapa konto. Försök igen.');
       }
     } catch (err: any) {
-      setError(err.message || 'Ett oväntat fel uppstod. Försök igen senare.');
-      console.error("Signup error:", err);
+      setError('Ett fel uppstod vid registrering. Försök igen.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleOAuthSignup = async (provider: 'google' | 'microsoft' | 'apple') => {
-    setError(null);
     setIsLoading(true);
+    setError(null);
     try {
-      // For signup, OAuth behaves same as login; if it's a new user, onLoginSuccess will handle redirection to profile completion.
       const result = await loginWithOAuth(provider);
       if (result && result.user) {
-        onLoginSuccess(result.user, result.isNewUser); // Pass isNewUser flag
+        handleLoginSuccess(result.user, result.isNewUser);
+        if (!result.user.name || result.user.name === "Ny Användare") {
+          handleNavigate(View.ProfileCompletion);
+        } else if (!result.user.emailVerified) {
+          handleNavigate(View.EmailConfirmation);
+        } else {
+          handleNavigate(View.Home);
+        }
       } else {
         setError(`Kunde inte skapa konto med ${provider}.`);
       }
-    } catch (err) {
-      setError('Ett oväntat fel uppstod under OAuth-registrering.');
-      console.error("OAuth signup error:", err);
+    } catch (err: any) {
+      setError(`Ett fel uppstod vid registrering med ${provider}. Försök igen.`);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -145,7 +147,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onLoginSuccess, onNaviga
 
       <p className="mt-8 text-center text-sm text-muted-text dark:text-slate-400">
         Har du redan ett konto?{' '}
-        <button onClick={() => onNavigate('#login')} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
+        <button onClick={() => handleNavigate(View.Login)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
           Logga in här
         </button>
       </p>

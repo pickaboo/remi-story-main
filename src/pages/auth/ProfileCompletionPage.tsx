@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { User, View } from '../../types';
 import { updateUserProfile } from '../../services/authService';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 interface ProfileCompletionPageProps {
   initialUser: User;
@@ -18,10 +19,16 @@ const AVATAR_COLORS = [
   'bg-yellow-500', 'bg-cyan-500', 'bg-lime-500', 'bg-fuchsia-500',
 ];
 
-export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ initialUser, onProfileComplete, onNavigate }) => {
-  const [name, setName] = useState(initialUser.name === "Ny Användare" ? '' : initialUser.name);
-  const [initials, setInitials] = useState(initialUser.initials === "NY" ? '' : initialUser.initials);
-  const [avatarColor, setAvatarColor] = useState(initialUser.avatarColor || AVATAR_COLORS[0]);
+export const ProfileCompletionPage: React.FC = () => {
+  const { currentUser, handleNavigate, handleProfileComplete } = useAppContext();
+
+  if (!currentUser) {
+    return <LoadingSpinner message="Laddar användare..." />;
+  }
+
+  const [name, setName] = useState(currentUser.name === "Ny Användare" ? '' : currentUser.name);
+  const [initials, setInitials] = useState(currentUser.initials === "NY" ? '' : currentUser.initials);
+  const [avatarColor, setAvatarColor] = useState(currentUser.avatarColor || AVATAR_COLORS[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,9 +63,9 @@ export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ in
     setIsLoading(true);
     try {
       const updatedProfileData = { name: name.trim(), initials: initials.trim().toUpperCase(), avatarColor };
-      const updatedUser = await updateUserProfile(initialUser.id, updatedProfileData);
+      const updatedUser = await updateUserProfile(currentUser.id, updatedProfileData);
       if (updatedUser) {
-        onProfileComplete(updatedUser);
+        handleProfileComplete(updatedUser);
       } else {
         setError('Kunde inte uppdatera profilen. Försök igen.');
       }
@@ -72,7 +79,7 @@ export const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ in
     <AuthContainer title="Slutför din profil">
       <form onSubmit={handleSubmit} className="space-y-6">
         <p className="text-sm text-muted-text dark:text-slate-400 text-center">
-          Välkommen! Berätta lite mer om dig själv. Ditt namn ({initialUser.email || 'din e-post'}) är kopplat.
+          Välkommen! Berätta lite mer om dig själv. Ditt namn ({currentUser.email || 'din e-post'}) är kopplat.
         </p>
         <Input
           id="profile-name"

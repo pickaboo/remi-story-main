@@ -2,49 +2,42 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CreatePost } from '../components/feed/CreatePost';
 import { PostCard } from '../components/feed/PostCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { ImageRecord, View, User, Sphere } from '../types';
-import { getSphereFeedPostsListener } from '../services/storageService'; // Updated import
-// getDownloadURL and ref are no longer needed here as storageService handles it.
+import { ImageRecord } from '../types';
+import { getSphereFeedPostsListener } from '../services/storageService';
+import { useAppContext } from '../context/AppContext';
 
-interface FeedPageProps {
-  onNavigate: (view: View, params?: any) => void;
-  currentUser: User;
-  activeSphere: Sphere;
-  onFeedPostsUpdate: (posts: ImageRecord[]) => void;
-  onVisiblePostsDateChange: (date: Date | null) => void;
-  prefillPostWithImageId?: string | null;
-  scrollToPostIdFromParams?: string | null;
-}
-
-
-export const FeedPage: React.FC<FeedPageProps> = ({
-    onNavigate,
+export const FeedPage: React.FC = () => {
+  const {
     currentUser,
     activeSphere,
-    onFeedPostsUpdate,
-    onVisiblePostsDateChange,
-    prefillPostWithImageId,
-    scrollToPostIdFromParams
-}) => {
+    handleNavigate,
+  } = useAppContext();
+
   const [posts, setPosts] = useState<ImageRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const createPostRef = useRef<HTMLDivElement>(null);
-  const scrolledToIdRef = useRef<string | null>(null);
+
+  console.log("[FeedPage] Render - currentUser:", currentUser?.id, "activeSphere:", activeSphere?.id, "activeSphere.name:", activeSphere?.name);
 
   useEffect(() => {
+    console.log("[FeedPage] useEffect - activeSphere changed:", activeSphere?.id, activeSphere?.name);
+    if (!activeSphere) {
+      console.log("[FeedPage] No activeSphere, returning");
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
+    console.log("[FeedPage] Setting up listener for sphere:", activeSphere.id);
     const unsubscribe = getSphereFeedPostsListener(
       activeSphere.id,
       (updatedPosts) => {
+        console.log("[FeedPage] Posts updated:", updatedPosts.length, "posts");
         setPosts(updatedPosts);
-        console.log('Alla poster i flödet:', updatedPosts);
-        onFeedPostsUpdate(updatedPosts); // Notify App.tsx for Timeline
         setIsLoading(false);
       },
-      (err, sphereIdOnError?: string) => {
+      (err, sphereIdOnError) => {
         const sphereNameForError = sphereIdOnError === activeSphere.id ? activeSphere.name : (sphereIdOnError || 'okänd sfär');
         console.error(`Error fetching posts from listener for sphere ${sphereNameForError}:`, err);
         setError(`Kunde inte ladda inlägg för sfär "${sphereNameForError}". Kontrollera konsolen för mer information och se till att nödvändiga Firestore-index är skapade.`);
@@ -52,106 +45,18 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       }
     );
 
-    return () => unsubscribe(); // Cleanup listener on unmount or when activeSphere changes
-  }, [activeSphere.id, activeSphere.name, onFeedPostsUpdate]);
-
+    return () => unsubscribe();
+  }, [activeSphere]);
 
   useEffect(() => {
-    if (prefillPostWithImageId && createPostRef.current) {
+    if (createPostRef.current) {
       createPostRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [prefillPostWithImageId]);
+  }, []);
 
-
-  // Effect for scrolling to a specific post
-  useEffect(() => {
-    if (scrollToPostIdFromParams && posts.length > 0) {
-      if (scrolledToIdRef.current !== scrollToPostIdFromParams) {
-        const element = document.getElementById(`post-item-${scrollToPostIdFromParams}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          scrolledToIdRef.current = scrollToPostIdFromParams;
-        } else {
-          scrolledToIdRef.current = null;
-        }
-      }
-    } else if (!scrollToPostIdFromParams) {
-      scrolledToIdRef.current = null; 
-    }
-  }, [scrollToPostIdFromParams, posts]);
-
-  const handlePostCreatedOrUpdated = (changedPost: ImageRecord) => {
-    // The listener will automatically update the posts state.
-    // We might want to scroll to the new/updated post if it's relevant.
-    // For now, this function can be simplified or just used for side effects
-    // like clearing prefill params.
-    if (prefillPostWithImageId && changedPost.id === prefillPostWithImageId) {
-        onNavigate(View.Home, {}); // Clear prefill param
-    }
-    // If a post is updated such that it no longer belongs to the feed (e.g. unpublished),
-    // the listener should handle its removal from the `posts` state.
-  };
-
-  useEffect(() => {
-    const postElements = posts.map(post => document.getElementById(`post-item-${post.id}`)).filter(el => el !== null);
-
-    if (postElements.length === 0) {
-        onVisiblePostsDateChange(null);
-        return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      const visibleCandidates: { post: ImageRecord; top: number }[] = [];
-
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-          const postId = entry.target.id.replace('post-item-', '');
-          const foundPost = posts.find(p => p.id === postId);
-          if (foundPost) {
-            visibleCandidates.push({ post: foundPost, top: entry.boundingClientRect.top });
-          }
-        }
-      });
-
-      if (visibleCandidates.length > 0) {
-        visibleCandidates.sort((a, b) => a.top - b.top);
-        const activePostCandidate = visibleCandidates[0].post; 
-
-        const dateTakenValue = activePostCandidate.dateTaken || activePostCandidate.createdAt; // Fallback to createdAt for timeline
-
-        if (dateTakenValue && typeof dateTakenValue === 'string' && dateTakenValue.length > 0) {
-          try {
-            const dateObj = new Date(dateTakenValue);
-            if (!isNaN(dateObj.getTime())) {
-              onVisiblePostsDateChange(dateObj);
-            } else {
-              onVisiblePostsDateChange(null);
-            }
-          } catch (e) {
-            onVisiblePostsDateChange(null);
-          }
-        } else {
-          onVisiblePostsDateChange(null); 
-        }
-      } else {
-        onVisiblePostsDateChange(null);
-      }
-    }, {
-      root: null,
-      rootMargin: "-33% 0px -33% 0px",
-      threshold: [0.5], 
-    });
-
-    postElements.forEach(element => observer.observe(element!));
-
-    return () => {
-      postElements.forEach(element => {
-        if (element) observer.unobserve(element);
-      });
-      observer.disconnect();
-    };
-  }, [posts, onVisiblePostsDateChange]);
-
+  if (!currentUser || !activeSphere) {
+    return <LoadingSpinner message="Laddar användare och sfär..." />;
+  }
 
   return (
     <div className="py-8 sm:px-6 lg:px-8 w-full flex justify-center">
@@ -162,8 +67,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               <CreatePost
                 currentUser={currentUser}
                 activeSphereId={activeSphere.id}
-                onPostCreated={handlePostCreatedOrUpdated} // Changed from onPostCreated
-                initialImageIdToLoad={prefillPostWithImageId}
+                onPostCreated={() => {}}
+                initialImageIdToLoad={undefined}
               />
             </div>
 
@@ -191,8 +96,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                      <PostCard 
                         post={post} 
                         currentUser={currentUser} 
-                        onPostUpdated={handlePostCreatedOrUpdated} 
-                        onNavigateToEdit={() => onNavigate(View.EditImage, { imageId: post.id })}
+                        onPostUpdated={() => {}} 
+                        onNavigateToEdit={() => handleNavigate('EDIT_IMAGE', { imageId: post.id })}
                     />
                   </div>
                 ))}

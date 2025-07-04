@@ -9,15 +9,17 @@ import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../../firebase'; // Added
-
+import { useAppContext } from '../context/AppContext';
 
 interface EditImagePageProps {
   imageId: string;
-  onNavigate: (view: View, params?: any) => void;
-  currentUser: User; 
 }
 
-export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigate, currentUser }) => {
+export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
+  const { currentUser, handleNavigate } = useAppContext();
+  if (!currentUser) {
+    return <LoadingSpinner message="Laddar användare..." />;
+  }
   const [image, setImage] = useState<ImageRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTag, setCurrentTag] = useState('');
@@ -33,7 +35,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
   
   const [currentUserTextDescription, setCurrentUserTextDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-
 
   const fetchImage = useCallback(async () => {
     setIsLoading(true);
@@ -104,7 +105,6 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
     }
   }, [audioRecorder.transcribedText, currentUserTextDescription, audioRecorder.isRecording]);
 
-
   const handleInputChange = (field: keyof ImageRecord, value: any) => {
     setImage(prev => prev ? { ...prev, [field]: value } : null);
   };
@@ -171,7 +171,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
       };
 
       await saveImage(imageToSave); 
-      onNavigate(View.Home); 
+      handleNavigate(View.Home); 
     } catch (err: any) {
       console.error("Error saving image:", err);
       if (err.name === 'QuotaExceededError' || (typeof err.message === 'string' && err.message.includes('quota'))) {
@@ -331,7 +331,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId, onNavigat
             </div>
             
             <div className="pt-6 border-t border-border-color dark:border-slate-600 flex justify-end gap-3">
-              <Button onClick={() => onNavigate(View.Home)} variant="secondary" disabled={isSaving}>Avbryt</Button>
+              <Button onClick={() => handleNavigate(View.Home)} variant="secondary" disabled={isSaving}>Avbryt</Button>
               <Button onClick={handleSave} isLoading={isSaving} variant="primary" size="lg">Spara Inlägg</Button>
             </div>
           </div>

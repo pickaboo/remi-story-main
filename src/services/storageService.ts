@@ -378,7 +378,18 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
-  await setDoc(docRef, sphere);
+  
+  // Filter out undefined values before saving to Firestore
+  const sphereData = Object.fromEntries(
+    Object.entries(sphere).filter(([_, value]) => value !== undefined)
+  );
+  
+  await setDoc(docRef, sphereData);
+};
+
+export const updateSphere = async (sphereId: string, updates: Partial<Sphere>): Promise<void> => {
+  const docRef = doc(db, SPHERES_COLLECTION, sphereId);
+  await setDoc(docRef, updates, { merge: true });
 };
 
 export const createSphereInvitation = async (invitationData: Omit<SphereInvitation, 'id' | 'createdAt' | 'status'>): Promise<SphereInvitation> => {

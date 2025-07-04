@@ -2,14 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button } from '../components/common/Button';
 import { TextArea } from '../components/common/TextArea';
-import { DiaryEntry, User } from '../types';
+import { DiaryEntry } from '../types';
 import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry, generateId } from '../services/storageService';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { useAudioRecorder } from '../hooks/useAudioRecorder'; 
-
-interface DiaryPageProps {
-  currentUser: User;
-}
+import { useAppContext } from '../context/AppContext';
 
 const MicIconLarge: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={sizeClass}>
@@ -57,8 +54,9 @@ const ConfirmDeleteDiaryEntryModal: React.FC<ConfirmDeleteDiaryEntryModalProps> 
   </div>
 );
 
+export const DiaryPage: React.FC = () => {
+  const { currentUser } = useAppContext();
 
-export const DiaryPage: React.FC<DiaryPageProps> = ({ currentUser }) => {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
@@ -69,6 +67,11 @@ export const DiaryPage: React.FC<DiaryPageProps> = ({ currentUser }) => {
   const [entryForDeletionConfirmation, setEntryForDeletionConfirmation] = useState<DiaryEntry | null>(null);
   const [isDeletingEntry, setIsDeletingEntry] = useState(false);
   const [entryDate, setEntryDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Om currentUser saknas, visa loading
+  if (!currentUser) {
+    return <LoadingSpinner message="Laddar användare..." />;
+  }
 
   const fetchEntries = useCallback(async () => {
     setIsLoading(true);
@@ -200,7 +203,7 @@ export const DiaryPage: React.FC<DiaryPageProps> = ({ currentUser }) => {
                 <audio 
                     key={audioRecorder.audioUrl || editingEntry?.audioRecUrl} // Re-render audio element if src changes
                     controls 
-                    src={audioRecorder.audioUrl || editingEntry?.audioRecUrl} 
+                    src={audioRecorder.audioUrl || editingEntry?.audioRecUrl || undefined} 
                     className="w-full h-10"
                 ></audio>
                 <Button 
