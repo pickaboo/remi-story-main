@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { View, Sphere, User, ViewParams } from '@/types';
-import { SphereDisplay } from '@/components/common/SphereDisplay'; 
+import { SphereDisplay } from '@/components/ui';
 
 interface SidebarProps {
   currentPath: string;
@@ -106,7 +106,7 @@ const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) 
 );
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
+export const Sidebar: React.FC<SidebarProps> = memo(({ 
     currentPath, 
     onNavigate, 
     isExpanded, 
@@ -371,4 +371,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
     
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';

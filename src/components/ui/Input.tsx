@@ -1,12 +1,11 @@
-
-import React from 'react';
+import React, { memo } from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ label, id, error, className, ...props }) => {
+export const Input: React.FC<InputProps> = memo(({ label, id, error, className, ...props }) => {
   const errorId = error && id ? `${id}-error` : undefined;
   return (
     <div className="w-full">
@@ -21,4 +20,6 @@ export const Input: React.FC<InputProps> = ({ label, id, error, className, ...pr
       {error && <p id={errorId} className="mt-1 text-xs text-danger dark:text-red-400">{error}</p>}
     </div>
   );
-};
+});
+
+Input.displayName = 'Input';

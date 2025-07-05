@@ -1,16 +1,15 @@
-
-import React, { useRef, useEffect, TextareaHTMLAttributes } from 'react';
+import React, { useRef, useEffect, TextareaHTMLAttributes, memo, useCallback } from 'react';
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
 }
 
-export const TextArea: React.FC<TextAreaProps> = ({ label, id, error, className, value, ...props }) => {
+export const TextArea: React.FC<TextAreaProps> = memo(({ label, id, error, className, value, ...props }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const errorId = error && id ? `${id}-error` : undefined;
 
-  useEffect(() => {
+  const adjustHeight = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       // Reset height to 'auto' to let CSS (including min-height) determine the starting point
@@ -42,7 +41,11 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, id, error, className,
       
       textarea.style.height = `${targetHeight}px`;
     }
-  }, [value]); // Adjust height whenever the value changes
+  }, []);
+
+  useEffect(() => {
+    adjustHeight();
+  }, [value, adjustHeight]); // Adjust height whenever the value changes
 
   return (
     <div className="w-full">
@@ -60,4 +63,6 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, id, error, className,
       {error && <p id={errorId} className="mt-1 text-xs text-danger dark:text-red-400">{error}</p>}
     </div>
   );
-};
+});
+
+TextArea.displayName = 'TextArea';

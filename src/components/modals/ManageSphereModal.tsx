@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { TextArea } from './TextArea'; // Added TextArea
+import { Button, Input, TextArea, LoadingSpinner, SphereDisplay } from '../ui';
 import { Sphere, User } from '../../types';
-import { SphereDisplay } from './SphereDisplay'; 
-import { LoadingSpinner } from './LoadingSpinner';
 
 interface ManageSphereModalProps {
   isOpen: boolean;

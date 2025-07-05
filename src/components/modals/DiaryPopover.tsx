@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { User, DiaryEntry } from '../../types';
 import { saveDiaryEntry, generateId } from '../../services/storageService';
-import { TextArea } from './TextArea';
-import { Button } from './Button';
+import { TextArea } from '../ui';
+import { Button } from '../ui';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; // Import useAudioRecorder
 
 interface DiaryPopoverProps {
@@ -24,8 +24,7 @@ const StopIcon: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-4 h-4" }) =
   </svg>
 );
 
-
-export const DiaryPopover: React.FC<DiaryPopoverProps> = ({ currentUser, isOpen, onClose, anchorRef }) => {
+export const DiaryPopover: React.FC<DiaryPopoverProps> = memo(({ currentUser, isOpen, onClose, anchorRef }) => {
   const [content, setContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -150,4 +149,6 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = ({ currentUser, isOpen,
       </div>
     </div>
   );
-};
+});
+
+DiaryPopover.displayName = 'DiaryPopover';

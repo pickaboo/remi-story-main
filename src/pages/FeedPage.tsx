@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CreatePost } from '../components/feed/CreatePost';
+import { CreatePost } from '../components/forms';
 import { PostCard } from '../components/feed/PostCard';
 import { Timeline } from '../components/feed/Timeline';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../components/ui';
 import { ImageRecord } from '../types';
 import { getSphereFeedPostsListener } from '../services/storageService';
 import { useAppContext } from '../context/AppContext';

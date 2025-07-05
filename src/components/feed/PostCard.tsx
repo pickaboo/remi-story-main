@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useMemo, JSX } from 'react'; // Added useMemo
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
-import { TextArea } from '../common/TextArea';
-import { Button } from '../common/Button';
-import { Input } from '../common/Input'; // Keep for hover input
+import { TextArea } from '../ui';
+import { Button, Input } from '../ui';
+import { AudioPlayerButton } from '../ui';
+import { FullscreenImageViewer } from '../modals';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { AudioPlayerButton } from '../common/AudioPlayerButton';
-import { FullscreenImageViewer } from '../common/FullscreenImageViewer'; // Added
 
 interface PostCardProps {
   post: ImageRecord;
@@ -17,13 +16,15 @@ interface PostCardProps {
 }
 
 // Local SVG Icon for fullscreen button
-const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = memo(({ className = "w-5 h-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
     </svg>
-);
+));
 
-export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }: PostCardProps): JSX.Element {
+MagnifyingGlassPlusIcon.displayName = 'MagnifyingGlassPlusIcon';
+
+export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPostUpdated, onNavigateToEdit }) => {
   const [newCommentText, setNewCommentText] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
@@ -88,18 +89,28 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     }
   }, [commentAudioRecorder.transcribedText, commentAudioRecorder.audioUrl, newCommentText]);
 
-  const displayedComments = showAllComments ? comments : comments.slice(0, 2);
-  const hasImage = post.dataUrl && post.width != null && post.height != null && post.width > 0;
+  const displayedComments = useMemo(() => 
+    showAllComments ? comments : comments.slice(0, 2),
+    [showAllComments, comments]
+  );
 
-  const showUploaderDescriptionInput = hasImage &&
+  const hasImage = useMemo(() => 
+    post.dataUrl && post.width != null && post.height != null && post.width > 0,
+    [post.dataUrl, post.width, post.height]
+  );
+
+  const showUploaderDescriptionInput = useMemo(() => 
+    hasImage &&
     currentUser.id === post.uploadedByUserId &&
-    (!mainPostDescription || (!mainPostDescription.description.trim() && !mainPostDescription.audioRecUrl));
+    (!mainPostDescription || (!mainPostDescription.description.trim() && !mainPostDescription.audioRecUrl)),
+    [hasImage, currentUser.id, post.uploadedByUserId, mainPostDescription]
+  );
 
-  const handleNewCommentTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleNewCommentTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewCommentText(e.target.value);
-  };
+  }, []);
 
-  const handleSaveUploaderDescription = async () => {
+  const handleSaveUploaderDescription = useCallback(async () => {
     if (!currentUser || (!newCommentText.trim() && !commentAudioRecorder.audioUrl)) return;
     setIsCommenting(true);
     commentAudioRecorder.stopRecording();
@@ -128,9 +139,9 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     setNewCommentText('');
     commentAudioRecorder.resetAudio();
     setIsCommenting(false);
-  };
+  }, [currentUser, newCommentText, commentAudioRecorder, post, onPostUpdated]);
 
-  const handleAddComment = async () => {
+  const handleAddComment = useCallback(async () => {
     if (!currentUser || (!newCommentText.trim() && !commentAudioRecorder.audioUrl)) return;
     setIsCommenting(true);
     commentAudioRecorder.stopRecording();
@@ -148,49 +159,53 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     setNewCommentText('');
     commentAudioRecorder.resetAudio();
     setIsCommenting(false);
-  };
+  }, [currentUser, newCommentText, commentAudioRecorder, post, onPostUpdated]);
 
-  const handleResetAudioForInput = () => {
+  const handleResetAudioForInput = useCallback(() => {
     commentAudioRecorder.resetAudio();
     setNewCommentText('');
-  };
+  }, [commentAudioRecorder]);
   
-  const handleAddTag = async (tag: string) => {
+  const handleAddTag = useCallback(async (tag: string) => {
     const newTag = tag.trim().toLowerCase();
     if (newTag && !post.tags.includes(newTag)) {
       const updatedPost = { ...post, tags: [...post.tags, newTag] };
       await saveImage(updatedPost);
       onPostUpdated(updatedPost);
     }
-  };
+  }, [post, onPostUpdated]);
 
-  const handleAddTagFromHoverInput = async () => {
+  const handleAddTagFromHoverInput = useCallback(async () => {
     await handleAddTag(tagInputOnHover);
     setTagInputOnHover('');
-  };
+  }, [handleAddTag, tagInputOnHover]);
   
-  const handleRemoveTag = async (tagToRemove: string) => {
+  const handleRemoveTag = useCallback(async (tagToRemove: string) => {
     const updatedPost = { ...post, tags: post.tags.filter(tag => tag !== tagToRemove) };
     await saveImage(updatedPost);
     onPostUpdated(updatedPost);
-  };
+  }, [post, onPostUpdated]);
 
-  const handleOpenFullscreenViewer = (url: string | undefined) => {
+  const handleOpenFullscreenViewer = useCallback((url: string | undefined) => {
     if (url) {
         setFullscreenImageUrl(url);
     }
-  };
-  const handleCloseFullscreenViewer = () => {
+  }, []);
+
+  const handleCloseFullscreenViewer = useCallback(() => {
     setFullscreenImageUrl(null);
-  };
+  }, []);
 
-  const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>;
-  const StopIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>;
-  const TagIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1 text-primary dark:text-blue-300"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>;
+  const MicIcon = useCallback(() => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>, []);
+  const StopIcon = useCallback(() => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>, []);
+  const TagIcon = useCallback(() => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1 text-primary dark:text-blue-300"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>, []);
 
-  const canSubmitInput = !isCommenting && (newCommentText.trim() !== '' || !!commentAudioRecorder.audioUrl);
+  const canSubmitInput = useMemo(() => 
+    !isCommenting && (newCommentText.trim() !== '' || !!commentAudioRecorder.audioUrl),
+    [isCommenting, newCommentText, commentAudioRecorder.audioUrl]
+  );
 
-  const renderTimestamp = (isoDateString?: string) => {
+  const renderTimestamp = useCallback((isoDateString?: string) => {
     if (!isoDateString) return null;
     const date = new Date(isoDateString);
     return (
@@ -198,7 +213,7 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
         {date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
       </span>
     );
-  };
+  }, []);
   
   const renderUserAvatar = (user: User | null) => {
     if (!user) return <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-slate-600 flex-shrink-0 animate-pulse"></div>;
@@ -509,4 +524,6 @@ export function PostCard({ post, currentUser, onPostUpdated, onNavigateToEdit }:
     )}
     </>
   );
-}
+});
+
+PostCard.displayName = 'PostCard';

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ImageRecord } from '../../types';
 import { getAllImages } from '../../services/storageService';
-import { LoadingSpinner } from './LoadingSpinner';
-import { Button } from './Button';
+import { LoadingSpinner } from '../ui';
+import { Button } from '../ui';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../../../firebase';
 

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { memo, useMemo, useCallback } from 'react';
 import { Sphere } from '../../types';
 
 interface SphereDisplayProps {
@@ -12,7 +11,7 @@ interface SphereDisplayProps {
   showName?: boolean; 
 }
 
-export const SphereDisplay: React.FC<SphereDisplayProps> = ({
+export const SphereDisplay: React.FC<SphereDisplayProps> = memo(({
   sphere,
   size = 'md',
   className = '',
@@ -21,30 +20,40 @@ export const SphereDisplay: React.FC<SphereDisplayProps> = ({
   ariaLabel,
   showName = false,
 }) => {
-  const sizeClasses = {
+  const sizeClasses = useMemo(() => ({
     sm: 'w-6 h-6 text-xs', // 24px
     md: 'w-8 h-8 text-sm', // 32px
     lg: 'w-10 h-10 text-base', // 40px (for sidebar main display)
-  };
+  }), []);
 
-  const gradientStyle: React.CSSProperties = {
+  const gradientStyle: React.CSSProperties = useMemo(() => ({
     backgroundImage: `linear-gradient(to right, ${sphere.gradientColors[0]}, ${sphere.gradientColors[1]})`,
-  };
+  }), [sphere.gradientColors]);
 
-  const initials = sphere.name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
+  const initials = useMemo(() => 
+    sphere.name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase(),
+    [sphere.name]
+  );
 
-  const commonButtonClasses = `rounded-full flex items-center justify-center font-semibold text-white shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-150 ease-in-out hover:opacity-90 active:scale-95 ${sizeClasses[size]} ${className}`;
+  const commonButtonClasses = useMemo(() => 
+    `rounded-full flex items-center justify-center font-semibold text-white shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-150 ease-in-out hover:opacity-90 active:scale-95 ${sizeClasses[size]} ${className}`,
+    [sizeClasses, size, className]
+  );
+
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
 
   if (onClick) {
     return (
       <button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
         className={commonButtonClasses}
         style={gradientStyle}
         tabIndex={tabIndex}
@@ -69,4 +78,6 @@ export const SphereDisplay: React.FC<SphereDisplayProps> = ({
       {showName && <span className="sr-only">{sphere.name}</span>}
     </div>
   );
-};
+});
+
+SphereDisplay.displayName = 'SphereDisplay';

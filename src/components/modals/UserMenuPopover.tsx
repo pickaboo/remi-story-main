@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { User, SphereInvitation, Sphere } from '../../types';
-import { Button } from './Button';
-import { LoadingSpinner } from './LoadingSpinner';
+import { Button } from '../ui';
+import { LoadingSpinner } from '../ui';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
-import { SphereDisplay } from './SphereDisplay';
+import { SphereDisplay } from '../ui';
 
 type ThemePreference = User['themePreference'];
 
@@ -36,7 +36,7 @@ const THEME_OPTIONS: { label: string; value: ThemePreference }[] = [
     { label: "Mörkt", value: "dark" },
 ];
 
-export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
+export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   currentUser,
   isOpen,
   onClose,
@@ -222,4 +222,6 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
       </div>
     </div>
   );
-};
+});
+
+UserMenuPopover.displayName = 'UserMenuPopover';

@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Button } from '../components/common/Button';
-import { TextArea } from '../components/common/TextArea';
+import { Button, TextArea, LoadingSpinner } from '../components/ui';
 import { DiaryEntry } from '../types';
 import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry, generateId } from '../services/storageService';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { useAudioRecorder } from '../hooks/useAudioRecorder'; 
 import { useAppContext } from '../context/AppContext';
 

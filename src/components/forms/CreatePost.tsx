@@ -1,12 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '../common/Button';
-import { TextArea } from '../common/TextArea';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { Button, TextArea, AudioPlayerButton } from '../ui';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { generateId, saveImage, getImageById } from '../../services/storageService';
 import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../services/geminiService';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
-import { AudioPlayerButton } from '../common/AudioPlayerButton';
-import { ImageBankPickerModal } from '../common/ImageBankPickerModal';
+import { ImageBankPickerModal } from '../modals';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../../firebase'; 
@@ -147,7 +145,7 @@ async function getBase64FromUrl(url: string, originalMimeType?: string | null): 
 }
 
 
-export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
+export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
   const [postText, setPostText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -683,4 +681,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({ currentUser, activeSpher
       )}
     </>
   );
-};
+});
+
+CreatePost.displayName = 'CreatePost';

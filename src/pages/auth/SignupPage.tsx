@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { View } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Button } from '../../components/common/Button';
-import { Input } from '../../components/common/Input';
+import { Button, Input } from '../../components/ui';
 import { signupWithEmailPassword, loginWithOAuth } from '../../services/authService';
 
 // Simple SVG Icons for OAuth providers (can be reused or moved to a common place)

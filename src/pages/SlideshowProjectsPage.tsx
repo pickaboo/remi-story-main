@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { Button, Input, LoadingSpinner } from '../components/ui';
 import { ImageRecord, SlideshowProject, View } from '../types'; 
 import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
 import { generatePhotoAlbumPdf } from '../services/pdfService';

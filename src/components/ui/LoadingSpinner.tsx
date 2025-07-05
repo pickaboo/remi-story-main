@@ -1,17 +1,16 @@
-
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   message?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', message }) => {
-  const sizeClasses = {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = memo(({ size = 'md', message }) => {
+  const sizeClasses = useMemo(() => ({
     sm: 'h-6 w-6',
     md: 'h-12 w-12',
     lg: 'h-20 w-20',
-  };
+  }), []);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-2 p-4">
@@ -27,4 +26,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', mes
       {message && <p className="text-muted-text dark:text-slate-400 text-sm">{message}</p>}
     </div>
   );
-};
+});
+
+LoadingSpinner.displayName = 'LoadingSpinner';

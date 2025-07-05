@@ -1,7 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import { User, View, ViewParams } from '../../types'; 
-import { DiaryPopover } from '../common/DiaryPopover'; 
-import { UserMenuPopover } from '../common/UserMenuPopover'; // Added
+import { DiaryPopover, UserMenuPopover } from '../modals';
 
 type ThemePreference = User['themePreference']; // Define ThemePreference type
 
@@ -36,7 +35,7 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
 );
 
 
-export const Header: React.FC<HeaderProps> = ({ 
+export const Header: React.FC<HeaderProps> = memo(({ 
     currentUser, 
     isSidebarExpanded, 
     onNavigate, 
@@ -165,4 +164,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';

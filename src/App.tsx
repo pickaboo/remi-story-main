@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, Suspense, useState } from 'react';
+import React, { useEffect, useRef, Suspense, lazy, useState, memo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { View, User } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppLayout } from './components/AppLayout';
@@ -8,22 +9,21 @@ import { PageLoadingSpinner } from './components/common/LazyLoadingSpinner';
 import { applyThemePreference, setupThemeListener } from './utils/themeUtils';
 import { applyBackgroundPreference } from './utils/backgroundUtils';
 import { getCurrentAuthenticatedUser } from './services/authService';
-import { 
-  LoginPage, 
-  SignupPage, 
-  EmailConfirmationPage, 
-  ProfileCompletionPage 
-} from './pages/auth';
-import { 
-  FeedPage, 
-  DiaryPage, 
-  EditImagePage, 
-  ImageBankPage, 
-  SlideshowProjectsPage, 
-  SlideshowPlayerPage 
-} from './pages';
 
-const AppContent: React.FC = () => {
+// Lazy load all pages for better performance
+const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(module => ({ default: module.LoginPage })));
+const SignupPage = lazy(() => import('./pages/auth/SignupPage').then(module => ({ default: module.SignupPage })));
+const EmailConfirmationPage = lazy(() => import('./pages/auth/EmailConfirmationPage').then(module => ({ default: module.EmailConfirmationPage })));
+const ProfileCompletionPage = lazy(() => import('./pages/auth/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage })));
+
+const FeedPage = lazy(() => import('./pages/FeedPage').then(module => ({ default: module.FeedPage })));
+const DiaryPage = lazy(() => import('./pages/DiaryPage').then(module => ({ default: module.DiaryPage })));
+const EditImagePage = lazy(() => import('./pages/EditImagePage').then(module => ({ default: module.EditImagePage })));
+const ImageBankPage = lazy(() => import('./pages/ImageBankPage').then(module => ({ default: module.ImageBankPage })));
+const SlideshowProjectsPage = lazy(() => import('./pages/SlideshowProjectsPage').then(module => ({ default: module.SlideshowProjectsPage })));
+const SlideshowPlayerPage = lazy(() => import('./pages/SlideshowPlayerPage').then(module => ({ default: module.SlideshowPlayerPage })));
+
+const AppContent: React.FC = memo(() => {
   const {
     currentUser,
     activeSphere,
@@ -137,10 +137,6 @@ const AppContent: React.FC = () => {
     applyBackgroundPreference(activeSphere, currentUser);
   }, [activeSphere, currentUser]);
 
-  // URL hash effect - removed duplicate handler since useAppState already handles this
-
-
-
   // Render unauthenticated views
   if (isAuthenticated === false) {
     switch (currentView) {
@@ -198,7 +194,9 @@ const AppContent: React.FC = () => {
       </Suspense>
     </AppLayout>
   );
-};
+});
+
+AppContent.displayName = 'AppContent';
 
 const App: React.FC = () => {
   return (

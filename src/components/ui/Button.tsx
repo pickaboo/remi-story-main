@@ -20,13 +20,23 @@ export type ButtonSize =
   | 'lg';  // Large button (48px height)
 
 /**
- * Props for the Button component
+ * Base props for all button components
  */
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Visual style variant of the button */
   variant?: ButtonVariant;
   /** Size of the button */
   size?: ButtonSize;
+  /** Whether button should take full width of container */
+  fullWidth?: boolean;
+  /** Additional CSS classes */
+  className?: string;
+}
+
+/**
+ * Props for the main Button component
+ */
+export interface ButtonProps extends BaseButtonProps {
   /** Whether to show loading spinner */
   isLoading?: boolean;
   /** Loading text to display when isLoading is true */
@@ -35,36 +45,70 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   leftIcon?: React.ReactNode;
   /** Icon to display after the button text */
   rightIcon?: React.ReactNode;
-  /** Whether button should take full width of container */
-  fullWidth?: boolean;
-  /** Additional CSS classes */
-  className?: string;
   /** Button content */
   children: React.ReactNode;
 }
 
 /**
- * Button component with multiple variants, sizes, and states
+ * Props for Button.Icon component
+ */
+export interface ButtonIconProps {
+  /** Icon to display */
+  children: React.ReactNode;
+  /** Position of the icon */
+  position?: 'left' | 'right';
+  /** Additional CSS classes */
+  className?: string;
+}
+
+/**
+ * Props for Button.Text component
+ */
+export interface ButtonTextProps {
+  /** Text content */
+  children: React.ReactNode;
+  /** Additional CSS classes */
+  className?: string;
+}
+
+/**
+ * Props for Button.Loading component
+ */
+export interface ButtonLoadingProps {
+  /** Loading text to display */
+  text?: string;
+  /** Additional CSS classes */
+  className?: string;
+}
+
+/**
+ * Button component with compound components for flexible composition
  * 
  * @example
  * ```tsx
- * // Primary button
+ * // Basic usage
  * <Button variant="primary" onClick={handleClick}>
  *   Save Changes
  * </Button>
  * 
- * // Loading button
- * <Button variant="primary" isLoading loadingText="Saving...">
- *   Save Changes
+ * // With compound components
+ * <Button variant="primary" onClick={handleClick}>
+ *   <Button.Icon position="left">
+ *     <SaveIcon />
+ *   </Button.Icon>
+ *   <Button.Text>Save Changes</Button.Text>
+ *   <Button.Icon position="right">
+ *     <ArrowIcon />
+ *   </Button.Icon>
  * </Button>
  * 
- * // Button with icons
- * <Button variant="outline" leftIcon={<PlusIcon />} rightIcon={<ArrowIcon />}>
- *   Add Item
+ * // Loading state
+ * <Button variant="primary" isLoading>
+ *   <Button.Loading text="Saving..." />
  * </Button>
  * ```
  */
-export const Button: React.FC<ButtonProps> = memo(({
+const ButtonComponent: React.FC<ButtonProps> = memo(({
   variant = 'primary',
   size = 'md',
   isLoading = false,
@@ -165,6 +209,7 @@ export const Button: React.FC<ButtonProps> = memo(({
         ${className}
       `.trim()}
       disabled={disabled || isLoading}
+      type={props.type || 'button'}
       {...props}
     >
       {isLoading && <LoadingSpinner />}
@@ -181,4 +226,30 @@ export const Button: React.FC<ButtonProps> = memo(({
   );
 });
 
-Button.displayName = 'Button';
+ButtonComponent.displayName = 'Button';
+
+// Compound components
+const ButtonIcon: React.FC<ButtonIconProps> = ({ children, position = 'left', className = '' }) => (
+  <span className={`flex-shrink-0 ${position === 'left' ? 'mr-2' : 'ml-2'} ${className}`}>
+    {children}
+  </span>
+);
+
+const ButtonText: React.FC<ButtonTextProps> = ({ children, className = '' }) => (
+  <span className={`flex-shrink-0 ${className}`}>
+    {children}
+  </span>
+);
+
+const ButtonLoading: React.FC<ButtonLoadingProps> = ({ text, className = '' }) => (
+  <span className={`flex-shrink-0 ${className}`}>
+    {text}
+  </span>
+);
+
+// Export the main Button component with compound components
+export const Button = Object.assign(ButtonComponent, {
+  Icon: ButtonIcon,
+  Text: ButtonText,
+  Loading: ButtonLoading,
+});

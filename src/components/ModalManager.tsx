@@ -1,10 +1,12 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { CreateSphereModal } from './common/CreateSphereModal';
-import { InviteToSphereModal } from './common/InviteToSphereModal';
-import { LookAndFeelModal } from './common/LookAndFeelModal';
-import { ManageSphereModal } from './common/ManageSphereModal';
-import { ImageBankSettingsModal } from './common/ImageBankSettingsModal';
+import { 
+  CreateSphereModal,
+  InviteToSphereModal,
+  LookAndFeelModal,
+  ManageSphereModal,
+  ImageBankSettingsModal
+} from './modals';
 
 export const ModalManager: React.FC = () => {
   const {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Button } from '../components/common/Button';
+import { Button } from '../components/ui';
 import { ImageRecord, View } from '../types';
 import { getAllImages, saveImage, generateId, deleteImage, getSphereById } from '../services/storageService';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../components/ui';
 import { getUserById } from '../services/userService'; // Import for getting user details
 import ExifReader from 'exifreader';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added

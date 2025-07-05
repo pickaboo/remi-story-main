@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
+import { Button } from '../ui';
+import { Input } from '../ui';
 import { PREDEFINED_SPHERE_GRADIENTS } from '../../constants';
 import { useFocusTrap, useReturnFocus } from '../../hooks/useFocusTrap';
 // SphereDisplay could be used for preview, but for simplicity, we'll just show colors.

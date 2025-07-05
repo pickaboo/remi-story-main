@@ -7,7 +7,26 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+// Compound component pattern för layout
+interface AppLayoutComposition {
+  Sidebar: React.FC<SidebarProps>;
+  Header: React.FC<HeaderProps>;
+  Main: React.FC<MainProps>;
+}
+
+interface SidebarProps {
+  children?: React.ReactNode;
+}
+
+interface HeaderProps {
+  children?: React.ReactNode;
+}
+
+interface MainProps {
+  children: React.ReactNode;
+}
+
+export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ children }) => {
   const {
     isSidebarExpanded,
     currentUser,
@@ -95,6 +114,36 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className="h-full overflow-y-auto no-scrollbar" ref={mainScrollContainerRef}>
           {children}
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Compound components
+AppLayout.Sidebar = ({ children }) => {
+  const { isSidebarExpanded } = useAppContext();
+  return (
+    <div className={`transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'w-60' : 'w-20'}`}>
+      {children}
+    </div>
+  );
+};
+
+AppLayout.Header = ({ children }) => {
+  const { isSidebarExpanded } = useAppContext();
+  return (
+    <div className={`transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'ml-60' : 'ml-20'}`}>
+      {children}
+    </div>
+  );
+};
+
+AppLayout.Main = ({ children }) => {
+  const { isSidebarExpanded } = useAppContext();
+  return (
+    <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarExpanded ? 'ml-60' : 'ml-20'} pt-16 h-full`}>
+      <div className="h-full overflow-y-auto no-scrollbar">
+        {children}
       </div>
     </div>
   );

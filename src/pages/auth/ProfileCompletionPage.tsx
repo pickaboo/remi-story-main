@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Input, Button, LoadingSpinner } from '../../components/ui';
+import { View } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
 import { User } from '../../types';
 import { updateUserProfile } from '../../services/authService';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 const AVATAR_COLORS = [
   'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500', 

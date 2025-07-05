@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react';
 import { ImageRecord } from '../../types';
 
 const getSwedishMonthName = (date: Date): string => {
@@ -78,7 +77,7 @@ const getInitialDate = (posts: ImageRecord[], activeFeedDate?: Date | null, avai
 };
 
 
-export const Timeline: React.FC<TimelineProps> = ({ posts, onScrollToPost, activeFeedDateFromScroll, letFeedDriveTimelineSync, onTimelineUserInteraction }) => {
+export const Timeline: React.FC<TimelineProps> = memo(({ posts, onScrollToPost, activeFeedDateFromScroll, letFeedDriveTimelineSync, onTimelineUserInteraction }) => {
 
   const availableMonthsWithPosts = useMemo(() => {
     if (!posts || posts.length === 0) return [];
@@ -477,4 +476,6 @@ export const Timeline: React.FC<TimelineProps> = ({ posts, onScrollToPost, activ
       </div>
     </div>
   );
-};
+});
+
+Timeline.displayName = 'Timeline';

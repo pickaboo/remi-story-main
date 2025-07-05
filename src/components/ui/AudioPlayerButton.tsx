@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Button } from './Button'; // Assuming your Button component is here
 
 interface AudioPlayerButtonProps {
@@ -21,10 +21,10 @@ const PauseIcon: React.FC<{ sizeClass?: string }> = ({ sizeClass = "w-5 h-5" }) 
   </svg>
 );
 
-export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = ({
+export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = memo(({
   audioUrl,
-  className,
-  buttonSize = 'sm',
+  className = '',
+  buttonSize = 'md',
   buttonVariant = 'ghost',
   ariaLabel = 'Spela upp ljud',
 }) => {
@@ -87,4 +87,6 @@ export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = ({
       {isPlaying ? <PauseIcon sizeClass={iconSizeClass} /> : <PlayIcon sizeClass={iconSizeClass} />}
     </Button>
   );
-};
+});
+
+AudioPlayerButton.displayName = 'AudioPlayerButton';

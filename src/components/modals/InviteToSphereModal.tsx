@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { TextArea } from './TextArea'; // Added TextArea
+import { Button } from '../ui';
+import { Input } from '../ui';
+import { TextArea } from '../ui';
 import { Sphere } from '../../types';
 
 interface InviteToSphereModalProps {

@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Input, TextArea, LoadingSpinner } from '../components/ui';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
-import { TextArea } from '../components/common/TextArea';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ImageRecord, View, UserDescriptionEntry } from '../types';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';

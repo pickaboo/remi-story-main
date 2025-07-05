@@ -1,164 +1,195 @@
-import { useState, useEffect, useRef } from 'react';
-
-interface ImageLoaderState {
-  isLoading: boolean;
-  isLoaded: boolean;
-  hasError: boolean;
-  error?: string;
-  ref?: React.RefObject<HTMLImageElement | null>;
-}
+import { useState, useEffect, useCallback } from 'react';
 
 interface UseImageLoaderOptions {
-  lazy?: boolean;
-  threshold?: number;
-  rootMargin?: string;
+  /** Whether to load the image immediately */
+  immediate?: boolean;
+  /** Cross-origin setting for the image */
+  crossOrigin?: 'anonymous' | 'use-credentials';
+  /** Whether to decode the image */
+  decode?: boolean;
+}
+
+interface UseImageLoaderReturn {
+  /** Whether the image is currently loading */
+  isLoading: boolean;
+  /** Whether the image has loaded successfully */
+  isLoaded: boolean;
+  /** Whether there was an error loading the image */
+  hasError: boolean;
+  /** The loaded image element */
+  image: HTMLImageElement | null;
+  /** Function to manually load the image */
+  load: () => void;
+  /** Function to reset the loading state */
+  reset: () => void;
 }
 
 /**
- * Hook for optimized image loading with lazy loading support
- * @param src - Image source URL
- * @param options - Loading options
- * @returns Image loading state
+ * Hook for optimized image loading with error handling
+ * 
+ * @example
+ * ```tsx
+ * const { isLoading, isLoaded, hasError, image, load } = useImageLoader({
+ *   src: '/path/to/image.jpg',
+ *   immediate: true
+ * });
+ * 
+ * if (isLoading) return <div>Loading...</div>;
+ * if (hasError) return <div>Error loading image</div>;
+ * if (isLoaded) return <img src={image?.src} alt="Loaded image" />;
+ * ```
  */
 export function useImageLoader(
-  src: string | null | undefined,
+  src: string,
   options: UseImageLoaderOptions = {}
-): ImageLoaderState {
-  const { lazy = true, threshold = 0.1, rootMargin = '50px' } = options;
-  const [state, setState] = useState<ImageLoaderState>({
-    isLoading: false,
-    isLoaded: false,
-    hasError: false
-  });
+): UseImageLoaderReturn {
+  const { immediate = true, crossOrigin, decode = true } = options;
   
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
 
-  useEffect(() => {
-    if (!src) {
-      setState({ isLoading: false, isLoaded: false, hasError: false });
-      return;
-    }
-
-    if (!lazy) {
-      // Load immediately if not lazy
-      loadImage();
-      return;
-    }
-
-    // Setup intersection observer for lazy loading
-    if (imgRef.current) {
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              loadImage();
-              observerRef.current?.disconnect();
-            }
-          });
-        },
-        { threshold, rootMargin }
-      );
-
-      observerRef.current.observe(imgRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [src, lazy, threshold, rootMargin]);
-
-  const loadImage = () => {
+  const load = useCallback(() => {
     if (!src) return;
 
-    setState(prev => ({ ...prev, isLoading: true, hasError: false }));
+    setIsLoading(true);
+    setHasError(false);
+    setIsLoaded(false);
 
     const img = new Image();
     
+    if (crossOrigin) {
+      img.crossOrigin = crossOrigin;
+    }
+
     img.onload = () => {
-      setState({
-        isLoading: false,
-        isLoaded: true,
-        hasError: false
-      });
+      setIsLoading(false);
+      setIsLoaded(true);
+      setHasError(false);
+      setImage(img);
+
+      if (decode && 'decode' in img) {
+        img.decode().catch(() => {
+          // Decode failed, but image is still loaded
+        });
+      }
     };
 
     img.onerror = () => {
-      setState({
-        isLoading: false,
-        isLoaded: false,
-        hasError: true,
-        error: 'Failed to load image'
-      });
+      setIsLoading(false);
+      setIsLoaded(false);
+      setHasError(true);
+      setImage(null);
     };
 
     img.src = src;
-  };
+  }, [src, crossOrigin, decode]);
+
+  const reset = useCallback(() => {
+    setIsLoading(false);
+    setIsLoaded(false);
+    setHasError(false);
+    setImage(null);
+  }, []);
+
+  useEffect(() => {
+    if (immediate) {
+      load();
+    }
+  }, [immediate, load]);
 
   return {
-    ...state,
-    ref: imgRef
+    isLoading,
+    isLoaded,
+    hasError,
+    image,
+    load,
+    reset
   };
 }
 
 /**
  * Hook for preloading multiple images
- * @param imageUrls - Array of image URLs to preload
- * @returns Loading state for all images
+ * 
+ * @example
+ * ```tsx
+ * const { isLoading, loadedCount, totalCount, hasError } = useImagePreloader([
+ *   '/image1.jpg',
+ *   '/image2.jpg',
+ *   '/image3.jpg'
+ * ]);
+ * 
+ * if (isLoading) return <div>Loading {loadedCount}/{totalCount} images...</div>;
+ * ```
  */
-export function useImagePreloader(imageUrls: string[]): {
+export function useImagePreloader(
+  imageUrls: string[],
+  options: UseImageLoaderOptions = {}
+): {
+  isLoading: boolean;
   loadedCount: number;
   totalCount: number;
-  isComplete: boolean;
+  hasError: boolean;
   errors: string[];
 } {
   const [loadedCount, setLoadedCount] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
+  const loadImages = useCallback(() => {
     if (imageUrls.length === 0) return;
 
-    let mounted = true;
-    let loaded = 0;
+    setIsLoading(true);
+    setLoadedCount(0);
+    setErrors([]);
+    setHasError(false);
+
+    let completedCount = 0;
     const newErrors: string[] = [];
 
-    const loadImage = (url: string, index: number) => {
-      const img = new Image();
-      
-      img.onload = () => {
-        if (mounted) {
-          loaded++;
-          setLoadedCount(loaded);
-        }
-      };
-
-      img.onerror = () => {
-        if (mounted) {
-          newErrors.push(`Failed to load image ${index + 1}: ${url}`);
-          setErrors([...newErrors]);
-          loaded++;
-          setLoadedCount(loaded);
-        }
-      };
-
-      img.src = url;
+    const checkCompletion = () => {
+      completedCount++;
+      if (completedCount === imageUrls.length) {
+        setIsLoading(false);
+        setHasError(newErrors.length > 0);
+      }
     };
 
     imageUrls.forEach((url, index) => {
-      loadImage(url, index);
-    });
+      const img = new Image();
+      
+      if (options.crossOrigin) {
+        img.crossOrigin = options.crossOrigin;
+      }
 
-    return () => {
-      mounted = false;
-    };
-  }, [imageUrls]);
+      img.onload = () => {
+        setLoadedCount(prev => prev + 1);
+        checkCompletion();
+      };
+
+      img.onerror = () => {
+        newErrors.push(url);
+        setErrors(prev => [...prev, url]);
+        checkCompletion();
+      };
+
+      img.src = url;
+    });
+  }, [imageUrls, options.crossOrigin]);
+
+  useEffect(() => {
+    if (options.immediate !== false) {
+      loadImages();
+    }
+  }, [loadImages, options.immediate]);
 
   return {
+    isLoading,
     loadedCount,
     totalCount: imageUrls.length,
-    isComplete: loadedCount === imageUrls.length,
+    hasError,
     errors
   };
 } 

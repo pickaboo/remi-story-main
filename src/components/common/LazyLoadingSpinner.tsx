@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface LazyLoadingSpinnerProps {
   message?: string;
@@ -6,7 +6,7 @@ interface LazyLoadingSpinnerProps {
   className?: string;
 }
 
-export const LazyLoadingSpinner: React.FC<LazyLoadingSpinnerProps> = ({ 
+export const LazyLoadingSpinner: React.FC<LazyLoadingSpinnerProps> = memo(({ 
   message = "Laddar...", 
   size = 'md',
   className = ""
@@ -31,19 +31,25 @@ export const LazyLoadingSpinner: React.FC<LazyLoadingSpinnerProps> = ({
       </p>
     </div>
   );
-};
+});
+
+LazyLoadingSpinner.displayName = 'LazyLoadingSpinner';
 
 // Pre-configured loading components for different contexts
-export const PageLoadingSpinner: React.FC<{ message?: string }> = ({ message }) => (
+export const PageLoadingSpinner: React.FC<{ message?: string }> = memo(({ message }) => (
   <div className="min-h-screen flex items-center justify-center bg-light-bg dark:bg-slate-900">
     <LazyLoadingSpinner message={message || "Laddar sida..."} size="lg" />
   </div>
-);
+));
 
-export const ComponentLoadingSpinner: React.FC<{ message?: string }> = ({ message }) => (
+export const ComponentLoadingSpinner: React.FC<{ message?: string }> = memo(({ message }) => (
   <LazyLoadingSpinner message={message || "Laddar komponent..."} size="md" />
-);
+));
 
-export const ModalLoadingSpinner: React.FC<{ message?: string }> = ({ message }) => (
+export const ModalLoadingSpinner: React.FC<{ message?: string }> = memo(({ message }) => (
   <LazyLoadingSpinner message={message || "Laddar modal..."} size="sm" />
-); 
+));
+
+PageLoadingSpinner.displayName = 'PageLoadingSpinner';
+ComponentLoadingSpinner.displayName = 'ComponentLoadingSpinner';
+ModalLoadingSpinner.displayName = 'ModalLoadingSpinner'; 

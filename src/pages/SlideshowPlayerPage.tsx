@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ImageRecord, SlideshowProject, View, UserDescriptionEntry } from '../types';
 import { getProjectById, getImageById } from '../services/storageService';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../components/ui';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
 import { storage } from '../../firebase'; // Added
 import { useAppContext } from '../context/AppContext';
+import { PageContainer } from '../components/layout/PageContainer';
 // Removed Button import as top controls are now raw buttons
 
 interface SlideshowPlayerPageProps {
