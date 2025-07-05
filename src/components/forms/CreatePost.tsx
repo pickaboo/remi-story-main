@@ -424,7 +424,7 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
             name: imageFile.name,
             type: imageFile.type,
             size: 0, // Default size for text/audio posts
-            dataUrl: '',
+            dataUrl: imagePreviewUrl,
             dateTaken: uploadedFileDetails.dateTaken, 
             exifData: uploadedFileDetails.exifData ?? undefined, 
             filePath: uploadedFileDetails.filePath, 
@@ -461,7 +461,7 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
             name: postNameText,
             type: audioRecorder.audioUrl && !postText.trim() ? "audio/generic" : "text/plain",
             size: 0, // Default size for text/audio posts
-            dataUrl: '',
+            dataUrl: '', // Empty string for text/audio posts
             dateTaken: new Date().toISOString().split('T')[0], 
             tags: [],
             geminiAnalysis: undefined,
@@ -485,7 +485,7 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
 
       const finalRecordForFirestore: Partial<ImageRecord> = { ...finalImageRecord };
       for (const key in finalRecordForFirestore) {
-        if (finalRecordForFirestore[key as keyof ImageRecord] === undefined && key !== 'createdAt' && key !== 'updatedAt' && key !== 'dataUrl') {
+        if (finalRecordForFirestore[key as keyof ImageRecord] === undefined && key !== 'createdAt' && key !== 'updatedAt') {
           (finalRecordForFirestore as any)[key] = null; 
         }
       }
@@ -531,7 +531,7 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="bg-card-bg dark:bg-slate-800 p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-slate-700 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-card-bg dark:bg-dark-bg p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-dark-bg/50 space-y-4">
         <div className="flex items-center space-x-3">
           <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
             {currentUser.initials}

@@ -45,7 +45,7 @@ export const ImageBankSettingsModal: React.FC<ImageBankSettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="image-bank-settings-modal-title">
-      <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700 flex justify-between items-center">
           <h2 id="image-bank-settings-modal-title" className="text-xl font-semibold text-slate-700 dark:text-slate-200">
             Inställningar för Bildbanken
@@ -60,7 +60,7 @@ export const ImageBankSettingsModal: React.FC<ImageBankSettingsModalProps> = ({
         <div className="p-4 sm:p-5 space-y-6 flex-grow overflow-y-auto">
           <section>
             <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-2">Metadata Visning</h3>
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border-color dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-color dark:border-dark-bg/30 bg-slate-50 dark:bg-dark-bg/50">
                 <label htmlFor="showImageMetadataToggle" className="text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
                     Visa teknisk metadata för bilder i bildbanken
                 </label>
@@ -73,7 +73,7 @@ export const ImageBankSettingsModal: React.FC<ImageBankSettingsModalProps> = ({
                     className={`
                         relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out
                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-slate-800 dark:focus:ring-blue-400
-                        ${showImageMetadata ? 'bg-primary dark:bg-blue-500' : 'bg-slate-300 dark:bg-slate-600'}
+                        ${showImageMetadata ? 'bg-primary dark:bg-blue-500' : 'bg-slate-300 dark:bg-dark-bg'}
                     `}
                     disabled={isSaving}
                 >

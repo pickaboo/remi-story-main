@@ -123,18 +123,18 @@ export const SignupPage: React.FC = () => {
             <div className="w-full border-t border-border-color dark:border-slate-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-card-bg dark:bg-slate-800 text-muted-text dark:text-slate-400">Eller registrera med</span>
+            <span className="px-2 bg-card-bg dark:bg-dark-bg text-muted-text dark:text-slate-400">Eller registrera med</span>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3">
-          <Button variant="ghost" className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onClick={() => handleOAuthSignup('google')} isLoading={isLoading} aria-label="Registrera med Google">
+          <Button variant="ghost" className="w-full border-slate-300 dark:border-dark-bg/50 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-bg/50" onClick={() => handleOAuthSignup('google')} isLoading={isLoading} aria-label="Registrera med Google">
             <GoogleIcon /> Registrera med Google
           </Button>
-          <Button variant="ghost" className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onClick={() => handleOAuthSignup('microsoft')} isLoading={isLoading} aria-label="Registrera med Microsoft">
+          <Button variant="ghost" className="w-full border-slate-300 dark:border-dark-bg/50 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-bg/50" onClick={() => handleOAuthSignup('microsoft')} isLoading={isLoading} aria-label="Registrera med Microsoft">
             <MicrosoftIcon /> Registrera med Microsoft
           </Button>
-          <Button variant="ghost" className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onClick={() => handleOAuthSignup('apple')} isLoading={isLoading} aria-label="Registrera med Apple">
+          <Button variant="ghost" className="w-full border-slate-300 dark:border-dark-bg/50 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-bg/50" onClick={() => handleOAuthSignup('apple')} isLoading={isLoading} aria-label="Registrera med Apple">
             <AppleIcon /> Registrera med Apple
           </Button>
         </div>

@@ -107,7 +107,7 @@ const CardComponent: React.FC<CardProps> = memo(({
   ...props
 }) => {
   const baseClasses = [
-    'bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-border-color dark:border-slate-700',
+    'bg-white dark:bg-dark-bg rounded-lg shadow-sm border border-border-color dark:border-dark-bg/50',
     'overflow-hidden',
     hoverable && 'hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200',
     clickable && 'cursor-pointer hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200',

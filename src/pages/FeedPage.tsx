@@ -158,7 +158,7 @@ export const FeedPage: React.FC = () => {
             </div>}
 
             {!isLoading && !error && posts.length === 0 && (
-              <div className="text-center py-16 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-dashed border-border-color dark:border-slate-600">
+              <div className="text-center py-16 bg-slate-50 dark:bg-dark-bg/30 rounded-xl border border-dashed border-border-color dark:border-dark-bg/50">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mx-auto text-slate-400 dark:text-slate-500 mb-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

@@ -27,7 +27,7 @@ interface ConfirmDeleteDiaryEntryModalProps {
 }
 const ConfirmDeleteDiaryEntryModal: React.FC<ConfirmDeleteDiaryEntryModalProps> = ({ entry, onConfirm, onCancel, isDeleting }) => (
   <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[110] p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-diary-modal-title">
-    <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
       <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700">
         <h2 id="confirm-delete-diary-modal-title" className="text-xl font-semibold text-danger dark:text-red-400">Bekräfta Radering av Anteckning</h2>
       </header>
@@ -160,7 +160,7 @@ export const DiaryPage: React.FC = () => {
     <PageContainer title={`Min Dagbok - ${currentUser.name}`}>
       <div className="space-y-8">
         {/* Entry Form */}
-        <section className="bg-slate-50 dark:bg-slate-700/50 p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-slate-600">
+        <section className="bg-slate-50 dark:bg-dark-bg/30 p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-dark-bg/50">
           <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-1">
             {editingEntry ? 'Redigera Anteckning' : 'Ny Anteckning'}
           </h2>
@@ -175,7 +175,7 @@ export const DiaryPage: React.FC = () => {
               id="entryDate"
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
-              className="block w-full sm:w-auto px-3 py-2 border border-border-color dark:border-slate-600 rounded-md shadow-sm bg-input-bg dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 text-sm dark:[color-scheme:dark]"
+              className="block w-full sm:w-auto px-3 py-2 border border-border-color dark:border-dark-bg/50 rounded-md shadow-sm bg-input-bg dark:bg-dark-bg dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 text-sm dark:[color-scheme:dark]"
               disabled={isSaving}
             />
           </div>
@@ -258,7 +258,7 @@ export const DiaryPage: React.FC = () => {
           ) : (
             <div className="space-y-6">
               {entries.map((entry) => (
-                <div key={entry.id} className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md border border-border-color dark:border-slate-700">
+                <div key={entry.id} className="bg-white dark:bg-dark-bg p-4 rounded-lg shadow-md border border-border-color dark:border-dark-bg/50">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-primary dark:text-blue-400">
                       {new Date(entry.date).toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

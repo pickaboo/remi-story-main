@@ -17,8 +17,8 @@ interface ConfirmDeleteProjectModalProps {
 }
 const ConfirmDeleteProjectModal: React.FC<ConfirmDeleteProjectModalProps> = ({ project, onConfirm, onCancel, isDeleting }) => (
   <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[110] p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-project-modal-title">
-    <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-      <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700">
+    <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+      <header className="p-4 sm:p-5 border-b border-border-color dark:border-dark-bg/50">
         <h2 id="confirm-delete-project-modal-title" className="text-xl font-semibold text-danger dark:text-red-400">Bekräfta Radering av Projekt</h2>
       </header>
       <div className="p-4 sm:p-5 space-y-4">
@@ -27,7 +27,7 @@ const ConfirmDeleteProjectModal: React.FC<ConfirmDeleteProjectModalProps> = ({ p
         </p>
         <p className="text-sm text-red-500 dark:text-red-400 font-medium">Denna åtgärd kan INTE ångras.</p>
       </div>
-      <footer className="p-4 sm:p-5 border-t border-border-color dark:border-slate-700 flex justify-end gap-3">
+      <footer className="p-4 sm:p-5 border-t border-border-color dark:border-dark-bg/50 flex justify-end gap-3">
         <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>Avbryt</Button>
         <Button variant="danger" onClick={onConfirm} isLoading={isDeleting} disabled={isDeleting}>
           Ja, radera projektet
@@ -109,11 +109,11 @@ const ProjectListItem: React.FC<ProjectListItemProps> = ({
   };
   
   return (
-    <div className="bg-slate-50 dark:bg-slate-700/80 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow flex flex-col md:flex-row justify-between items-start gap-4 border border-border-color dark:border-slate-600/50">
+    <div className="bg-slate-50 dark:bg-dark-bg/80 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow flex flex-col md:flex-row justify-between items-start gap-4 border border-border-color dark:border-dark-bg/30">
       <button
         onClick={onPrimaryAction}
         disabled={primaryActionInProgress || imageCount === 0}
-        className="flex-grow text-left p-2 -m-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600/50 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-700/80 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        className="flex-grow text-left p-2 -m-2 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-dark-bg/80 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         aria-label={`${primaryActionText} för ${project.name}`}
       >
         <h3 className="text-xl font-semibold text-primary dark:text-blue-400 mb-1">{project.name}</h3>
@@ -157,10 +157,10 @@ const CreationOptionCard: React.FC<CreationOptionCardProps> = ({
   return (
     <div 
       onClick={!disabled ? onClick : undefined}
-      className={`group relative bg-slate-200 dark:bg-slate-700 rounded-2xl shadow-xl 
+      className={`group relative bg-slate-200 dark:bg-dark-bg rounded-2xl shadow-xl 
                  ${disabled 
                     ? 'opacity-60 cursor-default' 
-                    : 'hover:shadow-primary/30 dark:hover:shadow-blue-400/30 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-4 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-card-bg dark:focus-visible:ring-offset-slate-900'}
+                    : 'hover:shadow-primary/30 dark:hover:shadow-blue-400/30 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-4 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-card-bg dark:focus-visible:ring-offset-dark-bg'}
                  overflow-hidden aspect-[4/5] sm:aspect-square md:aspect-[4/5]
                  transition-all duration-300 ease-in-out flex flex-col`}
       role={!disabled ? "button" : undefined}
@@ -446,7 +446,7 @@ export const SlideshowProjectsPage: React.FC = () => {
 
 
         {isCreating && projectCreationMode && (
-          <div className="bg-slate-50 dark:bg-slate-700/80 p-6 sm:p-8 rounded-xl shadow-lg mb-10 border border-border-color dark:border-slate-600">
+          <div className="bg-slate-50 dark:bg-dark-bg/80 p-6 sm:p-8 rounded-xl shadow-lg mb-10 border border-border-color dark:border-dark-bg/30">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-semibold text-slate-700 dark:text-slate-200">{creationFormTitle} (för sfär: {activeSphere.name})</h3>
                 <Button onClick={() => {setIsCreating(false); setProjectCreationMode(null); setNewProjectName(''); setSelectedImageIds([]); setGeneralError(null);}} variant="ghost" size="sm" className="!p-2 !rounded-full" aria-label="Stäng skapa projekt formulär">
@@ -468,24 +468,24 @@ export const SlideshowProjectsPage: React.FC = () => {
                     <p>Se till att dina bilder har beskrivningar, berättelser eller AI-analys för att kunna användas i projekt.</p>
                 </div>
             ) : (
-                <div className="max-h-80 overflow-y-auto border border-border-color dark:border-slate-600 rounded-lg p-3 mb-6 space-y-2 bg-white dark:bg-slate-700/50 shadow-sm">
+                <div className="max-h-80 overflow-y-auto border border-border-color dark:border-dark-bg/30 rounded-lg p-3 mb-6 space-y-2 bg-white dark:bg-dark-bg/50 shadow-sm">
                 {availableImagesForSelection.map(img => (
                     <label
                         key={img.id}
-                        className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600/50 transition-colors cursor-pointer ${selectedImageIds.includes(img.id) ? 'bg-primary/10 dark:bg-blue-400/10 ring-2 ring-primary dark:ring-blue-400' : 'bg-white dark:bg-slate-700/30'}`}
+                        className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-bg/50 transition-colors cursor-pointer ${selectedImageIds.includes(img.id) ? 'bg-primary/10 dark:bg-blue-400/10 ring-2 ring-primary dark:ring-blue-400' : 'bg-white dark:bg-dark-bg/30'}`}
                         htmlFor={`select-img-${img.id}`}
                     >
                     <input
                         id={`select-img-${img.id}`}
                         type="checkbox"
-                        className="form-checkbox h-5 w-5 text-primary dark:text-blue-400 rounded-md border-gray-300 dark:border-slate-500 focus:ring-primary dark:focus:ring-offset-0 bg-transparent dark:bg-slate-600"
+                        className="form-checkbox h-5 w-5 text-primary dark:text-blue-400 rounded-md border-gray-300 dark:border-dark-bg/50 focus:ring-primary dark:focus:ring-offset-0 bg-transparent dark:bg-dark-bg"
                         checked={selectedImageIds.includes(img.id)}
                         onChange={() => handleToggleImageSelection(img.id)}
                         aria-labelledby={`img-name-${img.id}`}
                     />
                     {img.dataUrl ? 
                         <img src={img.dataUrl} alt={img.name} className="w-12 h-12 object-cover rounded-md shadow-sm"/>
-                        : <div className="w-12 h-12 bg-slate-200 dark:bg-slate-500 rounded-md shadow-sm flex items-center justify-center text-slate-400 dark:text-slate-300 text-xs">Ingen bild</div>
+                        : <div className="w-12 h-12 bg-slate-200 dark:bg-dark-bg rounded-md shadow-sm flex items-center justify-center text-slate-400 dark:text-slate-300 text-xs">Ingen bild</div>
                     }
                     <div className="flex-grow">
                         <span id={`img-name-${img.id}`} className={`text-sm font-medium ${selectedImageIds.includes(img.id) ? 'text-primary dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}>{img.name}</span>
@@ -508,9 +508,9 @@ export const SlideshowProjectsPage: React.FC = () => {
           </div>
         )}
 
-        <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-6 mt-10 border-b border-slate-300 dark:border-slate-600 pb-2">Mina Projekt i "{activeSphere.name}"</h2>
+        <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200 mb-6 mt-10 border-b border-slate-300 dark:border-dark-bg/50 pb-2">Mina Projekt i "{activeSphere.name}"</h2>
         {projects.length === 0 && !isCreating && (
-          <div className="text-center py-16 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-dashed border-border-color dark:border-slate-600">
+          <div className="text-center py-16 bg-slate-50 dark:bg-dark-bg/30 rounded-xl border border-dashed border-border-color dark:border-dark-bg/50">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mx-auto text-slate-400 dark:text-slate-500 mb-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 20.25h12m-7.5-3.75v3.75m4.125-3.75v3.75m2.625-3.75v3.75M12 21.75H4.875A2.625 2.625 0 012.25 19.125V7.875A2.625 2.625 0 014.875 5.25h14.25A2.625 2.625 0 0121.75 7.875v8.625M12 5.25v3.75m0 0H8.25m3.75 0a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
              </svg>

@@ -86,7 +86,7 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="manage-sphere-modal-title">
-      <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <SphereDisplay sphere={activeSphere} size="lg" />
@@ -112,7 +112,7 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
             ) : (
               <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
                 {members.map(member => (
-                  <li key={member.id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-lg shadow-sm border border-border-color dark:border-slate-600">
+                  <li key={member.id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-dark-bg/50 rounded-lg shadow-sm border border-border-color dark:border-dark-bg/30">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-8 h-8 rounded-full ${member.avatarColor} text-white flex items-center justify-center text-xs font-semibold shadow-sm`}>
                         {member.initials}

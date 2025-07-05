@@ -217,7 +217,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
             {image.dataUrl && (image.dataUrl.startsWith('data:') || image.dataUrl.startsWith('http')) ? (
               <img src={image.dataUrl} alt={image.name} className="w-full rounded-xl shadow-xl max-h-[80vh] object-contain sticky top-24" />
             ) : (
-              <div className="w-full rounded-xl shadow-xl min-h-[200px] bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-muted-text dark:text-slate-400 p-8 sticky top-24 text-center">
+              <div className="w-full rounded-xl shadow-xl min-h-[200px] bg-slate-100 dark:bg-dark-bg flex items-center justify-center text-muted-text dark:text-slate-400 p-8 sticky top-24 text-center">
                 Detta inlägg har ingen bild. Du kan redigera text, ljud och taggar.
               </div>
             )}

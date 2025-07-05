@@ -53,8 +53,8 @@ interface ConfirmDeleteModalProps {
 }
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ image, onConfirm, onCancel, isDeleting }) => (
   <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[110] p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-modal-title">
-    <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-      <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700">
+    <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+      <header className="p-4 sm:p-5 border-b border-border-color dark:border-dark-bg/50">
         <h2 id="confirm-delete-modal-title" className="text-xl font-semibold text-danger dark:text-red-400">Bekräfta Radering</h2>
       </header>
       <div className="p-4 sm:p-5 space-y-4">
@@ -63,12 +63,12 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ image, onConfir
         </p>
         <p className="text-sm text-red-500 dark:text-red-400 font-medium">Denna åtgärd kan INTE ångras.</p>
         {image.dataUrl && (
-          <div className="my-2 max-h-40 overflow-hidden rounded-md border border-border-color dark:border-slate-600">
+          <div className="my-2 max-h-40 overflow-hidden rounded-md border border-border-color dark:border-dark-bg/30">
             <img src={image.dataUrl} alt={`Förhandsgranskning av ${image.name}`} className="w-full h-full object-contain" />
           </div>
         )}
       </div>
-      <footer className="p-4 sm:p-5 border-t border-border-color dark:border-slate-700 flex justify-end gap-3">
+      <footer className="p-4 sm:p-5 border-t border-border-color dark:border-dark-bg/50 flex justify-end gap-3">
         <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>Avbryt</Button>
         <Button variant="danger" onClick={onConfirm} isLoading={isDeleting} disabled={isDeleting}>
           Ja, radera permanent
@@ -482,7 +482,7 @@ export const ImageBankPage: React.FC = () => {
             Dessa bilder publiceras inte automatiskt i flödet.
         </p>
         
-        <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-primary dark:hover:border-blue-400 transition-colors rounded-xl p-6 sm:p-10 text-center bg-slate-50 dark:bg-slate-700/30 hover:bg-primary/5 dark:hover:bg-blue-400/5 cursor-pointer mb-6">
+        <div className="border-2 border-dashed border-slate-300 dark:border-dark-bg/50 hover:border-primary dark:hover:border-blue-400 transition-colors rounded-xl p-6 sm:p-10 text-center bg-slate-50 dark:bg-dark-bg/30 hover:bg-primary/5 dark:hover:bg-blue-400/5 cursor-pointer mb-6">
             <input
                 type="file"
                 multiple
@@ -504,9 +504,9 @@ export const ImageBankPage: React.FC = () => {
         {imagesToUpload.length > 0 && (
             <div className="mb-6">
                 <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-3">Valda bilder för uppladdning ({imagesToUpload.length}):</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-96 overflow-y-auto p-2 border border-border-color dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700/50">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-96 overflow-y-auto p-2 border border-border-color dark:border-dark-bg/30 rounded-lg bg-white dark:bg-dark-bg/50">
                     {imagesToUpload.map(preview => (
-                        <div key={preview.id} className="relative group border border-border-color dark:border-slate-600 p-1.5 rounded-lg shadow-sm aspect-square">
+                        <div key={preview.id} className="relative group border border-border-color dark:border-dark-bg/30 p-1.5 rounded-lg shadow-sm aspect-square">
                             <img src={preview.dataUrl} alt={preview.file.name} className="w-full h-full object-cover rounded" />
                             <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-center">
                                 <p className="text-xs text-white truncate" title={preview.file.name}>{preview.file.name}</p>
@@ -569,7 +569,7 @@ export const ImageBankPage: React.FC = () => {
       {!isLoadingBankView && !bankViewError && (
         <>
           {bankedImagesInViewMode.length === 0 ? (
-            <div className="text-center py-16 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-dashed border-border-color dark:border-slate-600">
+            <div className="text-center py-16 bg-slate-50 dark:bg-dark-bg/30 rounded-xl border border-dashed border-border-color dark:border-dark-bg/50">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mx-auto text-slate-400 dark:text-slate-500 mb-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5-13.5h16.5a2.25 2.25 0 00-2.25-2.25h-12a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 003.75 20.25h12A2.25 2.25 0 0018 18V9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -582,8 +582,8 @@ export const ImageBankPage: React.FC = () => {
                 const isMetadataExpanded = expandedMetadataImageId === image.id;
 
                 return (
-                    <div key={image.id} className="group relative border border-border-color dark:border-slate-700 p-2.5 rounded-xl shadow-sm hover:shadow-lg transition-all duration-150 ease-in-out bg-white dark:bg-slate-700/50 flex flex-col">
-                        <div className="aspect-square bg-slate-100 dark:bg-slate-600 rounded-lg overflow-hidden mb-2 shadow-inner relative">
+                    <div key={image.id} className="group relative border border-border-color dark:border-dark-bg/50 p-2.5 rounded-xl shadow-sm hover:shadow-lg transition-all duration-150 ease-in-out bg-white dark:bg-dark-bg/50 flex flex-col">
+                        <div className="aspect-square bg-slate-100 dark:bg-dark-bg rounded-lg overflow-hidden mb-2 shadow-inner relative">
                         {image.dataUrl ? (
                             <img src={image.dataUrl} alt={image.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" loading="lazy" />
                         ) : (
@@ -616,7 +616,7 @@ export const ImageBankPage: React.FC = () => {
                         </Button>
                         
                         {isMetadataExpanded && (
-                            <div id={`metadata-${image.id}`} className="mt-1 mb-2 p-2.5 bg-slate-50 dark:bg-slate-700 rounded-md border border-border-color dark:border-slate-600 text-xs space-y-0.5 text-slate-600 dark:text-slate-300">
+                            <div id={`metadata-${image.id}`} className="mt-1 mb-2 p-2.5 bg-slate-50 dark:bg-dark-bg rounded-md border border-border-color dark:border-dark-bg/30 text-xs space-y-0.5 text-slate-600 dark:text-slate-300">
                                 <p className="truncate text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Fil:</strong> <span className="text-slate-700 dark:text-slate-300" title={image.name}>{image.name}</span></p>
                                 <p className="truncate text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Typ:</strong> <span className="text-slate-700 dark:text-slate-300">{image.type}</span></p>
                                 {image.width && image.height && <p className="text-xs"><strong className="font-normal text-slate-500 dark:text-slate-400">Mått:</strong> <span className="text-slate-700 dark:text-slate-300">{image.width} x {image.height} px</span></p>}
@@ -663,7 +663,7 @@ export const ImageBankPage: React.FC = () => {
                                     id={`date-input-${image.id}`}
                                     value={image.dateTaken ? new Date(image.dateTaken).toISOString().split('T')[0] : ''}
                                     onChange={(e) => handleDateChange(image.id, e.target.value)}
-                                    className="block w-full text-xs p-1.5 border border-border-color dark:border-slate-600 rounded-md bg-input-bg dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 dark:[color-scheme:dark]"
+                                    className="block w-full text-xs p-1.5 border border-border-color dark:border-dark-bg/30 rounded-md bg-input-bg dark:bg-dark-bg dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 dark:[color-scheme:dark]"
                                     aria-label={`Datum för ${image.name}`}
                                 />
                             </div>

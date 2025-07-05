@@ -77,7 +77,7 @@ export class ErrorBoundary extends Component<Props, State> {
       // Default error UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-light-bg dark:bg-slate-900 p-4">
-          <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-border-color dark:border-slate-700 p-6">
+          <div className="max-w-md w-full bg-white dark:bg-dark-bg rounded-xl shadow-2xl border border-border-color dark:border-dark-bg/50 p-6">
             <div className="text-center">
               {/* Error Icon */}
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
@@ -112,7 +112,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Teknisk information (endast utveckling)
                   </summary>
-                  <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 overflow-auto max-h-32">
+                  <div className="bg-slate-50 dark:bg-dark-bg rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 overflow-auto max-h-32">
                     <div className="mb-2">
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
@@ -146,7 +146,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </button>
                 <button
                   onClick={() => window.location.reload()}
-                  className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300/50 dark:focus:ring-slate-600/50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-slate-100 dark:bg-dark-bg text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-slate-300/50 dark:focus:ring-dark-bg/50 transition-colors"
                 >
                   Ladda om sidan
                 </button>

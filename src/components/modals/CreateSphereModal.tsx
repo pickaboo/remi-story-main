@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '../ui';
 import { Input } from '../ui';
 import { PREDEFINED_SPHERE_GRADIENTS } from '../../constants';
@@ -19,7 +19,8 @@ export const CreateSphereModal: React.FC<CreateSphereModalProps> = ({ isOpen, on
   const [error, setError] = useState<string | null>(null);
 
   // Accessibility hooks
-  const modalRef = useFocusTrap(isOpen, onClose);
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef as React.RefObject<HTMLElement>, { enabled: isOpen });
   useReturnFocus(isOpen);
 
   if (!isOpen) return null;
@@ -50,7 +51,7 @@ export const CreateSphereModal: React.FC<CreateSphereModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="create-sphere-modal-title">
-      <div ref={modalRef} className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+      <div ref={modalRef} className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
         <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700 flex justify-between items-center">
           <h2 id="create-sphere-modal-title" className="text-xl font-semibold text-slate-700 dark:text-slate-200">Skapa Ny Sfär</h2>
           <Button variant="ghost" size="sm" onClick={onClose} className="!rounded-full !p-2" aria-label="Stäng modal" disabled={isCreating}>

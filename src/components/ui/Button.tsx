@@ -145,10 +145,10 @@ const ButtonComponent: React.FC<ButtonProps> = memo(({
       'active:bg-primary/80',
     ].join(' '),
     secondary: [
-      'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
-      'hover:bg-slate-200 dark:hover:bg-slate-600',
+      'bg-slate-100 text-slate-700 dark:bg-dark-bg dark:text-slate-200',
+      'hover:bg-slate-200 dark:hover:bg-dark-bg/50',
       'focus:ring-slate-500/50',
-      'active:bg-slate-300 dark:active:bg-slate-500',
+      'active:bg-slate-300 dark:active:bg-dark-bg/70',
     ].join(' '),
     accent: [
       'bg-purple-600 text-white shadow-sm',
@@ -164,15 +164,15 @@ const ButtonComponent: React.FC<ButtonProps> = memo(({
     ].join(' '),
     ghost: [
       'bg-transparent text-slate-700 dark:text-slate-200',
-      'hover:bg-slate-100 dark:hover:bg-slate-700',
+      'hover:bg-slate-100 dark:hover:bg-dark-bg/50',
       'focus:ring-slate-500/50',
-      'active:bg-slate-200 dark:active:bg-slate-600',
+      'active:bg-slate-200 dark:active:bg-dark-bg/70',
     ].join(' '),
     outline: [
-      'bg-transparent border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200',
-      'hover:bg-slate-50 dark:hover:bg-slate-700',
+      'bg-transparent border border-slate-300 dark:border-dark-bg/50 text-slate-700 dark:text-slate-200',
+      'hover:bg-slate-50 dark:hover:bg-dark-bg/50',
       'focus:ring-slate-500/50',
-      'active:bg-slate-100 dark:active:bg-slate-600',
+      'active:bg-slate-100 dark:active:bg-dark-bg/70',
     ].join(' '),
   };
 

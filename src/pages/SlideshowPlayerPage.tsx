@@ -159,7 +159,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100]">
+      <div className="fixed inset-0 bg-dark-bg flex items-center justify-center z-[100]">
         <LoadingSpinner message="Laddar bildspel..." size="lg" />
       </div>
     );
@@ -167,7 +167,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
 
   if (error || !project || images.length === 0) {
     return (
-      <div className="fixed inset-0 bg-slate-800 text-white flex flex-col items-center justify-center p-8 z-[100]">
+      <div className="fixed inset-0 bg-dark-bg text-white flex flex-col items-center justify-center p-8 z-[100]">
         <h2 className="text-2xl font-semibold mb-3">Hoppsan!</h2>
         <p className="text-xl text-yellow-300 mb-6 text-center">{error || "Inga bilder att visa i detta bildspel."}</p>
         <button 
@@ -183,7 +183,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
   const imageIsLandscape = currentImage && currentImage.width && currentImage.height && currentImage.width > currentImage.height;
 
   return (
-    <div className="fixed inset-0 bg-slate-900 text-white flex flex-col items-center justify-center p-2 sm:p-4 z-[100] overflow-hidden select-none">
+    <div className="fixed inset-0 bg-dark-bg text-white flex flex-col items-center justify-center p-2 sm:p-4 z-[100] overflow-hidden select-none">
       <div className={`w-full h-full flex ${imageIsLandscape ? 'flex-col' : 'lg:flex-row flex-col'} items-center justify-center gap-2 sm:gap-4 p-2 sm:p-4`}>
         <div className={`
             relative 
@@ -205,7 +205,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
           <div 
             className={`
               ${imageIsLandscape ? 'w-full h-2/5 lg:h-1/4 p-3 sm:p-4' : 'h-2/5 lg:h-full w-full lg:w-1/4 p-3 sm:p-4'} 
-              overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm rounded-lg shadow-xl scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800
+              overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm rounded-lg shadow-xl scrollbar-thin scrollbar-thumb-dark-bg scrollbar-track-dark-bg
             `}
           >
             <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap text-slate-200">{storyToDisplay}</p>

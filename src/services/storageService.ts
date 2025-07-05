@@ -154,6 +154,29 @@ export const getImageById = async (id: string): Promise<ImageRecord | undefined>
   return undefined;
 };
 
+// Helper function to recursively convert undefined values to null
+const convertUndefinedToNull = (obj: any): any => {
+  if (obj === undefined) {
+    return null;
+  }
+  if (obj === null) {
+    return null;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertUndefinedToNull);
+  }
+  if (typeof obj === 'object') {
+    const result: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = convertUndefinedToNull(obj[key]);
+      }
+    }
+    return result;
+  }
+  return obj;
+};
+
 export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
   const { dataUrl, id: imageId, createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, dateTaken: originalDateTakenStr, ...restOfImageDetailsInput } = image;
 
@@ -188,12 +211,15 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
   const docRef = doc(db, IMAGES_COLLECTION, imageId);
 
   const firestoreData: { [key: string]: any } = {};
+  console.log('Original restOfImageDetails:', JSON.stringify(restOfImageDetails, null, 2));
+  
   for (const key in restOfImageDetails) {
     if (Object.prototype.hasOwnProperty.call(restOfImageDetails, key)) {
       const typedKey = key as keyof typeof restOfImageDetails;
       const value = restOfImageDetails[typedKey];
 
       if (value === undefined) {
+        console.log(`Converting undefined value for field '${key}' to null`);
         firestoreData[key] = null;
       } else {
         firestoreData[key] = value;
@@ -201,51 +227,62 @@ export const saveImage = async (image: ImageRecord): Promise<ImageRecord> => {
     }
   }
 
+  // Convert any remaining undefined values in nested objects
+  const cleanedFirestoreData = convertUndefinedToNull(firestoreData);
+
   // Handle timestamps: convert string ISO dates from ImageRecord back to Firestore Timestamps if needed or use serverTimestamp
   if (!originalCreatedAtStr) {
-    firestoreData.createdAt = serverTimestamp();
+    cleanedFirestoreData.createdAt = serverTimestamp();
   } else {
     try {
       const date = new Date(originalCreatedAtStr);
       if (isNaN(date.getTime())) {
         console.warn(`Invalid date string for image.createdAt: "${originalCreatedAtStr}". Using serverTimestamp instead.`);
-        firestoreData.createdAt = serverTimestamp();
+        cleanedFirestoreData.createdAt = serverTimestamp();
       } else {
-        firestoreData.createdAt = Timestamp.fromDate(date);
+        cleanedFirestoreData.createdAt = Timestamp.fromDate(date);
       }
     } catch (e) { 
       console.warn(`Error parsing date string for image.createdAt: "${originalCreatedAtStr}". Using serverTimestamp. Error: ${e}`);
-      firestoreData.createdAt = serverTimestamp();
+      cleanedFirestoreData.createdAt = serverTimestamp();
     }
   }
-  firestoreData.updatedAt = serverTimestamp();
+  cleanedFirestoreData.updatedAt = serverTimestamp();
 
   // Handle dateTaken: Ensure it's a valid YYYY-MM-DD string or default to current date's YYYY-MM-DD
   if (!originalDateTakenStr) {
-    firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+    cleanedFirestoreData.dateTaken = new Date().toISOString().split('T')[0];
   } else {
     try {
       const date = new Date(originalDateTakenStr);
       if (isNaN(date.getTime())) {
         console.warn(`Invalid date string for image.dateTaken: "${originalDateTakenStr}". Defaulting to current date.`);
-        firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+        cleanedFirestoreData.dateTaken = new Date().toISOString().split('T')[0];
       } else {
         // Ensure it's stored as YYYY-MM-DD string
-        firestoreData.dateTaken = date.toISOString().split('T')[0];
+        cleanedFirestoreData.dateTaken = date.toISOString().split('T')[0];
       }
     } catch (e) {
       console.warn(`Error parsing date string for image.dateTaken: "${originalDateTakenStr}". Defaulting to current date. Error: ${e}`);
-      firestoreData.dateTaken = new Date().toISOString().split('T')[0];
+      cleanedFirestoreData.dateTaken = new Date().toISOString().split('T')[0];
     }
   }
 
-
-  await setDoc(docRef, firestoreData, { merge: true });
+  // Final check to ensure no undefined values remain
+  for (const key in cleanedFirestoreData) {
+    if (cleanedFirestoreData[key] === undefined) {
+      console.warn(`Found undefined value for field '${key}', converting to null`);
+      cleanedFirestoreData[key] = null;
+    }
+  }
+  
+  console.log('Saving to Firestore with data:', JSON.stringify(cleanedFirestoreData, null, 2));
+  await setDoc(docRef, cleanedFirestoreData, { merge: true });
 
   const savedImage = { ...image };
   // Update dateTaken on the returned object to match what was saved if it was defaulted
-  if (firestoreData.dateTaken && savedImage.dateTaken !== firestoreData.dateTaken) {
-    savedImage.dateTaken = firestoreData.dateTaken;
+  if (cleanedFirestoreData.dateTaken && savedImage.dateTaken !== cleanedFirestoreData.dateTaken) {
+    savedImage.dateTaken = cleanedFirestoreData.dateTaken;
   }
   
   return savedImage;

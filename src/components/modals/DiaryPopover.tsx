@@ -92,7 +92,7 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = memo(({ currentUser, is
   return (
     <div 
       ref={popoverRef}
-      className="absolute top-12 right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-border-color dark:border-slate-700 z-[60] p-4"
+      className="absolute top-12 right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-dark-bg rounded-xl shadow-2xl border border-border-color dark:border-dark-bg/50 z-[60] p-4"
       onClick={(e) => e.stopPropagation()} 
     >
       <div className="flex justify-between items-center mb-3">

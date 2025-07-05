@@ -142,7 +142,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   return (
     <div
       ref={popoverRef}
-      className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-border-color dark:border-slate-700 z-[70]"
+      className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-dark-bg rounded-xl shadow-2xl border border-border-color dark:border-dark-bg/50 z-[70]"
       onClick={(e) => e.stopPropagation()}
       role="menu"
       aria-orientation="vertical"
@@ -165,10 +165,10 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
         ) : (
           <ul className="space-y-2.5">
             {invitations.map((inv) => (
-              <li key={inv.id} className="p-2.5 bg-slate-50 dark:bg-slate-700/60 rounded-lg shadow-sm border border-border-color dark:border-slate-600">
+              <li key={inv.id} className="p-2.5 bg-slate-50 dark:bg-dark-bg/60 rounded-lg shadow-sm border border-border-color dark:border-dark-bg/30">
                 <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                        {inv.sphereDetails ? <SphereDisplay sphere={inv.sphereDetails} size="sm" /> : <div className="w-6 h-6 rounded-full bg-slate-300 dark:bg-slate-600 flex-shrink-0"></div>}
+                        {inv.sphereDetails ? <SphereDisplay sphere={inv.sphereDetails} size="sm" /> : <div className="w-6 h-6 rounded-full bg-slate-300 dark:bg-dark-bg flex-shrink-0"></div>}
                         <span className="text-sm font-semibold text-primary dark:text-blue-400 truncate" title={inv.sphereName}>{inv.sphereName}</span>
                     </div>
                     <span className="text-xs text-muted-text dark:text-slate-400">från {inv.inviterName}</span>
@@ -210,7 +210,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
             <label 
                 key={option.value} 
                 htmlFor={`theme-popover-${option.value}`} 
-                className={`flex items-center space-x-2.5 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer
+                className={`flex items-center space-x-2.5 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-dark-bg/50 transition-colors cursor-pointer
                             ${selectedTheme === option.value ? 'bg-primary/10 dark:bg-blue-400/10 ring-1 ring-primary/50 dark:ring-blue-400/50' : ''}`}
             >
                 <input

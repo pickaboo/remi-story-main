@@ -171,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
 
   return (
     <aside 
-      className={`fixed top-0 left-0 h-screen bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 flex flex-col z-40 transition-all duration-300 ease-in-out shadow-lg border-r border-border-color dark:border-slate-700 ${isExpanded ? 'w-60' : 'w-20'}`}
+      className={`fixed top-0 left-0 h-screen bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 flex flex-col z-40 transition-all duration-300 ease-in-out shadow-lg border-r border-border-color dark:border-dark-bg/50 ${isExpanded ? 'w-60' : 'w-20'}`}
     >
       <div 
         className={`py-4 flex items-center relative ${isExpanded ? 'px-4' : 'justify-center px-0'}`} 
@@ -222,14 +222,14 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
         {isSphereDropdownOpen && (
           <div 
             id="sphere-dropdown-menu"
-            className={`absolute top-full mt-1.5 rounded-xl shadow-xl border border-border-color dark:border-slate-700
-                          bg-white/80 dark:bg-slate-800/80 backdrop-blur-md overflow-hidden z-50
+            className={`absolute top-full mt-1.5 rounded-xl shadow-xl border border-border-color dark:border-dark-bg/50
+bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
                           ${isExpanded ? 'left-3 right-3' : 'left-1/2 -translate-x-1/2 w-max min-w-[56px]'} 
                           p-2.5`}
           >
             {/* Active Sphere Info and Invite Section */}
             {activeSphere && currentUser && (
-              <div className="p-1.5 mb-2 border-b border-border-color dark:border-slate-600">
+              <div className="p-1.5 mb-2 border-b border-border-color dark:border-dark-bg/30">
                 <div className="flex items-center justify-between">
                   <span 
                     className={`font-bold text-slate-700 dark:text-slate-200 truncate ${isExpanded ? 'text-2xl' : 'text-lg'}`} 
@@ -272,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
                     />
                  </div>
               ))}
-               {(otherSpheres.length > 0 || (activeSphere && currentUser) ) && <hr className="my-1 border-border-color dark:border-slate-700" />}
+               {(otherSpheres.length > 0 || (activeSphere && currentUser) ) && <hr className="my-1 border-border-color dark:border-dark-bg/50" />}
               
               <button
                 onClick={() => {
@@ -307,10 +307,10 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
                   ${isExpanded
                     ? (isActive 
                         ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-full mx-2 px-4 py-3 my-0.5 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full')
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full')
                     : (isActive 
                         ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-lg mx-auto w-11 h-11 p-0 justify-center my-1 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg')
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg')
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
@@ -349,8 +349,8 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
                 onClick={() => setIsSettingsPopoverOpen(prev => !prev)}
                 title="Inställningar"
                 className={`flex items-center py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out
-                            text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200
-                            ${isExpanded ? 'px-2 justify-start w-full' : 'justify-center w-11 h-11'}`}
+                            text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200
+${isExpanded ? 'px-2 justify-start w-full' : 'justify-center w-11 h-11'}`}
                 aria-haspopup="true"
                 aria-expanded={isSettingsPopoverOpen}
                 aria-controls="settings-popover"
@@ -361,8 +361,8 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             {isSettingsPopoverOpen && (
                 <div 
                     id="settings-popover"
-                    className={`absolute bottom-full mb-2 p-2 rounded-xl shadow-2xl border border-border-color dark:border-slate-700 
-                               bg-white dark:bg-slate-800 z-[1000]
+                    className={`absolute bottom-full mb-2 p-2 rounded-xl shadow-2xl border border-border-color dark:border-dark-bg/50 
+bg-white dark:bg-dark-bg z-[1000]
                                ${isExpanded ? 'left-3 w-[calc(100%-1.5rem)]' : 'left-1/2 -translate-x-1/2 w-max'}`}
                     role="menu"
                 >
@@ -397,14 +397,14 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             )}
         </div>
         
-        <div className={`py-3 border-t border-border-color dark:border-slate-700 ${isExpanded ? 'px-3' : 'px-0'}`}>
+        <div className={`py-3 border-t border-border-color dark:border-dark-bg/50 ${isExpanded ? 'px-3' : 'px-0'}`}>
           <button
             onClick={onToggle}
             title={isExpanded ? "Förminska sidofältet" : "Expandera sidofältet"}
             aria-label={isExpanded ? "Förminska sidofältet" : "Expandera sidofältet"}
             className={`w-full flex items-center py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ease-in-out
-              text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200
-              ${isExpanded ? 'px-2 justify-start' : 'justify-center'}
+              text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200
+${isExpanded ? 'px-2 justify-start' : 'justify-center'}
             `}
           >
             {isExpanded ? <ChevronLeftIcon className="w-5 h-5 mr-2 text-slate-500 dark:text-slate-400" /> : <ChevronRightIcon className="w-5 h-5 text-slate-500 dark:text-slate-400" />}

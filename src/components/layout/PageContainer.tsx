@@ -18,7 +18,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children, title })
       )}
       {/* min-h is now viewport height minus header height (h-16 -> 4rem) */}
       {/* Reverted to bg-card-bg (solid white) and removed backdrop-blur */}
-      <div className="px-4 py-6 sm:p-8 bg-card-bg dark:bg-slate-800 shadow-xl rounded-xl min-h-[calc(100vh-4rem-4rem)]">
+      <div className="px-4 py-6 sm:p-8 bg-card-bg dark:bg-dark-bg shadow-xl rounded-xl min-h-[calc(100vh-4rem-4rem)]">
         {children}
       </div>
     </main>

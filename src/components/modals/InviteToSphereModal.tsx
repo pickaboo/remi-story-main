@@ -50,7 +50,7 @@ export const InviteToSphereModal: React.FC<InviteToSphereModalProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="invite-to-sphere-modal-title">
-      <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
         <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700 flex justify-between items-center">
           <h2 id="invite-to-sphere-modal-title" className="text-xl font-semibold text-slate-700 dark:text-slate-200">
             Bjud in till "{sphereToInviteTo.name}"

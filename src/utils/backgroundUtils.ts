@@ -13,7 +13,7 @@ export const applyBackgroundPreference = (sphereForBackground?: Sphere | null, u
 
   body.style.backgroundColor = ''; 
   body.classList.remove('solid-background-transition');
-  body.classList.remove('bg-light-bg', 'dark:bg-slate-900');
+  body.classList.remove('bg-light-bg', 'dark:bg-dark-bg');
 
   let preferenceApplied = false; 
   let isImageBackground = false; 
@@ -51,7 +51,7 @@ export const applyBackgroundPreference = (sphereForBackground?: Sphere | null, u
   } else {
     const isUserSolidColorApplied = userForBackground?.backgroundPreference?.type === 'color' && userForBackground?.backgroundPreference?.value;
     if (!isUserSolidColorApplied) {
-      body.classList.add('bg-light-bg', 'dark:bg-slate-900'); 
+      body.classList.add('bg-light-bg', 'dark:bg-dark-bg'); 
       pageBackground.style.display = 'none'; 
     }
   }

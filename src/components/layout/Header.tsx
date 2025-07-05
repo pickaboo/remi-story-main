@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = memo(({
   }, []);
 
   return (
-    <header className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-slate-700 px-4 sm:px-6 lg:px-8 shadow-sm`} role="banner">
+    <header className={`bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-dark-bg/50 px-4 sm:px-6 lg:px-8 shadow-sm`} role="banner">
       {/* Left Spacer for balance - can be empty or used for other header elements if needed */}
       <div className="w-1/3"></div>
 
@@ -98,10 +98,10 @@ export const Header: React.FC<HeaderProps> = memo(({
       <div className="w-1/3 flex items-center justify-end h-full space-x-3 sm:space-x-4">
           {currentUser && (
             <div className="relative" ref={diaryButtonRef}>
-              <div className="flex rounded-lg border border-border-color dark:border-slate-600 shadow-sm">
+              <div className="flex rounded-lg border border-border-color dark:border-dark-bg/30 shadow-sm">
                 <button
                   onClick={() => onNavigate(View.Diary)}
-                  className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
+                  className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
                   title="Öppna Dagbok"
                   aria-label="Öppna Dagbok"
                 >
@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = memo(({
                 </button>
                 <button
                   onClick={() => setIsDiaryPopoverOpen(prev => !prev)}
-                  className="px-1 sm:px-1.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-r-md border-l border-border-color dark:border-slate-600 transition-colors"
+                  className="px-1 sm:px-1.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-r-md border-l border-border-color dark:border-dark-bg/30 transition-colors"
                   aria-haspopup="true"
                   aria-expanded={isDiaryPopoverOpen}
                   title="Snabbanteckning i dagboken"
@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = memo(({
               <button
                 id="user-menu-button"
                 onClick={() => setIsUserMenuOpen(prev => !prev)}
-                className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 transition-colors"
+                className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 transition-colors"
                 aria-haspopup="true"
                 aria-expanded={isUserMenuOpen}
                 aria-controls="user-menu-popover"

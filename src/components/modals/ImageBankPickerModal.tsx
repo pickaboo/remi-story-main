@@ -69,7 +69,7 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="image-bank-modal-title">
-      <div className="bg-card-bg dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-card-bg dark:bg-dark-bg rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         <header className="p-4 sm:p-5 border-b border-border-color dark:border-slate-700 flex justify-between items-center">
           <h2 id="image-bank-modal-title" className="text-xl font-semibold text-slate-700 dark:text-slate-200">Välj Bild från Aktiv Sfär</h2>
           <Button variant="ghost" size="sm" onClick={onClose} className="!rounded-full !p-2" aria-label="Stäng modal">
@@ -85,7 +85,7 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
             placeholder="Sök på namn eller tagg..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full px-4 py-2 border border-border-color dark:border-slate-600 rounded-full shadow-sm bg-input-bg dark:bg-slate-700 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 sm:text-sm"
+            className="block w-full px-4 py-2 border border-border-color dark:border-dark-bg/30 rounded-full shadow-sm bg-input-bg dark:bg-dark-bg dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 sm:text-sm"
             aria-label="Sök i bildbanken"
           />
         </div>
@@ -104,7 +104,7 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
               {filteredImages.map((image) => (
                 <div
                   key={image.id}
-                  className="relative group bg-slate-100 dark:bg-slate-700 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden aspect-square cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
+                  className="relative group bg-slate-100 dark:bg-dark-bg rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden aspect-square cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
                   onClick={() => onImageSelect(image)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onImageSelect(image);}}
                   tabIndex={0}
@@ -114,7 +114,7 @@ export const ImageBankPickerModal: React.FC<ImageBankPickerModalProps> = ({ isOp
                   {image.dataUrl ? ( 
                     <img src={image.dataUrl} alt={image.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-600 text-slate-400 dark:text-slate-500 text-xs p-1 text-center">Bild saknas</div>
+                    <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-dark-bg text-slate-400 dark:text-slate-500 text-xs p-1 text-center">Bild saknas</div>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-2">
                     <p className="text-xs text-white truncate font-medium" title={image.name}>{image.name}</p>

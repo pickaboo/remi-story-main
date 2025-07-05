@@ -17,7 +17,7 @@ export const AuthContainer: React.FC<AuthContainerProps> = ({ children, title })
             {title}
           </h2>
         </div>
-        <div className="bg-card-bg dark:bg-slate-800 p-8 shadow-xl rounded-xl">
+        <div className="bg-card-bg dark:bg-dark-bg p-8 shadow-xl rounded-xl">
           {children}
         </div>
       </div>
