@@ -7,11 +7,12 @@ import { AuthContainer } from '../../components/auth/AuthContainer';
 import { Button } from '../../components/ui';
 
 export const EmailConfirmationPage: React.FC = () => {
-  const { handleNavigate, handleLoginSuccess } = useAppContext();
+  const { handleNavigate, handleLoginSuccess, currentUser } = useAppContext();
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const userEmail = "din e-postadress";
+  // Använd användarens e-postadress om de är inloggade, annars fallback
+  const userEmail = currentUser?.email || "din e-postadress";
 
   const handleSimulateVerification = async () => {
     if (!userEmail) {
@@ -24,8 +25,10 @@ export const EmailConfirmationPage: React.FC = () => {
       const verifiedUser = await simulateVerifyEmail(userEmail);
       if (verifiedUser) {
         // Treat as a new user needing profile completion
-        handleLoginSuccess(verifiedUser, true); 
-        // handleLoginSuccess should handle navigation to ProfileCompletion
+        await handleLoginSuccess(verifiedUser, true); 
+        
+        // Navigate to Home after verification
+        handleNavigate(View.Home);
       } else {
         setError("Kunde inte verifiera e-postadressen. Försök logga in eller registrera dig igen.");
       }
@@ -43,9 +46,27 @@ export const EmailConfirmationPage: React.FC = () => {
     }
   }, [userEmail, handleNavigate]);
 
+  // Om användaren är inloggad och redan verifierad, redirecta till Home
+  useEffect(() => {
+    if (currentUser && currentUser.emailVerified) {
+      handleNavigate(View.Home);
+    }
+  }, [currentUser, handleNavigate]);
+
   return (
     <AuthContainer title="Bekräfta din E-postadress">
       <div className="text-center space-y-6">
+        {currentUser && !currentUser.emailVerified && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+              Du är inloggad men din e-post är inte verifierad
+            </h3>
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              För att använda alla funktioner i appen behöver du verifiera din e-postadress: <span className="font-medium">{currentUser.email}</span>
+            </p>
+          </div>
+        )}
+        
         <p className="text-muted-text dark:text-slate-400">
           Ett (simulerat) bekräftelsemail har skickats till <span className="font-medium text-primary dark:text-blue-400">{userEmail}</span>.
         </p>

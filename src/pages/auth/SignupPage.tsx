@@ -43,9 +43,7 @@ export const SignupPage: React.FC = () => {
       const result = await signupWithEmailPassword(email, password);
       if (result.user) {
         handleLoginSuccess(result.user);
-        if (!result.user.name || result.user.name === "Ny Användare") {
-          handleNavigate(View.ProfileCompletion);
-        } else if (!result.user.emailVerified) {
+        if (!result.user.emailVerified) {
           handleNavigate(View.EmailConfirmation);
         } else {
           handleNavigate(View.Home);
@@ -67,9 +65,7 @@ export const SignupPage: React.FC = () => {
       const result = await loginWithOAuth(provider);
       if (result && result.user) {
         handleLoginSuccess(result.user, result.isNewUser);
-        if (!result.user.name || result.user.name === "Ny Användare") {
-          handleNavigate(View.ProfileCompletion);
-        } else if (!result.user.emailVerified) {
+        if (!result.user.emailVerified) {
           handleNavigate(View.EmailConfirmation);
         } else {
           handleNavigate(View.Home);

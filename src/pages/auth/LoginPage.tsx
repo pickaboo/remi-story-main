@@ -48,9 +48,7 @@ export const LoginPage: React.FC = () => {
       const user = await loginWithEmailPassword(email, password);
       if (user) {
         handleLoginSuccess(user);
-        if (!user.name || user.name === "Ny Användare") {
-          handleNavigate(View.ProfileCompletion);
-        } else if (!user.emailVerified) {
+        if (!user.emailVerified) {
           handleNavigate(View.EmailConfirmation);
         } else {
           handleNavigate(View.Home);
@@ -72,9 +70,7 @@ export const LoginPage: React.FC = () => {
       const result = await loginWithOAuth(provider);
       if (result && result.user) {
         handleLoginSuccess(result.user, result.isNewUser);
-        if (!result.user.name || result.user.name === "Ny Användare") {
-          handleNavigate(View.ProfileCompletion);
-        } else if (!result.user.emailVerified) {
+        if (!result.user.emailVerified) {
           handleNavigate(View.EmailConfirmation);
         } else {
           handleNavigate(View.Home);

@@ -63,6 +63,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
       {currentView === View.ImageBank && <ImageBankPage />}
       {currentView === View.SlideshowProjects && <SlideshowProjectsPage />}
       {currentView === View.PlaySlideshow && viewParams?.projectId && <SlideshowPlayerPage projectId={viewParams.projectId} />}
+      {currentView === View.EmailConfirmation && <EmailConfirmationPage />}
     </Suspense>
   );
 }; 

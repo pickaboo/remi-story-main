@@ -91,11 +91,12 @@ export const AppContent: React.FC = memo(() => {
             setIsAuthenticated(true);
             setCurrentUser(user);
             
-            // Handle email verification and profile completion
+            // Förbättrad logik: Navigera endast till EmailConfirmation om användaren är o-verifierad
             if (!user.emailVerified) {
               console.log('[AppContent] User needs email verification, setting view to EmailConfirmation');
               handleNavigate(View.EmailConfirmation);
             } else {
+              // Om användaren är verifierad, gå alltid till Home
               console.log('[AppContent] User is authenticated, navigating to Home');
               await handleLoginSuccess(user);
               await fetchUserAndSphereData(user);
