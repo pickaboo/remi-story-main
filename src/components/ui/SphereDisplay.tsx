@@ -3,7 +3,7 @@ import { Sphere } from '../../types';
 
 interface SphereDisplayProps {
   sphere: Sphere;
-  size?: 'sm' | 'md' | 'lg'; // sm: 24px, md: 32px, lg: 40px
+  size?: 'sm' | 'md' | 'lg' | 'xs'; // xs: 24px, sm: 32px, md: 64px, lg: 80px
   className?: string;
   onClick?: () => void;
   tabIndex?: number;
@@ -37,6 +37,7 @@ export const SphereDisplay: React.FC<SphereDisplayProps> = memo(({
   }
 
   const sizeClasses = useMemo(() => ({
+    xs: 'w-6 h-6', // 24px (for collapsed sidebar)
     sm: 'w-8 h-8', // 32px
     md: 'w-16 h-16', // 64px
     lg: 'w-20 h-20', // 80px (for sidebar main display)

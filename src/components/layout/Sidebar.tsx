@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsSphereDropdownOpen(prev => !prev);}}
             title={isExpanded && activeSphere ? activeSphere.name : (activeSphere ? `Aktiv sfär: ${activeSphere.name}` : "Välj sfär")}
           >
-            <SphereDisplay sphere={activeSphere} size={'lg'} showName={true} isActive={true} />
+            <SphereDisplay sphere={activeSphere} size={isExpanded ? 'lg' : 'xs'} showName={isExpanded} isActive={true} />
             
             {isExpanded && (
                 <ChevronDownIcon 
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             id="sphere-dropdown-menu"
             className={`absolute top-full mt-1.5 rounded-xl shadow-xl border border-border-color dark:border-dark-bg/50
 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
-                          ${isExpanded ? 'left-3 right-3' : 'left-1/2 -translate-x-1/2 w-max min-w-[56px]'} 
+                          ${isExpanded ? 'left-3 right-3' : 'left-1/2 -translate-x-1/2 w-max min-w-[56px] ml-4'} 
                           p-2.5`}
           >
             {/* Active Sphere Info and Invite Section */}
