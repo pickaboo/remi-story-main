@@ -55,7 +55,7 @@ export const TextArea: React.FC<TextAreaProps> = memo(({ label, id, error, class
         ref={textareaRef}
         value={value}
         rows={1} // Start with a single row effectively, height will adjust
-        className={`block w-full px-4 py-2 border border-border-color dark:border-dark-bg/30 rounded-xl shadow-sm bg-input-bg dark:bg-dark-bg dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 text-base leading-6 resize-none overflow-y-hidden min-h-[42px] max-h-40 ${error ? 'border-red-500 dark:border-red-400 ring-red-500 dark:ring-red-400' : ''} ${className}`}
+        className={`block w-full px-4 py-2 border border-border-color dark:border-dark-bg/30 rounded-xl shadow-sm bg-input-bg/40 dark:bg-black/40 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:border-primary dark:focus:border-blue-400 text-base leading-6 resize-none overflow-y-hidden min-h-[42px] max-h-40 ${error ? 'border-red-500 dark:border-red-400 ring-red-500 dark:ring-red-400' : ''} ${className}`}
         aria-invalid={!!error}
         aria-describedby={errorId}
         {...props}

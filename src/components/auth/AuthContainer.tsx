@@ -8,16 +8,20 @@ interface AuthContainerProps {
 
 export const AuthContainer: React.FC<AuthContainerProps> = ({ children, title }) => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          {/* You can add a logo here if desired */}
-          {/* <img className="mx-auto h-12 w-auto" src="YOUR_LOGO_URL" alt="REMI Story" /> */}
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-            {title}
-          </h2>
-        </div>
-        <div className="bg-card-bg dark:bg-dark-bg p-8 shadow-xl rounded-xl">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: 'url(/images/Login.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="max-w-md w-full -mt-10">
+        <div className="bg-card-bg dark:bg-dark-bg p-8 shadow-xl rounded-xl backdrop-blur-sm bg-opacity-20 dark:bg-opacity-20 hover:bg-opacity-90 dark:hover:bg-opacity-90 transition-all duration-[1000ms] ease-in-out">
+          <div className="flex justify-center mb-6">
+            <img src="/images/Remi_namn_neg.gif" alt="REMI Story" className="h-8 w-auto" />
+          </div>
           {children}
         </div>
       </div>
