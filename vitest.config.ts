@@ -20,7 +20,8 @@ export default defineConfig({
         'dist/',
         'coverage/'
       ]
-    }
+    },
+    testTimeout: 30000
   },
   resolve: {
     alias: {

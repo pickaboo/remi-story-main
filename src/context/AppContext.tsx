@@ -116,9 +116,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   // Always load spheres when currentUser changes and is not null
   useEffect(() => {
-    if (appState.currentUser) {
-      sphereManagement.fetchUserAndSphereData(appState.currentUser);
-    }
+    const loadSphereData = async () => {
+      if (appState.currentUser) {
+        console.log("[AppContext] Loading sphere data for user:", appState.currentUser.id);
+        try {
+          const activeSphere = await sphereManagement.fetchUserAndSphereData(appState.currentUser);
+          console.log("[AppContext] Sphere data loaded, activeSphere:", activeSphere?.name);
+        } catch (error) {
+          console.error("[AppContext] Failed to load sphere data:", error);
+        }
+      }
+    };
+    
+    loadSphereData();
   }, [appState.currentUser]);
 
   return (

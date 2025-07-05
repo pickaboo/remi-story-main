@@ -25,13 +25,34 @@ import {
 const USERS_COLLECTION_NAME = 'users';
 
 // --- Hjälpfunktioner ---
-const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Omit<AuthUserRecord, 'id' | 'email' | 'emailVerified'>): User => {
-  return {
+const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Omit<AuthUserRecord, 'id' | 'email'>): User => {
+  console.log('[AuthService] Mapping user data:', {
+    firebaseUser: { uid: firebaseUser.uid, email: firebaseUser.email, displayName: firebaseUser.displayName },
+    firestoreData: firestoreData ? { name: firestoreData.name, initials: firestoreData.initials, avatarColor: firestoreData.avatarColor } : null
+  });
+  
+  // Check if user has a proper name (not default values)
+  const hasProperName = firestoreData?.name && 
+                       firestoreData.name !== "Ny Användare" && 
+                       firestoreData.name.trim() !== "";
+  
+  const hasProperInitials = firestoreData?.initials && 
+                           firestoreData.initials !== "NY" && 
+                           firestoreData.initials.trim() !== "";
+  
+  console.log('[AuthService] User data validation:', {
+    hasProperName,
+    hasProperInitials,
+    firestoreName: firestoreData?.name,
+    firestoreInitials: firestoreData?.initials
+  });
+  
+  const mappedUser = {
     id: firebaseUser.uid,
     email: firebaseUser.email || undefined,
-    emailVerified: firebaseUser.emailVerified,
-    name: firestoreData?.name || firebaseUser.displayName || "Ny Användare",
-    initials: firestoreData?.initials || "NY",
+    emailVerified: firestoreData?.emailVerified ?? firebaseUser.emailVerified, // Use Firestore status if available, fallback to Firebase Auth
+    name: hasProperName ? firestoreData!.name : (firebaseUser.displayName || "Ny Användare"),
+    initials: hasProperInitials ? firestoreData!.initials : "NY",
     avatarColor: firestoreData?.avatarColor || 'bg-gray-500',
     sphereIds: firestoreData?.sphereIds || [],
     backgroundPreference: firestoreData?.backgroundPreference,
@@ -41,6 +62,9 @@ const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Om
     createdAt: firestoreData?.createdAt || new Date().toISOString(),
     updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
   };
+  
+  console.log('[AuthService] Mapped user result:', { name: mappedUser.name, initials: mappedUser.initials });
+  return mappedUser;
 };
 
 const getAppUserRecord = async (userId: string): Promise<AuthUserRecord | null> => {
@@ -152,7 +176,14 @@ export const loginWithOAuth = async (providerName: 'google' | 'microsoft' | 'app
 
 
 export const logout = async (): Promise<void> => {
-  await fbSignOut(auth);
+  console.log('[AuthService] Starting Firebase logout...');
+  try {
+    await fbSignOut(auth);
+    console.log('[AuthService] Firebase logout successful');
+  } catch (error) {
+    console.error('[AuthService] Firebase logout failed:', error);
+    throw error;
+  }
 };
 
 export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
@@ -160,6 +191,7 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       unsubscribe(); 
       if (firebaseUser) {
+        console.log('[AuthService] Firebase user found:', { uid: firebaseUser.uid, email: firebaseUser.email, displayName: firebaseUser.displayName });
         // Användare kan vara autentiserad men inte ha verifierat sin e-post
         // if (!firebaseUser.emailVerified) {
         //   console.warn("User is authenticated but email is not verified.");
@@ -167,8 +199,12 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
         //   return;
         // }
         const firestoreData = await getAppUserRecord(firebaseUser.uid);
-        resolve(mapFirebaseUserToAppUser(firebaseUser, firestoreData || undefined));
+        console.log('[AuthService] Firestore data retrieved:', firestoreData ? { name: firestoreData.name, initials: firestoreData.initials } : 'null');
+        const mappedUser = mapFirebaseUserToAppUser(firebaseUser, firestoreData || undefined);
+        console.log('[AuthService] Final mapped user:', { name: mappedUser.name, initials: mappedUser.initials });
+        resolve(mappedUser);
       } else {
+        console.log('[AuthService] No Firebase user found');
         resolve(null);
       }
     }, reject);

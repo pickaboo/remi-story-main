@@ -5,6 +5,7 @@ import { useAppContext } from '../context/AppContext';
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  onLogout?: () => Promise<void>;
 }
 
 // Compound component pattern för layout
@@ -26,7 +27,7 @@ interface MainProps {
   children: React.ReactNode;
 }
 
-export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ children }) => {
+export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ children, onLogout }) => {
   const {
     isSidebarExpanded,
     currentUser,
@@ -114,7 +115,7 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
         currentUser={currentUser}
         isSidebarExpanded={isSidebarExpanded}
         onNavigate={handleNavigate}
-        onLogout={handleLogout}
+        onLogout={onLogout || handleLogout}
         onAcceptInvitation={handleAcceptInvitationWrapper}
         onDeclineInvitation={handleDeclineInvitationWrapper}
         onSaveThemePreference={handleSaveThemePreferenceWithUser}

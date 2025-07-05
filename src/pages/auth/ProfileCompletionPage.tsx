@@ -14,7 +14,7 @@ const AVATAR_COLORS = [
 ];
 
 export const ProfileCompletionPage: React.FC = () => {
-  const { currentUser, handleProfileComplete } = useAppContext();
+  const { currentUser, handleProfileComplete, handleNavigate, setCurrentUser } = useAppContext();
 
   if (!currentUser) {
     return <LoadingSpinner message="Laddar användare..." />;
@@ -56,14 +56,22 @@ export const ProfileCompletionPage: React.FC = () => {
     }
     setIsLoading(true);
     try {
+      console.log('[ProfileCompletionPage] Submitting profile data...');
       const updatedProfileData = { name: name.trim(), initials: initials.trim().toUpperCase(), avatarColor };
       const updatedUser = await updateUserProfile(currentUser.id, updatedProfileData);
       if (updatedUser) {
-        handleProfileComplete(updatedUser);
+        console.log('[ProfileCompletionPage] Profile updated successfully, updating context and navigating to home...');
+        // Update the user in context to prevent auth loop
+        setCurrentUser(updatedUser);
+        await handleProfileComplete(updatedUser);
+        // Navigate to home after successful profile completion
+        handleNavigate(View.Home);
       } else {
+        console.log('[ProfileCompletionPage] Failed to update profile');
         setError('Kunde inte uppdatera profilen. Försök igen.');
       }
     } catch (err: any) {
+      console.error('[ProfileCompletionPage] Error updating profile:', err);
       setError(err.message || 'Ett oväntat fel uppstod.');
     }
     setIsLoading(false);

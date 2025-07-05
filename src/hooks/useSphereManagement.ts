@@ -26,14 +26,78 @@ export const useSphereManagement = () => {
   const fetchUserAndSphereData = useCallback(async (user: User): Promise<Sphere | null> => {
     console.log("[useSphereManagement] fetchUserAndSphereData called for user:", user.id, "with sphereIds:", user.sphereIds);
     
-    let spheresFromStorage = await getAllSpheres();
-    setAllSpheres(spheresFromStorage.length > 0 ? spheresFromStorage : MOCK_SPHERES);
-    
-    const currentActiveSphere = await getActiveSphereFromService(user, spheresFromStorage);
-    setActiveSphere(currentActiveSphere);
-    setUserSpheres(await getUserSpheresFromService(user, spheresFromStorage));
-    
-    return currentActiveSphere;
+    try {
+      // Increase timeout to 10 seconds for first-time users
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Sphere data fetch timeout')), 10000);
+      });
+      
+      const fetchPromise = (async () => {
+        let spheresFromStorage = await getAllSpheres();
+        const spheresToUse = spheresFromStorage.length > 0 ? spheresFromStorage : MOCK_SPHERES;
+        setAllSpheres(spheresToUse);
+        
+        // For first-time users or users without spheres, create a default sphere
+        if (!user.sphereIds || user.sphereIds.length === 0) {
+          console.log("[useSphereManagement] User has no spheres, creating default sphere");
+          
+          // Create a default sphere for the user
+          const defaultSphere: Sphere = {
+            id: generateSphereId(),
+            name: "Min första sfär",
+            gradientColors: ['#3B82F6', '#1E40AF'],
+            memberIds: [user.id],
+            ownerId: user.id,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          
+          try {
+            // Save the default sphere to Firestore
+            await saveNewSphere(defaultSphere);
+            console.log("[useSphereManagement] Default sphere saved to Firestore");
+            
+            // Add user to the sphere
+            const updatedUser = await addUserToSphere(user.id, defaultSphere.id);
+            if (updatedUser) {
+              console.log("[useSphereManagement] User added to default sphere");
+            }
+            
+            // Update local state
+            setAllSpheres(prev => [...prev, defaultSphere]);
+            setUserSpheres([defaultSphere]);
+            setActiveSphere(defaultSphere);
+            
+            console.log("[useSphereManagement] Default sphere created and set as active");
+            return defaultSphere;
+          } catch (error) {
+            console.error("[useSphereManagement] Failed to create default sphere:", error);
+            // Fallback to null if sphere creation fails
+            setActiveSphere(null);
+            setUserSpheres([]);
+            return null;
+          }
+        }
+        
+        const currentActiveSphere = await getActiveSphereFromService(user, spheresToUse);
+        setActiveSphere(currentActiveSphere);
+        setUserSpheres(await getUserSpheresFromService(user, spheresToUse));
+        
+        return currentActiveSphere;
+      })();
+      
+      return await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error) {
+      console.error("[useSphereManagement] Error fetching sphere data:", error);
+      
+      // Fallback to MOCK_SPHERES if there's an error
+      setAllSpheres(MOCK_SPHERES);
+      setActiveSphere(null);
+      setUserSpheres([]);
+      
+      // Don't throw the error, just return null to allow navigation to continue
+      return null;
+    }
   }, []);
 
   const handleSwitchSphere = useCallback(async (sphereId: string, user: User): Promise<boolean> => {

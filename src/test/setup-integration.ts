@@ -1,8 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// (Firebase mocks removed for integration test compatibility)
-
 // Mock Intersection Observer
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),

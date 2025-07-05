@@ -57,9 +57,24 @@ export function useAuthentication({
           } else if (!user.emailVerified) {
             setCurrentView(View.EmailConfirmation);
           } else {
-            await handleLoginSuccess(user);
-            await fetchUserAndSphereData(user);
-            setCurrentView(View.Home);
+            try {
+              await handleLoginSuccess(user);
+              
+              // Try to fetch sphere data with better error handling
+              try {
+                await fetchUserAndSphereData(user);
+                setCurrentView(View.Home);
+              } catch (sphereError) {
+                console.error('Failed to fetch sphere data:', sphereError);
+                // If sphere data fetch fails, still navigate to home but with limited functionality
+                setCurrentView(View.Home);
+                // You could also set a flag to show a warning about limited functionality
+              }
+            } catch (loginError) {
+              console.error('Login success handling failed:', loginError);
+              setError(loginError instanceof Error ? loginError.message : 'Inloggning misslyckades');
+              setCurrentView(View.Login);
+            }
           }
         } else {
           setIsAuthenticated(false);

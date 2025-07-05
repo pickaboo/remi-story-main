@@ -54,10 +54,10 @@ try {
 
   // Anslut till emulatorerna i utvecklingsläge
   if (import.meta.env.MODE === "development") {
-    connectFirestoreEmulator(db, "localhost", 8089);
-    connectAuthEmulator(auth, "http://localhost:9099");
-    connectStorageEmulator(storage, "localhost", 9199);
-    console.log("Ansluten till Firebase Emulator Suite (Firestore:8088, Auth:9099, Storage:9199)");
+    connectFirestoreEmulator(db, "127.0.0.1", 8089);
+    connectAuthEmulator(auth, "http://127.0.0.1:9099");
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
+    console.log("Ansluten till Firebase Emulator Suite (Firestore:8089, Auth:9099, Storage:9199)");
   }
 } catch (error) {
   console.error("Error initializing real Firebase:", error);

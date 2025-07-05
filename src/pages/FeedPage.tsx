@@ -56,7 +56,7 @@ export const FeedPage: React.FC = () => {
   }, [activeSphere]);
 
   useEffect(() => {
-    if (createPostRef.current) {
+    if (createPostRef.current && createPostRef.current instanceof HTMLElement && typeof createPostRef.current.scrollIntoView === 'function') {
       createPostRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
@@ -127,6 +127,7 @@ export const FeedPage: React.FC = () => {
   }, [posts, letFeedDriveTimelineSync]);
 
   if (!currentUser || !activeSphere) {
+    console.log("[FeedPage] Missing data - currentUser:", !!currentUser, "activeSphere:", !!activeSphere);
     return <LoadingSpinner message="Laddar användare och sfär..." />;
   }
 

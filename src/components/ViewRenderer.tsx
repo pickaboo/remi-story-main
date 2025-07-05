@@ -17,7 +17,7 @@ import {
 interface ViewRendererProps {
   currentView: View;
   viewParams?: any;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean | null;
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = ({ 
@@ -25,7 +25,12 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   viewParams, 
   isAuthenticated 
 }) => {
-  // Render unauthenticated views
+  // Handle null authentication state
+  if (isAuthenticated === null) {
+    return null;
+  }
+
+  // Render unauthenticated views (full screen)
   if (isAuthenticated === false) {
     switch (currentView) {
       case View.Signup:
@@ -55,7 +60,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
     }
   }
 
-  // Render authenticated views
+  // Render authenticated views (within layout)
   return (
     <Suspense fallback={<PageLoadingSpinner message="Laddar sida..." />}>
       {currentView === View.Home && <FeedPage />}

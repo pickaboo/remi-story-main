@@ -65,7 +65,7 @@ export const setCurrentSphereId = async (sphereId: string): Promise<void> => {
 
 export const getActiveSphere = async (user: User | null, allSpheresList?: Sphere[]): Promise<Sphere | null> => {
   const spheresToUse = allSpheresList || await storageGetAllSpheres();
-  if (!user || spheresToUse.length === 0 || !user.sphereIds || user.sphereIds.length === 0) return null;
+  if (!user || !user.sphereIds || user.sphereIds.length === 0) return null;
 
   const activeSphereIdFromStorage = await getCurrentSphereId();
   if (activeSphereIdFromStorage && user.sphereIds.includes(activeSphereIdFromStorage)) {
