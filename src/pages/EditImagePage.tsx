@@ -14,9 +14,6 @@ interface EditImagePageProps {
 
 export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
   const { currentUser, handleNavigate } = useAppContext();
-  if (!currentUser) {
-    return <LoadingSpinner message="Laddar användare..." />;
-  }
   const [image, setImage] = useState<ImageRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTag, setCurrentTag] = useState('');
@@ -32,6 +29,10 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
   
   const [currentUserTextDescription, setCurrentUserTextDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  if (!currentUser) {
+    return <LoadingSpinner message="Laddar användare..." />;
+  }
 
   const fetchImage = useCallback(async () => {
     setIsLoading(true);

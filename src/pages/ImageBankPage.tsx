@@ -172,10 +172,6 @@ const ImageMetadataUserDetails: React.FC<{ userId?: string; sphereId?: string }>
 export const ImageBankPage: React.FC = () => {
   const { currentUser, activeSphere, handleNavigate } = useAppContext();
 
-  if (!currentUser || !activeSphere) {
-    return <LoadingSpinner message="Laddar användare och sfär..." />;
-  }
-
   const [imageBankView, setImageBankView] = useState<ImageBankViewMode>('view'); // Default to 'view'
   
   // States for 'upload' view
@@ -193,6 +189,10 @@ export const ImageBankPage: React.FC = () => {
   const [expandedMetadataImageId, setExpandedMetadataImageId] = useState<string | null>(null);
   // Removed: const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
+  // Early return check - must be after all hooks
+  if (!currentUser || !activeSphere) {
+    return <LoadingSpinner message="Laddar användare och sfär..." />;
+  }
 
   const fetchBankedImagesForViewMode = useCallback(async () => {
     setIsLoadingBankView(true);

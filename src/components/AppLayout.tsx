@@ -45,6 +45,8 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
     handleAcceptSphereInvitation,
     handleDeclineSphereInvitation,
     handleSaveThemePreference,
+    setThemePreference,
+    setCurrentUser,
   } = useAppContext();
 
   const mainScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +81,14 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
 
   const handleSaveThemePreferenceWithUser = async (theme: any) => {
     if (currentUser) {
-      await handleSaveThemePreference(theme, currentUser.id);
+      setThemePreference(theme);
+      const updatedUser = { ...currentUser, themePreference: theme };
+      setCurrentUser(updatedUser);
+      try {
+        await handleSaveThemePreference(theme, currentUser.id);
+      } catch (error) {
+        console.error('Failed to save theme preference to database:', error);
+      }
     }
   };
 

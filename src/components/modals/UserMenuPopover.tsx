@@ -88,6 +88,10 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   }, [isOpen, currentUser.email, currentUser.themePreference]);
 
   useEffect(() => {
+    setSelectedTheme(currentUser.themePreference || 'system');
+  }, [currentUser.themePreference]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         isOpen &&
@@ -119,11 +123,15 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
     setIsSavingTheme(true);
     try {
       await onSaveThemePreference(theme);
+      // Theme is now applied immediately in App.tsx, so no need to revert on success
+      // Show brief success feedback
+      setTimeout(() => {
+        setIsSavingTheme(false);
+      }, 500); // Brief delay to show "Saving..." message
     } catch (error) {
         console.error("Failed to save theme preference:", error);
-        // Optionally revert selectedTheme or show error message
-        setSelectedTheme(currentUser.themePreference || 'system'); // Revert on error
-    } finally {
+        // Don't revert selectedTheme since the theme was already applied immediately
+        // The user will see the change even if saving to DB failed
         setIsSavingTheme(false);
     }
   };

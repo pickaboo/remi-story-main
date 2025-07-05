@@ -36,6 +36,14 @@ export const useAppState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [globalFeedback, setGlobalFeedback] = useState<LegacyFeedback | null>(null);
+  const [themePreference, setThemePreference] = useState<User['themePreference']>('system');
+
+  // Keep themePreference in sync with currentUser
+  useEffect(() => {
+    if (currentUser && currentUser.themePreference) {
+      setThemePreference(currentUser.themePreference);
+    }
+  }, [currentUser]);
 
   // Navigera till en vy och synka hash
   const navigate = useCallback((view: View, params?: ViewParams) => {
@@ -84,6 +92,7 @@ export const useAppState = () => {
     currentUser,
     isSidebarExpanded,
     globalFeedback,
+    themePreference,
     
     // Setters
     setCurrentView,
@@ -91,6 +100,7 @@ export const useAppState = () => {
     setIsAuthenticated,
     setCurrentUser,
     setGlobalFeedback,
+    setThemePreference,
     
     // Actions
     handleNavigate: navigate,

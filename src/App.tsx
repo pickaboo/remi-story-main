@@ -49,6 +49,8 @@ const AppContent: React.FC = memo(() => {
     setCurrentUser,
     handleLoginSuccess,
     fetchUserAndSphereData,
+    themePreference,
+    setThemePreference,
   } = useAppContext();
 
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -71,7 +73,14 @@ const AppContent: React.FC = memo(() => {
 
   const handleSaveThemePreferenceWrapper = async (theme: User['themePreference']) => {
     if (currentUser) {
-      await handleSaveThemePreference(theme, currentUser.id);
+      setThemePreference(theme);
+      const updatedUser = { ...currentUser, themePreference: theme };
+      setCurrentUser(updatedUser);
+      try {
+        await handleSaveThemePreference(theme, currentUser.id);
+      } catch (error) {
+        console.error('Failed to save theme preference to database:', error);
+      }
     }
   };
 
@@ -120,17 +129,16 @@ const AppContent: React.FC = memo(() => {
 
   // Theme effect
   useEffect(() => {
+    applyThemePreference(themePreference || 'system');
     if (currentUser) {
-      applyThemePreference(currentUser.themePreference || 'system');
       themeCleanupRef.current = setupThemeListener(currentUser, applyThemePreference);
     }
-
     return () => {
       if (themeCleanupRef.current) {
         themeCleanupRef.current();
       }
     };
-  }, [currentUser]);
+  }, [themePreference, currentUser]);
 
   // Background effect
   useEffect(() => {

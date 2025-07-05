@@ -30,6 +30,8 @@ interface AppContextType {
   handleNavigate: NavigationHandler;
   toggleSidebar: () => void;
   showGlobalFeedback: (message: string, type: 'success' | 'error') => void;
+  themePreference: User['themePreference'];
+  setThemePreference: (theme: User['themePreference']) => void;
 
   // Sphere Management
   allSpheres: Sphere[];
@@ -99,6 +101,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const contextValue: AppContextType = {
     // App State
     ...appState,
+    themePreference: appState.themePreference,
+    setThemePreference: appState.setThemePreference,
     
     // Sphere Management
     ...sphereManagement,

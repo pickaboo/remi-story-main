@@ -206,9 +206,6 @@ const CreationOptionCard: React.FC<CreationOptionCardProps> = ({
 
 export const SlideshowProjectsPage: React.FC = () => {
   const { currentUser, activeSphere, handleNavigate } = useAppContext();
-  if (!currentUser || !activeSphere) {
-    return <LoadingSpinner message="Laddar användare och sfär..." />;
-  }
   const [projects, setProjects] = useState<SlideshowProject[]>([]);
   const [availableImagesForSelection, setAvailableImagesForSelection] = useState<ImageRecord[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -221,6 +218,11 @@ export const SlideshowProjectsPage: React.FC = () => {
 
   const [projectForDeletionConfirmation, setProjectForDeletionConfirmation] = useState<SlideshowProject | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+
+  // Early return check - must be after all hooks
+  if (!currentUser || !activeSphere) {
+    return <LoadingSpinner message="Laddar användare och sfär..." />;
+  }
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
