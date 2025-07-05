@@ -9,6 +9,7 @@ export const useModalState = () => {
   const [isLookAndFeelModalOpen, setIsLookAndFeelModalOpen] = useState(false);
   const [isManageSphereModalOpen, setIsManageSphereModalOpen] = useState(false);
   const [isImageBankSettingsModalOpen, setIsImageBankSettingsModalOpen] = useState(false);
+  const [isProfileCompletionModalOpen, setIsProfileCompletionModalOpen] = useState(false);
   const [allUsersForManageModal, setAllUsersForManageModal] = useState<User[]>([]);
 
   // Modal handlers
@@ -54,6 +55,14 @@ export const useModalState = () => {
     setIsImageBankSettingsModalOpen(false);
   }, []);
 
+  const handleOpenProfileCompletionModal = useCallback(() => {
+    setIsProfileCompletionModalOpen(true);
+  }, []);
+
+  const handleCloseProfileCompletionModal = useCallback(() => {
+    setIsProfileCompletionModalOpen(false);
+  }, []);
+
   return {
     // Modal states
     isCreateSphereModalOpen,
@@ -62,6 +71,7 @@ export const useModalState = () => {
     isLookAndFeelModalOpen,
     isManageSphereModalOpen,
     isImageBankSettingsModalOpen,
+    isProfileCompletionModalOpen,
     allUsersForManageModal,
 
     // Modal handlers
@@ -75,6 +85,8 @@ export const useModalState = () => {
     handleCloseManageSphereModal,
     handleOpenImageBankSettingsModal,
     handleCloseImageBankSettingsModal,
+    handleOpenProfileCompletionModal,
+    handleCloseProfileCompletionModal,
 
     // Setters
     setAllUsersForManageModal,

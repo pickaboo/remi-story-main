@@ -54,6 +54,7 @@ interface AppContextType {
   isLookAndFeelModalOpen: boolean;
   isManageSphereModalOpen: boolean;
   isImageBankSettingsModalOpen: boolean;
+  isProfileCompletionModalOpen: boolean;
   allUsersForManageModal: User[];
   handleOpenCreateSphereModal: () => void;
   handleCloseCreateSphereModal: () => void;
@@ -65,6 +66,8 @@ interface AppContextType {
   handleCloseManageSphereModal: () => void;
   handleOpenImageBankSettingsModal: () => void;
   handleCloseImageBankSettingsModal: () => void;
+  handleOpenProfileCompletionModal: () => void;
+  handleCloseProfileCompletionModal: () => void;
   setAllUsersForManageModal: (users: User[]) => void;
 
   // Auth

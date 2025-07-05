@@ -5,7 +5,6 @@ import {
   LoginPage, 
   SignupPage, 
   EmailConfirmationPage, 
-  ProfileCompletionPage,
   FeedPage,
   DiaryPage,
   EditImagePage,
@@ -45,12 +44,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
             <EmailConfirmationPage />
           </Suspense>
         );
-      case View.ProfileCompletion:
-        return (
-          <Suspense fallback={<PageLoadingSpinner message="Laddar profilkomplettering..." />}>
-            <ProfileCompletionPage />
-          </Suspense>
-        );
+
       default:
         return (
           <Suspense fallback={<PageLoadingSpinner message="Laddar inloggningssida..." />}>

@@ -159,6 +159,9 @@ export const useSphereManagement = () => {
       setUserSpheres(prev => [...prev, newSphere]);
       setActiveSphere(newSphere);
       
+      // Also persist the new sphere as the active sphere
+      await persistCurrentSphereId(newSphere.id);
+      
       console.log("[useSphereManagement] Successfully created sphere:", newSphere.name);
       return { success: true, sphere: newSphere, updatedUser };
     } catch (error) {

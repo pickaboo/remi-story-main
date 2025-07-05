@@ -7,6 +7,7 @@ import {
   ManageSphereModal,
   ImageBankSettingsModal
 } from './modals';
+import { ProfileCompletionModal } from './modals/ProfileCompletionModal';
 
 export const ModalManager: React.FC = () => {
   const {
@@ -17,6 +18,7 @@ export const ModalManager: React.FC = () => {
     isLookAndFeelModalOpen,
     isManageSphereModalOpen,
     isImageBankSettingsModalOpen,
+    isProfileCompletionModalOpen,
     allUsersForManageModal,
     
     // Sphere management
@@ -26,6 +28,8 @@ export const ModalManager: React.FC = () => {
     handleSaveSphereBackground,
     handleInviteUserToSphere,
     handleRemoveUserFromSphere,
+    handleSwitchSphere,
+    fetchUserAndSphereData,
     
     // Modal handlers
     handleCloseCreateSphereModal,
@@ -33,6 +37,7 @@ export const ModalManager: React.FC = () => {
     handleCloseLookAndFeelModal,
     handleCloseManageSphereModal,
     handleCloseImageBankSettingsModal,
+    handleCloseProfileCompletionModal,
     
     // Auth functions
     handleSaveThemePreference,
@@ -47,24 +52,29 @@ export const ModalManager: React.FC = () => {
     }
     
     const result = await handleCreateSphere(name, gradientColors, currentUser);
+    console.log('[ModalManager] Create sphere result:', result);
+    
     if (!result.success) {
       throw new Error(result.error || 'Failed to create sphere');
     }
     
     // Update the current user with the updated user data from Firestore
     if (result.updatedUser) {
+      console.log('[ModalManager] Updating user with result.updatedUser');
       // Fetch the latest user from Firestore to ensure sphereIds is up to date
       const { getUserById } = await import('../services/userService');
       const latestUser = await getUserById(result.updatedUser.id);
       if (latestUser) {
         setCurrentUser(latestUser);
-        // Also refresh spheres for the user
-        const { fetchUserAndSphereData } = useAppContext();
-        await fetchUserAndSphereData(latestUser);
+        // Don't refresh spheres here as it might override the active sphere
+        // handleCreateSphere already sets the new sphere as active
       } else {
         setCurrentUser(result.updatedUser);
       }
     }
+    
+    // Note: handleCreateSphere already sets the new sphere as active, so no need to switch manually
+    console.log('[ModalManager] Sphere created successfully, active sphere should already be updated');
     
     // Show success feedback
     showGlobalFeedback(`Sfären "${name}" skapades framgångsrikt!`, 'success');
@@ -151,6 +161,13 @@ export const ModalManager: React.FC = () => {
           onClose={handleCloseImageBankSettingsModal}
           currentUser={currentUser}
           onSaveShowImageMetadataPreference={handleSaveImageMetadataPreference}
+        />
+      )}
+
+      {isProfileCompletionModalOpen && (
+        <ProfileCompletionModal
+          isOpen={isProfileCompletionModalOpen}
+          onClose={handleCloseProfileCompletionModal}
         />
       )}
     </>

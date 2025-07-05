@@ -11,6 +11,7 @@ import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';
 import { auth } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useProfileCompletion } from '../hooks/useProfileCompletion';
 
 export const AppContent: React.FC = memo(() => {
   const {
@@ -51,6 +52,9 @@ export const AppContent: React.FC = memo(() => {
   const themeCleanupRef = useRef<(() => void) | null>(null);
   const authUnsubscribeRef = useRef<(() => void) | null>(null);
 
+  // Check profile completion
+  useProfileCompletion();
+
   // Firebase Auth state listener
   useEffect(() => {
     console.log('[AppContent] Setting up Firebase Auth state listener...');
@@ -87,15 +91,12 @@ export const AppContent: React.FC = memo(() => {
             setIsAuthenticated(true);
             setCurrentUser(user);
             
-            // Handle new users or profile completion
-            if (!user.name || user.name === "Ny Användare") {
-              console.log('[AppContent] User needs profile completion, setting view to ProfileCompletion');
-              handleNavigate(View.ProfileCompletion);
-            } else if (!user.emailVerified) {
+            // Handle email verification and profile completion
+            if (!user.emailVerified) {
               console.log('[AppContent] User needs email verification, setting view to EmailConfirmation');
               handleNavigate(View.EmailConfirmation);
             } else {
-              console.log('[AppContent] User is complete, setting view to Home');
+              console.log('[AppContent] User is authenticated, navigating to Home');
               await handleLoginSuccess(user);
               await fetchUserAndSphereData(user);
               handleNavigate(View.Home);
