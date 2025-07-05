@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { View, Sphere, User, ViewParams } from '@/types';
 import { SphereDisplay } from '@/components/ui';
+import { useAppContext } from '@/context/AppContext';
 
 interface SidebarProps {
   currentPath: string;
@@ -122,6 +123,29 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
     onOpenImageBankSettingsModal,
     allUsers
 }) => {
+  const { themePreference } = useAppContext();
+  // Add CSS for the large logo
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .sidebar-logo-large {
+        width: ${isExpanded ? '400px' : '100px'} !important;
+        height: auto !important;
+        min-width: ${isExpanded ? '400px' : '100px'} !important;
+        max-width: none !important;
+        transform: rotate(-90deg) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        position: absolute !important;
+        z-index: 1000 !important;
+        transition: all 0.3s ease-in-out !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, [isExpanded]);
   const [isSphereDropdownOpen, setIsSphereDropdownOpen] = useState(false);
   const sphereSwitcherRef = useRef<HTMLDivElement>(null);
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = useState(false);
@@ -147,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
 
   return (
     <aside 
-      className={`fixed top-0 left-0 h-screen bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 flex flex-col z-40 transition-all duration-300 ease-in-out shadow-lg border-r border-border-color dark:border-slate-700 ${isExpanded ? 'w-60' : 'w-20'}`}
+      className={`fixed top-0 left-0 h-screen bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 flex flex-col z-40 transition-all duration-300 ease-in-out shadow-lg border-r border-border-color dark:border-slate-700 ${isExpanded ? 'w-60' : 'w-20'}`}
     >
       <div 
         className={`py-4 flex items-center relative ${isExpanded ? 'px-4' : 'justify-center px-0'}`} 
@@ -165,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsSphereDropdownOpen(prev => !prev);}}
             title={isExpanded && activeSphere ? activeSphere.name : (activeSphere ? `Aktiv sfär: ${activeSphere.name}` : "Välj sfär")}
           >
-            <SphereDisplay sphere={activeSphere} size={'lg'} />
+            <SphereDisplay sphere={activeSphere} size={'lg'} showName={true} isActive={true} />
             
             {isExpanded && (
                 <ChevronDownIcon 
@@ -208,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
               <div className="p-1.5 mb-2 border-b border-border-color dark:border-slate-600">
                 <div className="flex items-center justify-between">
                   <span 
-                    className={`font-semibold text-slate-700 dark:text-slate-200 truncate ${isExpanded ? 'text-sm' : 'text-xs'}`} 
+                    className={`font-bold text-slate-700 dark:text-slate-200 truncate ${isExpanded ? 'text-2xl' : 'text-lg'}`} 
                     title={activeSphere.name}
                   >
                     {isExpanded ? activeSphere.name : activeSphere.name.substring(0,12) + (activeSphere.name.length > 12 ? '...' : '')}
@@ -236,7 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
                  <div key={sphere.id} className={`flex items-center ${isExpanded ? 'justify-start w-full' : 'justify-center'}`}>
                     <SphereDisplay
                       sphere={sphere}
-                      size={'lg'}
+                      size={'sm'}
                       onClick={() => {
                           onSwitchSphere(sphere.id);
                           setIsSphereDropdownOpen(false);
@@ -298,7 +322,27 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
           })}
         </nav>
 
-        {/* Settings Button and Popover */}
+                {/* Rotated Logo */}
+        <div className={`py-0 ${isExpanded ? 'px-0' : 'px-0'}`} style={{ overflow: 'visible' }}>
+          <div className="relative flex items-start justify-end">
+            <img 
+              src={themePreference === 'dark' ? "/images/Remi_namn_neg.gif" : "/images/Remi_namn_neg.gif"} 
+              alt="REMI Namn" 
+              className="sidebar-logo-large"
+              style={{
+                marginBottom: isExpanded ? '20rem' : '1rem',
+                marginTop: isExpanded ? '-16rem' : '-6rem',
+                transformOrigin: 'center',
+                position: 'absolute',
+                zIndex: 10,
+                left: isExpanded ? '-8rem' : '-1rem',
+                right: isExpanded ? 'auto' : '1rem'
+              }}
+            />
+          </div>
+        </div>
+
+          {/* Settings Button and Popover */}
         <div className={`py-2 relative ${isExpanded ? 'px-3' : 'px-0 flex justify-center'}`}>
             <button
                 ref={settingsButtonRef}
@@ -318,7 +362,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
                 <div 
                     id="settings-popover"
                     className={`absolute bottom-full mb-2 p-2 rounded-xl shadow-2xl border border-border-color dark:border-slate-700 
-                               bg-white/90 dark:bg-slate-800/90 backdrop-blur-md z-50
+                               bg-white dark:bg-slate-800 z-[1000]
                                ${isExpanded ? 'left-3 w-[calc(100%-1.5rem)]' : 'left-1/2 -translate-x-1/2 w-max'}`}
                     role="menu"
                 >

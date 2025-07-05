@@ -1,4 +1,4 @@
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, useRef, memo, useEffect } from 'react';
 import { User, View, ViewParams } from '../../types'; 
 import { DiaryPopover, UserMenuPopover } from '../modals';
 
@@ -50,6 +50,27 @@ export const Header: React.FC<HeaderProps> = memo(({
   const diaryButtonRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuButtonRef = useRef<HTMLDivElement>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => 
+    document.documentElement.classList.contains('dark')
+  );
+
+  // Lyssnar på tema-ändringar
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          setIsDarkMode(document.documentElement.classList.contains('dark'));
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <header className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-slate-700 px-4 sm:px-6 lg:px-8 shadow-sm`} role="banner">
@@ -64,11 +85,12 @@ export const Header: React.FC<HeaderProps> = memo(({
           className="inline-block hover:opacity-80 transition-opacity"
           aria-label="REMI Story Hem"
         >
-        {logoUrl ? (
-            <img src={logoUrl} alt="REMI Story Logotyp" className="h-7 sm:h-8 w-auto mx-auto dark:brightness-0 dark:invert" />
-        ) : (
-            <span className="font-bold text-xl sm:text-2xl text-slate-700 dark:text-slate-200">REMI Story</span>
-        )}
+          {/* Dynamisk logotyp baserat på tema */}
+          <img 
+            src={isDarkMode ? '/images/Slogan_neg.gif' : '/images/Slogan_pos.gif'} 
+            alt="REMI Story Logotyp" 
+            className="h-7 sm:h-8 w-auto mx-auto"
+          />
         </a>
       </div>
 
