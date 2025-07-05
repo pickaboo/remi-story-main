@@ -5,12 +5,14 @@ import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';
 
 interface UseAuthenticationProps {
-  handleLoginSuccess: (user: User) => Promise<void>;
-  fetchUserAndSphereData: (user: User) => Promise<void>;
+  handleLoginSuccess: (user: User) => Promise<User>;
+  fetchUserAndSphereData: (user: User) => Promise<any>;
   setCurrentView: (view: View) => void;
   setIsAuthenticated: (value: boolean) => void;
   setCurrentUser: (user: User | null) => void;
   activeSphere: any; // Replace with proper type
+  themePreference: User['themePreference'];
+  currentUser: User | null;
 }
 
 interface UseAuthenticationReturn {
@@ -29,7 +31,9 @@ export function useAuthentication({
   setCurrentView,
   setIsAuthenticated,
   setCurrentUser,
-  activeSphere
+  activeSphere,
+  themePreference,
+  currentUser
 }: UseAuthenticationProps): UseAuthenticationReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,20 +82,21 @@ export function useAuthentication({
 
   // Theme effect
   useEffect(() => {
-    // Note: This hook needs to be integrated with context to get actual currentUser
-    // For now, we'll skip theme handling in this hook
+    applyThemePreference(themePreference || 'system');
+    if (currentUser) {
+      themeCleanupRef.current = setupThemeListener(currentUser, applyThemePreference);
+    }
     return () => {
       if (themeCleanupRef.current) {
         themeCleanupRef.current();
       }
     };
-  }, []);
+  }, [themePreference, currentUser]);
 
   // Background effect
   useEffect(() => {
-    // Note: This hook needs to be integrated with context to get actual currentUser
-    // For now, we'll skip background handling in this hook
-  }, [activeSphere]);
+    applyBackgroundPreference(activeSphere, currentUser);
+  }, [activeSphere, currentUser]);
 
   return {
     isAuthenticated: null, // This should come from context
