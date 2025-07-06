@@ -1,2 +1,1 @@
-export { ImageUploadSection } from './ImageUploadSection';
-export { AudioRecordingSection } from './AudioRecordingSection'; 
+export { ImageUploadSection } from './ImageUploadSection'; 

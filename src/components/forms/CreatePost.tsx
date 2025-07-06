@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { Button, TextArea } from '../ui';
 import { User } from '../../types';
 import { useCreatePost } from '../../hooks/useCreatePost';
-import { ImageUploadSection, AudioRecordingSection } from '../createPost';
+import { ImageUploadSection } from '../createPost';
 
 interface CreatePostProps {
   currentUser: User;
@@ -70,20 +70,16 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({
           showImageBankModal={showImageBankModal}
           isProcessingFile={isProcessingFile}
           activeSphereId={activeSphereId}
+          isRecording={audioRecorder.isRecording}
+          audioUrl={audioRecorder.audioUrl}
           onFileChange={handleFileChange}
           onBankedImageSelect={handleBankedImageSelect}
           onClearImageSelection={clearImageSelection}
           onShowImageBankModal={setShowImageBankModal}
           onTriggerFileInput={triggerFileInput}
-        />
-
-        <AudioRecordingSection
-          isRecording={audioRecorder.isRecording}
-          audioBlob={audioRecorder.audioUrl ? null : null} // Convert URL to Blob if needed
           onStartRecording={audioRecorder.startRecording}
           onStopRecording={audioRecorder.stopRecording}
           onResetAudio={handleResetAudio}
-          disabled={isPosting}
         />
 
         {error && (
