@@ -41,7 +41,7 @@ export const applyBackgroundPreference = (sphereForBackground?: Sphere | null, u
   }
 
   if (!preferenceApplied) { 
-    pageBackground.style.backgroundImage = `url('https://cdn.pixabay.com/photo/2021/04/02/19/13/sea-6145800_1280.jpg')`;
+    pageBackground.style.backgroundImage = `url('/images/Login.jpg')`;
     pageBackground.classList.add('kenburns-pan-br-tl');
     isImageBackground = true; 
   }
