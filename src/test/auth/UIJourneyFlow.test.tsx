@@ -33,13 +33,17 @@ describe('UI Journey Flow - User Interaction Tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/logga in på remi story/i)).toBeInTheDocument();
     });
-    // Tab through fields
+    
+    // Wait for the email input to be focused (autoFocus)
     const emailInput = screen.getByLabelText(/e-postadress/i);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(emailInput);
+    });
+    
     const passwordInput = screen.getByLabelText(/lösenord/i);
-    await user.tab(); // focus email
-    expect(document.activeElement).toBe(emailInput);
     await user.tab(); // focus password
     expect(document.activeElement).toBe(passwordInput);
+    
     // Try to submit empty form
     const loginButtons = screen.getAllByRole('button', { name: /logga in/i });
     const mainLoginButton = loginButtons.find(btn => btn.getAttribute('type') === 'submit');
