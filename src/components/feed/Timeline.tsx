@@ -338,13 +338,13 @@ export const Timeline: React.FC<TimelineProps> = memo(({ posts, onScrollToPost, 
             {today.getFullYear()}
         </div>
         <div className="flex items-center justify-center mt-1">
-            <button disabled className="p-1.5 rounded-full text-slate-500 cursor-not-allowed">
+            <button disabled className="p-1.5 rounded-full text-slate-500 cursor-not-allowed border border-transparent">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             </button>
             <div className="text-center text-lg font-medium text-slate-200 capitalize w-auto px-3 py-1 bg-black/40 backdrop-blur-sm rounded-full shadow-md mx-1">
                 {getSwedishMonthName(today).charAt(0).toUpperCase() + getSwedishMonthName(today).slice(1)}
             </div>
-            <button disabled className="p-1.5 rounded-full text-slate-500 cursor-not-allowed">
+            <button disabled className="p-1.5 rounded-full text-slate-500 cursor-not-allowed border border-transparent">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </button>
         </div>
@@ -357,8 +357,8 @@ export const Timeline: React.FC<TimelineProps> = memo(({ posts, onScrollToPost, 
     ({onClick, children, ariaLabel, disabled}) => (
     <button
       onClick={onClick}
-      className={`p-1.5 rounded-full transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-white/50
-                  ${disabled ? 'text-slate-600 cursor-not-allowed' : 'text-slate-200 hover:bg-black/50 hover:text-white'}`}
+      className={`p-1.5 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 border border-transparent
+                  ${disabled ? 'text-slate-600 cursor-not-allowed' : 'text-slate-200 hover:bg-black/50 hover:text-white hover:border-white/30 active:scale-95'}`}
       aria-label={ariaLabel}
       disabled={isEditingYear || isEditingMonth || disabled}
     >

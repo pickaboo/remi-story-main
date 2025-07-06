@@ -125,7 +125,8 @@ const ButtonComponent: React.FC<ButtonProps> = memo(({
   const baseClasses = [
     'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 ease-in-out',
     'focus:outline-none focus:ring-2 focus:ring-offset-2',
-    'disabled:opacity-50 disabled:cursor-not-allowed',
+    'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none',
+    'transform hover:scale-105 active:scale-95',
     fullWidth ? 'w-full' : '',
   ].join(' ');
 
@@ -139,40 +140,40 @@ const ButtonComponent: React.FC<ButtonProps> = memo(({
   // Variant classes with hover and focus states
   const variantClasses = {
     primary: [
-      'bg-primary text-white shadow-sm',
-      'hover:bg-primary/90 hover:shadow-md',
-      'focus:ring-primary/50',
-      'active:bg-primary/80',
+      'bg-primary text-white shadow-sm border border-primary/20',
+      'hover:bg-primary/90 hover:shadow-md hover:border-primary/40',
+      'focus:ring-primary/50 focus:border-primary/60',
+      'active:bg-primary/80 active:border-primary/80 active:scale-95',
     ].join(' '),
     secondary: [
-      'bg-slate-100 text-slate-700 dark:bg-dark-bg dark:text-slate-200',
-      'hover:bg-slate-200 dark:hover:bg-dark-bg/50',
-      'focus:ring-slate-500/50',
-      'active:bg-slate-300 dark:active:bg-dark-bg/70',
+      'bg-slate-100 text-slate-700 dark:bg-dark-bg dark:text-slate-200 border border-slate-200 dark:border-dark-bg/30',
+      'hover:bg-slate-200 dark:hover:bg-dark-bg/50 hover:border-slate-300 dark:hover:border-dark-bg/50',
+      'focus:ring-slate-500/50 focus:border-slate-400 dark:focus:border-dark-bg/60',
+      'active:bg-slate-300 dark:active:bg-dark-bg/70 active:border-slate-400 dark:active:border-dark-bg/70 active:scale-95',
     ].join(' '),
     accent: [
-      'bg-purple-600 text-white shadow-sm',
-      'hover:bg-purple-700 hover:shadow-md',
-      'focus:ring-purple-500/50',
-      'active:bg-purple-800',
+      'bg-purple-600 text-white shadow-sm border border-purple-500/20',
+      'hover:bg-purple-700 hover:shadow-md hover:border-purple-500/40',
+      'focus:ring-purple-500/50 focus:border-purple-500/60',
+      'active:bg-purple-800 active:border-purple-500/80 active:scale-95',
     ].join(' '),
     danger: [
-      'bg-red-600 text-white shadow-sm',
-      'hover:bg-red-700 hover:shadow-md',
-      'focus:ring-red-500/50',
-      'active:bg-red-800',
+      'bg-red-600 text-white shadow-sm border border-red-500/20',
+      'hover:bg-red-700 hover:shadow-md hover:border-red-500/40',
+      'focus:ring-red-500/50 focus:border-red-500/60',
+      'active:bg-red-800 active:border-red-500/80 active:scale-95',
     ].join(' '),
     ghost: [
-      'bg-transparent text-slate-700 dark:text-slate-200',
-      'hover:bg-slate-100 dark:hover:bg-dark-bg/50',
-      'focus:ring-slate-500/50',
-      'active:bg-slate-200 dark:active:bg-dark-bg/70',
+      'bg-transparent text-slate-700 dark:text-slate-200 border border-transparent',
+      'hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:border-slate-200 dark:hover:border-dark-bg/40',
+      'focus:ring-slate-500/50 focus:border-slate-300 dark:focus:border-dark-bg/50',
+      'active:bg-slate-200 dark:active:bg-dark-bg/70 active:border-slate-300 dark:active:border-dark-bg/60 active:scale-95',
     ].join(' '),
     outline: [
       'bg-transparent border border-slate-300 dark:border-dark-bg/50 text-slate-700 dark:text-slate-200',
-      'hover:bg-slate-50 dark:hover:bg-dark-bg/50',
-      'focus:ring-slate-500/50',
-      'active:bg-slate-100 dark:active:bg-dark-bg/70',
+      'hover:bg-slate-50 dark:hover:bg-dark-bg/50 hover:border-slate-400 dark:hover:border-dark-bg/60',
+      'focus:ring-slate-500/50 focus:border-slate-500 dark:focus:border-dark-bg/70',
+      'active:bg-slate-100 dark:active:bg-dark-bg/70 active:border-slate-500 dark:active:border-dark-bg/80 active:scale-95',
     ].join(' '),
   };
 

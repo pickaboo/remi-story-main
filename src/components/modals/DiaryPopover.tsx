@@ -97,7 +97,7 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = memo(({ currentUser, is
     >
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200">Snabbanteckning ({new Date().toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short'})})</h3>
-        <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Stäng anteckning">
+        <button onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 rounded-lg p-1 transition-all duration-200 hover:bg-slate-50 dark:hover:bg-dark-bg/50 active:scale-95" aria-label="Stäng anteckning">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>

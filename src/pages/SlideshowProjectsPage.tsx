@@ -405,7 +405,7 @@ export const SlideshowProjectsPage: React.FC = () => {
           <div className="bg-red-100 dark:bg-red-500/20 border border-red-400 dark:border-red-500 text-danger dark:text-red-400 px-4 py-3 rounded-lg relative mb-6" role="alert">
             <strong className="font-bold">Ett fel uppstod:</strong>
             <span className="block sm:inline whitespace-pre-line"> {generalError}</span>
-            <button onClick={() => setGeneralError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Stäng felmeddelande">
+            <button onClick={() => setGeneralError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3 border border-transparent hover:border-red-300 dark:hover:border-red-600 rounded-r-lg transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-95" aria-label="Stäng felmeddelande">
               <span className="text-2xl">&times;</span>
             </button>
           </div>

@@ -161,7 +161,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {setShowForgotPassword(true); setError(null);}}
-                className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded"
+                className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95"
               >
                 Glömt lösenord?
               </button>
@@ -208,7 +208,7 @@ export const LoginPage: React.FC = () => {
 
       <p className="mt-8 text-center text-sm text-muted-text dark:text-slate-400">
         Inget konto?{' '}
-        <button onClick={() => handleNavigate(View.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded">
+        <button onClick={() => handleNavigate(View.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
           Skapa ett här
         </button>
       </p>
