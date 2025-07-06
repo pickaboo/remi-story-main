@@ -94,7 +94,8 @@ export const loginWithEmailPassword = async (email: string, passwordAttempt: str
 
 const createFirestoreUserRecord = async (firebaseUser: FirebaseUser, additionalData: Partial<AuthUserRecord> = {}): Promise<AuthUserRecord> => {
   const userDocRef = doc(db, USERS_COLLECTION_NAME, firebaseUser.uid);
-  const initialSphereIds = MOCK_SPHERES.length > 0 ? [MOCK_SPHERES[0].id] : []; // Ge tillgång till en startsfär
+  // Don't assign any initial spheres - let the sphere management create a personal sphere
+  const initialSphereIds: string[] = []; // Empty array for new users
 
   const nowISO = Timestamp.now().toDate().toISOString();
   const newUserRecordData: Omit<AuthUserRecord, 'id' | 'passwordHash'> = {

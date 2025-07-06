@@ -1,22 +1,23 @@
 import { useState, useCallback } from 'react';
 import { Sphere, User, SphereCreationResult, InvitationResult } from '../types';
 import { 
-  getActiveSphere as getActiveSphereFromService,
-  setCurrentSphereId as persistCurrentSphereId,
-  getUserSpheres as getUserSpheresFromService,
-} from '../services/userService';
-import { 
   getAllSpheres, 
   saveNewSphere, 
-  generateId as generateSphereId,
-  updateSphere,
+  updateSphere, 
+  generateId as generateSphereId
 } from '../services/storageService';
+import { 
+  getActiveSphere as getActiveSphereFromService,
+  getUserSpheres as getUserSpheresFromService,
+  setCurrentSphereId as persistCurrentSphereId
+} from '../services/userService';
 import { 
   mock_inviteUserToSphereByEmail,
   removeUserFromSphere,
   addUserToSphere,
 } from '../services/authService';
 import { MOCK_SPHERES } from '../constants';
+import { isPersonalSphere } from '../types';
 
 export const useSphereManagement = () => {
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
@@ -39,39 +40,43 @@ export const useSphereManagement = () => {
         
         // For first-time users or users without spheres, create a default sphere
         if (!user.sphereIds || user.sphereIds.length === 0) {
-          console.log("[useSphereManagement] User has no spheres, creating default sphere");
+          console.log("[useSphereManagement] User has no spheres, creating personal sphere");
           
-          // Create a default sphere for the user
-          const defaultSphere: Sphere = {
+          // Create a personal sphere for the user
+          const personalSphereName = user.name && user.name !== "Ny Användare" 
+            ? `${user.name}s personliga sfär` 
+            : "Min personliga sfär";
+            
+          const personalSphere: Sphere = {
             id: generateSphereId(),
-            name: "Min första sfär",
-            gradientColors: ['#3B82F6', '#1E40AF'],
-            memberIds: [user.id],
-            ownerId: user.id,
+            name: personalSphereName,
+            gradientColors: ['#3B82F6', '#1E40AF'], // Blue gradient
+            memberIds: [user.id], // Only the user is a member
+            ownerId: user.id, // User owns this sphere
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
           
           try {
-            // Save the default sphere to Firestore
-            await saveNewSphere(defaultSphere);
-            console.log("[useSphereManagement] Default sphere saved to Firestore");
+            // Save the personal sphere to Firestore
+            await saveNewSphere(personalSphere);
+            console.log("[useSphereManagement] Personal sphere saved to Firestore:", personalSphere.name);
             
             // Add user to the sphere
-            const updatedUser = await addUserToSphere(user.id, defaultSphere.id);
+            const updatedUser = await addUserToSphere(user.id, personalSphere.id);
             if (updatedUser) {
-              console.log("[useSphereManagement] User added to default sphere");
+              console.log("[useSphereManagement] User added to personal sphere");
             }
             
             // Update local state
-            setAllSpheres(prev => [...prev, defaultSphere]);
-            setUserSpheres([defaultSphere]);
-            setActiveSphere(defaultSphere);
+            setAllSpheres(prev => [...prev, personalSphere]);
+            setUserSpheres([personalSphere]);
+            setActiveSphere(personalSphere);
             
-            console.log("[useSphereManagement] Default sphere created and set as active");
-            return defaultSphere;
+            console.log("[useSphereManagement] Personal sphere created and set as active:", personalSphere.name);
+            return personalSphere;
           } catch (error) {
-            console.error("[useSphereManagement] Failed to create default sphere:", error);
+            console.error("[useSphereManagement] Failed to create personal sphere:", error);
             // Fallback to null if sphere creation fails
             setActiveSphere(null);
             setUserSpheres([]);
@@ -208,7 +213,12 @@ export const useSphereManagement = () => {
         return { success: false, message: "Could not determine sphere owner" };
       }
       
-              const result = await mock_inviteUserToSphereByEmail(sphere.ownerId, sphereId, email, message);
+      // Check if this is a personal sphere (only owner is member)
+      if (isPersonalSphere(sphere)) {
+        return { success: false, message: "Kan inte bjuda in till en personlig sfär. Skapa en ny sfär för att dela med andra." };
+      }
+      
+      const result = await mock_inviteUserToSphereByEmail(sphere.ownerId, sphereId, email, message);
       return result;
     } catch (error) {
       console.error("[useSphereManagement] Failed to invite user:", error);

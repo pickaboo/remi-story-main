@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, TextArea, LoadingSpinner, SphereDisplay } from '../ui';
-import { Sphere, User } from '../../types';
+import { Sphere, User, isPersonalSphere } from '../../types';
 
 interface ManageSphereModalProps {
   isOpen: boolean;
@@ -83,6 +83,7 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
   };
   
   const isCurrentUserOwner = activeSphere.ownerId === currentUser.id;
+  const isPersonal = isPersonalSphere(activeSphere);
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="manage-sphere-modal-title">
@@ -102,6 +103,24 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
         </header>
         
         <div className="p-4 sm:p-5 flex-grow overflow-y-auto space-y-6">
+          {/* Personal Sphere Warning */}
+          {isPersonal && (
+            <section className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+                <div>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">Personlig Sfär</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Detta är din personliga sfär. Du kan inte bjuda in andra användare till denna sfär. 
+                    Skapa en ny sfär om du vill dela innehåll med andra.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Member List Section */}
           <section>
             <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-3">Medlemmar ({members.length})</h3>
@@ -138,8 +157,8 @@ export const ManageSphereModal: React.FC<ManageSphereModalProps> = ({
             )}
           </section>
 
-          {/* Invite User Section */}
-          {isCurrentUserOwner && (
+          {/* Invite User Section - Only show for non-personal spheres */}
+          {isCurrentUserOwner && !isPersonal && (
             <section className="pt-4 border-t border-border-color dark:border-slate-700">
               <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300 mb-3">Bjud in Ny Medlem</h3>
               <form onSubmit={handleInviteSubmit} className="space-y-3">

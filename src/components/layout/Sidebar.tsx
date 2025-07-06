@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { View, Sphere, User, ViewParams } from '@/types';
+import { View, Sphere, User, ViewParams, isPersonalSphere } from '@/types';
 import { SphereDisplay } from '@/components/ui';
 import { useAppContext } from '@/context/AppContext';
 
@@ -237,17 +237,19 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
                   >
                     {isExpanded ? activeSphere.name : activeSphere.name.substring(0,12) + (activeSphere.name.length > 12 ? '...' : '')}
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); 
-                      onOpenInviteModal(activeSphere);
-                      setIsSphereDropdownOpen(false);
-                    }}
-                    className="p-1 rounded-full hover:bg-primary/10 dark:hover:bg-blue-400/10 text-primary dark:text-blue-400 flex-shrink-0"
-                    title={`Bjud in till ${activeSphere.name}`}
-                  >
-                    <UserPlusIcon className="w-5 h-5" />
-                  </button>
+                  {!isPersonalSphere(activeSphere) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        onOpenInviteModal(activeSphere);
+                        setIsSphereDropdownOpen(false);
+                      }}
+                      className="p-1 rounded-full hover:bg-primary/10 dark:hover:bg-blue-400/10 text-primary dark:text-blue-400 flex-shrink-0"
+                      title={`Bjud in till ${activeSphere.name}`}
+                    >
+                      <UserPlusIcon className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
                 <p className={`text-muted-text dark:text-slate-400 mt-0.5 ${isExpanded ? 'text-xs' : 'text-[10px]'}`}>
                   {memberCount} medlem{memberCount !== 1 ? 'mar' : ''}
