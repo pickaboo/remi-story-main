@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Button, TextArea, AudioPlayerButton } from '../ui';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
-import { generateId, saveImage, getImageById } from '../../services/storageService';
+import { generateId, saveImage, getImageById, uploadAudioFile } from '../../services/storageService';
 import { analyzeImageWithGemini, generateEngagingQuestionFromAnalysis } from '../../services/geminiService';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
 import { ImageBankPickerModal } from '../modals';
@@ -332,9 +332,24 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
       const currentUserDescEntry: UserDescriptionEntry = {
         userId: currentUser.id,
         description: postText.trim(),
-        audioRecUrl: audioRecorder.audioUrl || undefined,
+        audioRecUrl: undefined,
         createdAt: new Date().toISOString(),
       };
+
+      // Upload audio file if exists
+      let finalAudioRecUrl: string | undefined = undefined;
+      if (audioRecorder.audioUrl) {
+        try {
+          const audioId = generateId();
+          finalAudioRecUrl = await uploadAudioFile(audioRecorder.audioUrl, currentUser.id, audioId);
+          currentUserDescEntry.audioRecUrl = finalAudioRecUrl;
+        } catch (uploadError) {
+          console.error("Error uploading audio file:", uploadError);
+          setError("Kunde inte ladda upp ljudfilen. Försök igen.");
+          setIsPosting(false);
+          return;
+        }
+      }
 
       if (selectedBankedImageInfo) {
         const banked = selectedBankedImageInfo;

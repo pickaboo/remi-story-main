@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { ImageRecord, User, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
+import { uploadAudioFile } from '../../services/storageService';
+import { generateId } from '../../services/storageService';
 import { TextArea } from '../ui';
 import { Button, Input } from '../ui';
 import { AudioPlayerButton } from '../ui';
@@ -115,20 +117,33 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
     setIsCommenting(true);
     commentAudioRecorder.stopRecording();
 
+    // Upload audio file if exists
+    let finalAudioRecUrl: string | undefined = undefined;
+    if (commentAudioRecorder.audioUrl) {
+      try {
+        const audioId = generateId();
+        finalAudioRecUrl = await uploadAudioFile(commentAudioRecorder.audioUrl, currentUser.id, audioId);
+      } catch (uploadError) {
+        console.error("Error uploading audio file:", uploadError);
+        setIsCommenting(false);
+        return;
+      }
+    }
+
     const updatedDescriptions = [...(Array.isArray(post.userDescriptions) ? post.userDescriptions : [])];
     let uploaderEntry = updatedDescriptions.find(ud => ud.userId === currentUser.id);
 
     if (uploaderEntry) {
       uploaderEntry.description = newCommentText.trim();
-      uploaderEntry.audioRecUrl = commentAudioRecorder.audioUrl || uploaderEntry.audioRecUrl;
-      if (commentAudioRecorder.audioUrl) uploaderEntry.audioRecUrl = commentAudioRecorder.audioUrl;
+      uploaderEntry.audioRecUrl = finalAudioRecUrl || uploaderEntry.audioRecUrl;
+      if (finalAudioRecUrl) uploaderEntry.audioRecUrl = finalAudioRecUrl;
       else if (!newCommentText.trim() && !uploaderEntry.audioRecUrl ) uploaderEntry.audioRecUrl = undefined;
       uploaderEntry.createdAt = new Date().toISOString();
     } else {
       updatedDescriptions.push({
         userId: currentUser.id,
         description: newCommentText.trim(),
-        audioRecUrl: commentAudioRecorder.audioUrl || undefined,
+        audioRecUrl: finalAudioRecUrl || undefined,
         createdAt: new Date().toISOString(),
       });
     }
@@ -146,10 +161,23 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
     setIsCommenting(true);
     commentAudioRecorder.stopRecording();
 
+    // Upload audio file if exists
+    let finalAudioRecUrl: string | undefined = undefined;
+    if (commentAudioRecorder.audioUrl) {
+      try {
+        const audioId = generateId();
+        finalAudioRecUrl = await uploadAudioFile(commentAudioRecorder.audioUrl, currentUser.id, audioId);
+      } catch (uploadError) {
+        console.error("Error uploading audio file:", uploadError);
+        setIsCommenting(false);
+        return;
+      }
+    }
+
     const newCommentEntry: UserDescriptionEntry = {
       userId: currentUser.id,
       description: newCommentText.trim(),
-      audioRecUrl: commentAudioRecorder.audioUrl || undefined,
+      audioRecUrl: finalAudioRecUrl || undefined,
       createdAt: new Date().toISOString(),
     };
     const userDescriptionsArray = Array.isArray(post.userDescriptions) ? post.userDescriptions : [];
@@ -246,18 +274,6 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
       </div>
 
       {/* Main Post Content */}
-      {mainPostDescription && (mainPostDescription.description.trim() || mainPostDescription.audioRecUrl) && (
-        <div className="mb-3 prose prose-sm prose-slate dark:prose-invert max-w-none whitespace-pre-wrap">
-          <p>{mainPostDescription.description}</p>
-          {mainPostDescription.audioRecUrl && (
-            <div className="mt-2">
-              <audio controls src={mainPostDescription.audioRecUrl} className="w-full h-10" aria-label={`Ljudinspelning från ${creator?.name || 'Okänd Användare'}`}></audio>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Image, Hover Tag Management, and User-added Tags */}
       {hasImage && post.dataUrl && (
         <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-dark-bg/50 shadow-md">
           <div className="relative group"> {/* Added group for hover */}
@@ -344,25 +360,53 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
         </div>
       )}
 
-      {/* Tags for non-image posts */}
-      {!hasImage && post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags.map(tag => (
-            <span key={tag} className="bg-primary/10 text-primary dark:bg-blue-400/20 dark:text-blue-300 px-2.5 py-1 rounded-full text-xs font-medium flex items-center">
-              <TagIcon />
-              {tag}
-               {currentUser.id === post.uploadedByUserId && (
-                    <button 
-                      onClick={() => handleRemoveTag(tag)} 
-                      className="ml-1.5 text-primary/70 dark:text-blue-300/70 hover:text-primary dark:hover:text-blue-300 focus:outline-none" 
-                      aria-label={`Ta bort tagg ${tag}`}
-                      title={`Ta bort tagg ${tag}`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                )}
-            </span>
-          ))}
+      {mainPostDescription && (mainPostDescription.description.trim() || mainPostDescription.audioRecUrl) && (
+        <div className="mb-3 prose prose-sm prose-slate dark:prose-invert max-w-none whitespace-pre-wrap relative">
+          <p>{mainPostDescription.description}</p>
+          {mainPostDescription.audioRecUrl && (
+            <AudioPlayerButton
+              audioUrl={mainPostDescription.audioRecUrl}
+              ariaLabel={`Ljudinspelning från ${creator?.name || 'Okänd Användare'}`}
+              buttonSize="sm"
+              className="!rounded-full !p-2 flex-shrink-0 absolute top-1/2 right-2 -translate-y-1/2"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Comments List (flyttad hit) */}
+      {comments.length > 0 && (
+        <div className="mt-4 space-y-3 pt-3 border-t border-border-color dark:border-dark-bg/50">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Kommentarer</h3>
+          {displayedComments.map(comment => {
+            const commenter = commenters.get(comment.userId);
+            return (
+              <div key={`${comment.userId}-${comment.createdAt}`} className="flex items-start">
+                <div className="bg-slate-100 dark:bg-dark-bg/50 p-2.5 rounded-lg flex-grow shadow-sm relative">
+                  {comment.description && <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{comment.description}</p>}
+                  {comment.audioRecUrl && (
+                    <AudioPlayerButton
+                      audioUrl={comment.audioRecUrl}
+                      ariaLabel={`Kommentar från ${commenter?.name || 'Okänd Användare'}`}
+                      buttonSize="sm"
+                      className="!rounded-full !p-2 flex-shrink-0 absolute top-1/2 right-2 -translate-y-1/2"
+                    />
+                  )}
+                  <div className="flex items-baseline justify-center space-x-1.5 mt-1">
+                    <span className="font-semibold text-[10px] text-slate-700 dark:text-slate-200">
+                      {isLoadingCommenters && !commenter ? 'Laddar...' : commenter?.name || 'Okänd Användare'}
+                    </span>
+                    {renderTimestamp(comment.createdAt)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {comments.length > 2 && (
+            <Button variant="ghost" size="sm" onClick={() => setShowAllComments(!showAllComments)} className="text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 w-full mt-2">
+              {showAllComments ? 'Visa färre kommentarer' : `Visa alla ${comments.length} kommentarer`}
+            </Button>
+          )}
         </div>
       )}
       
@@ -370,8 +414,7 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
       <div className="mt-4 pt-3 border-t border-border-color dark:border-dark-bg/50">
         {showUploaderDescriptionInput ? (
           <div className="space-y-2">
-            <div className="flex items-start space-x-2">
-                {isLoadingCreator ? renderUserAvatar(null) : renderUserAvatar(currentUser)}
+            <div className="flex items-start">
                 <div className="relative flex-grow">
                     <TextArea
                         id={`uploaderDesc-${post.id}`}
@@ -424,12 +467,11 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
         ) : (
           // Standard Comment Input
           <div className="space-y-2">
-            <div className="flex items-start space-x-2">
-                {isLoadingCreator ? renderUserAvatar(null) : renderUserAvatar(currentUser)}
+            <div className="flex items-start">
                 <div className="relative flex-grow">
                     <TextArea
                         id={`comment-${post.id}`}
-                        placeholder="Berätta vad du vet om bilden...."
+                        placeholder={hasImage ? "Berätta vad du vet om bilden...." : "Kommentera..."}
                         value={newCommentText}
                         onChange={handleNewCommentTextChange}
                         className="pr-12"
@@ -477,41 +519,6 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
           </div>
         )}
       </div>
-
-      {/* Comments List */}
-      {comments.length > 0 && (
-        <div className="mt-4 space-y-3 pt-3 border-t border-border-color dark:border-dark-bg/50">
-          {displayedComments.map(comment => {
-            const commenter = commenters.get(comment.userId);
-            return (
-              <div key={`${comment.userId}-${comment.createdAt}`} className="flex items-start space-x-2">
-                {isLoadingCommenters && !commenter ? renderUserAvatar(null) : renderUserAvatar(commenter || null) }
-                <div className="bg-slate-100 dark:bg-dark-bg/50 p-2.5 rounded-lg flex-grow shadow-sm">
-                  <div className="flex items-baseline space-x-1.5">
-                    <span className="font-semibold text-xs text-slate-700 dark:text-slate-200">
-                      {isLoadingCommenters && !commenter ? 'Laddar...' : commenter?.name || 'Okänd Användare'}
-                    </span>
-                    {renderTimestamp(comment.createdAt)}
-                  </div>
-                  {comment.description && <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{comment.description}</p>}
-                  {comment.audioRecUrl && (
-                    <div className="mt-1.5">
-                       <audio controls src={comment.audioRecUrl} className="w-full h-8" aria-label={`Kommentar från ${commenter?.name || 'Okänd Användare'}`}></audio>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          {comments.length > 2 && (
-            <Button variant="ghost" size="sm" onClick={() => setShowAllComments(!showAllComments)} className="text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 w-full mt-2">
-              {showAllComments ? 'Visa färre kommentarer' : `Visa alla ${comments.length} kommentarer`}
-            </Button>
-          )}
-        </div>
-      )}
-      
-      {/* Removed old custom tag input section */}
     </article>
 
     {fullscreenImageUrl && (
