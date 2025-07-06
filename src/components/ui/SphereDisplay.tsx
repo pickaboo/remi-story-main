@@ -68,7 +68,7 @@ export const SphereDisplay: React.FC<SphereDisplayProps> = memo(({
           className={sizeClasses[size]}
         />
         {showName && (
-          <span className={`${isActive ? 'text-3xl font-bold' : 'text-sm font-medium'} text-slate-700 dark:text-slate-200 truncate`}>
+          <span className={`${isActive ? 'text-lg font-bold' : 'text-sm font-medium'} text-slate-700 dark:text-slate-200 truncate max-w-[120px]`}>
             {sphere.name} {isActive ? '(AKTIV)' : ''}
           </span>
         )}
@@ -89,7 +89,7 @@ export const SphereDisplay: React.FC<SphereDisplayProps> = memo(({
         className={sizeClasses[size]}
       />
               {showName && (
-          <span className="text-2xl font-large text-slate-700 dark:text-slate-200 truncate">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate max-w-[120px]">
             {sphere.name}
           </span>
         )}

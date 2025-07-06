@@ -232,7 +232,7 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
               <div className="p-1.5 mb-2 border-b border-border-color dark:border-dark-bg/30">
                 <div className="flex items-center justify-between">
                   <span 
-                    className={`font-bold text-slate-700 dark:text-slate-200 truncate ${isExpanded ? 'text-2xl' : 'text-lg'}`} 
+                    className={`font-bold text-slate-700 dark:text-slate-200 truncate ${isExpanded ? 'text-lg' : 'text-sm'}`} 
                     title={activeSphere.name}
                   >
                     {isExpanded ? activeSphere.name : activeSphere.name.substring(0,12) + (activeSphere.name.length > 12 ? '...' : '')}
