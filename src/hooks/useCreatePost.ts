@@ -266,6 +266,39 @@ export const useCreatePost = ({
           aiGeneratedPlaceholder: postText.trim() || selectedBankedImageInfo.aiGeneratedPlaceholder,
           updatedAt: new Date().toISOString(),
         };
+      } else if (postText.trim() || audioRecorder.audioUrl) {
+        // Create text-only or audio-only post
+        const newImageId = generateId();
+        finalImageRecord = {
+          id: newImageId,
+          name: 'Text Post',
+          type: 'text/plain',
+          size: 0,
+          dataUrl: '',
+          dateTaken: new Date().toISOString().split('T')[0],
+          exifData: {},
+          filePath: '',
+          tags: [],
+          geminiAnalysis: undefined,
+          suggestedGeotags: [],
+          userDescriptions: [{
+            userId: currentUser.id,
+            description: postText.trim(),
+            audioRecUrl: audioRecorder.audioUrl || undefined,
+            createdAt: new Date().toISOString(),
+          }],
+          compiledStory: undefined,
+          isProcessed: false,
+          width: null,
+          height: null,
+          uploadedByUserId: currentUser.id,
+          processedByHistory: [],
+          aiGeneratedPlaceholder: postText.trim() || undefined,
+          sphereId: activeSphereId,
+          isPublishedToFeed: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
       }
 
       if (finalImageRecord) {
