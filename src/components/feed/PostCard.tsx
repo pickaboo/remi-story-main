@@ -17,15 +17,6 @@ interface PostCardProps {
   onNavigateToEdit: () => void;
 }
 
-// Local SVG Icon for fullscreen button
-const MagnifyingGlassPlusIcon: React.FC<{ className?: string }> = memo(({ className = "w-5 h-5" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-    </svg>
-));
-
-MagnifyingGlassPlusIcon.displayName = 'MagnifyingGlassPlusIcon';
-
 export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPostUpdated, onNavigateToEdit }) => {
   const [newCommentText, setNewCommentText] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
@@ -277,18 +268,13 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
       {hasImage && post.dataUrl && (
         <div className="my-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-dark-bg/50 shadow-md">
           <div className="relative group"> {/* Added group for hover */}
-            <img src={post.dataUrl} alt={post.name} className="w-full h-auto object-contain block max-h-[70vh]" />
+            <img 
+              src={post.dataUrl} 
+              alt={post.name} 
+              className="w-full h-auto object-contain block max-h-[70vh] cursor-pointer" 
+              onClick={() => handleOpenFullscreenViewer(post.dataUrl)}
+            />
             
-            {/* Fullscreen Button */}
-            <button
-                onClick={() => handleOpenFullscreenViewer(post.dataUrl)}
-                className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
-                title="Visa i helskärm"
-                aria-label="Visa bild i helskärm"
-            >
-                <MagnifyingGlassPlusIcon className="w-5 h-5" />
-            </button>
-
             {/* Tag Management Overlay on Hover - only for uploader */}
             {currentUser.id === post.uploadedByUserId && (
               <div 
