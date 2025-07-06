@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CreatePost } from '../components/forms';
-import { PostCard } from '../components/feed/PostCard';
+import { CreatePost } from '../components/posts/create/CreatePost';
+import { PostCard } from '../components/posts/PostCard';
 import { Timeline } from '../components/feed/Timeline';
 import { LoadingSpinner } from '../components/ui';
 import { ImageRecord } from '../types';

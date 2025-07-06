@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import { Button } from '../ui';
-import { ImageRecord } from '../../types';
-import { ImageBankPickerModal } from '../modals';
+import { Button } from '../../ui';
+import { ImageRecord } from '../../../types';
+import { ImageBankPickerModal } from '../../modals';
 
 interface ImageUploadSectionProps {
   imageFile: File | null;

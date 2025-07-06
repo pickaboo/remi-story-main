@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, AudioPlayerButton } from '../ui';
+import { Button, AudioPlayerButton } from '../../ui';
 
 interface AudioRecordingSectionProps {
   isRecording: boolean;

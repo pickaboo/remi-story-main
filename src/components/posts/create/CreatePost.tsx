@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { Button, TextArea, AudioPlayerButton } from '../ui';
-import { User } from '../../types';
-import { useCreatePost } from '../../hooks/useCreatePost';
-import { ImageUploadSection } from '../createPost';
+import { Button, TextArea, AudioPlayerButton } from '../../ui';
+import { User } from '../../../types';
+import { useCreatePost } from '../../../hooks/useCreatePost';
+import { ImageUploadSection } from './ImageUploadSection';
 
 interface CreatePostProps {
   currentUser: User;

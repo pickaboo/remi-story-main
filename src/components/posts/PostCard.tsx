@@ -13,7 +13,7 @@ import { PostCardImageSection } from './PostCardImageSection';
 import { PostCardTags } from './PostCardTags';
 import { PostCardDescription } from './PostCardDescription';
 import { PostCardComments } from './PostCardComments';
-import { CommentInput } from './CommentInput';
+import { CommentInput } from '../comments/CommentInput';
 
 interface PostCardProps {
   post: ImageRecord;

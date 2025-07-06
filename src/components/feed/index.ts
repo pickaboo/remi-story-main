@@ -1,2 +1,1 @@
-export * from './PostCard';
-export * from './Timeline'; 
+export { Timeline } from './Timeline'; 
