@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
+import { Views } from '../../../constants/viewEnum';
+import type { View } from '../../../constants/viewEnum';
 import { simulateVerifyEmail } from './authService';
-import { useAppContext } from '../../context/AppContext';
-import { AuthContainer } from './AuthContainer';
-import { Button } from '../../components/ui';
+import { useAppContext } from '../../../context/AppContext';
+import { AuthContainer } from '../components/AuthContainer';
+import { Button } from '../../../components/ui';
 
 export const EmailConfirmationPage: React.FC = () => {
   const { handleNavigate, handleLoginSuccess, currentUser } = useAppContext();

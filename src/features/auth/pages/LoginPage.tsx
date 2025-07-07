@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
-import { useAppContext } from '../../context/AppContext';
-import { AuthContainer } from './AuthContainer';
-import { Button, Input } from '../../components/ui';
+import { Views } from '../../../constants/viewEnum';
+import type { View } from '../../../constants/viewEnum';
+import { useAppContext } from '../../../context/AppContext';
+import { AuthContainer } from '../components/AuthContainer';
+import { Button, Input } from '../../../components/ui';
 import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from './authService';
 
 // Simple SVG Icons for OAuth providers

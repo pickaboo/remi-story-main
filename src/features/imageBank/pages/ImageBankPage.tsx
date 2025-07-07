@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PageContainer } from '../components/layout/PageContainer';
-import { Button, LoadingSpinner } from '../components/ui';
-import { ImageRecord } from '../types';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
-import { useAppContext } from '../context/AppContext';
-import { useImageBank } from '../hooks/useImageBank';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { Button, LoadingSpinner } from '../../../components/ui';
+import { ImageRecord } from '../../../types';
+import { Views } from '../../../constants/viewEnum';
+import type { View } from '../../../constants/viewEnum';
+import { useAppContext } from '../../../context/AppContext';
+import { useImageBank } from '../../../hooks/useImageBank';
 import { ConfirmDeleteModal, ImageMetadataUserDetails, ImageUploadPreview } from '../components/imageBank';
-import { EXIF_DISPLAY_MAP } from '../utils/exifUtils';
+import { EXIF_DISPLAY_MAP } from '../../../utils/exifUtils';
 
 // SVG Icons
 const UploadIcon: React.FC<{className?: string}> = ({className}) => (

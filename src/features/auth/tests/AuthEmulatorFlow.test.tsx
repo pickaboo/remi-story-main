@@ -4,7 +4,7 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Import the app's Firebase instances
-import { auth, db, storage } from '../../../firebase';
+import { auth, db, storage } from '../../../../firebase';
 
 // Connect app's Firebase instances to emulators
 connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
@@ -14,7 +14,7 @@ connectStorageEmulator(storage, 'localhost', 9199);
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '../../App';
+import App from '../../../App';
 
 beforeAll(async () => {
   // Säkerställ att ingen är inloggad före test
