@@ -5,8 +5,8 @@ import { Views } from '../../constants/viewEnum';
 import type { View } from '../../constants/viewEnum';
 import { User } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { AuthContainer } from '../../components/auth/AuthContainer';
-import { updateUserProfile } from '../../services/authService';
+import { AuthContainer } from './AuthContainer';
+import { updateUserProfile } from './authService';
 
 const AVATAR_COLORS = [
   'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500', 

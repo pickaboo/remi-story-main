@@ -15,7 +15,7 @@ import {
   mock_inviteUserToSphereByEmail,
   removeUserFromSphere,
   addUserToSphere,
-} from '../services/authService';
+} from '../features/auth/authService';
 import { MOCK_SPHERES } from '../constants';
 import { isPersonalSphere } from '../utils/sphereUtils';
 

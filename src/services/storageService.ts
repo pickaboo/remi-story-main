@@ -24,9 +24,9 @@ import {
   UploadTaskSnapshot
 } from 'firebase/storage';
 import { ImageRecord, SlideshowProject, DiaryEntry, Sphere, SphereInvitation } from '../types';
-import { updateUserProfile } from '../services/authService';
+import { updateUserProfile } from '../features/auth/authService';
 import { getUserById } from '../services/userService';
-import { USERS_COLLECTION_NAME } from '../services/authService';
+import { USERS_COLLECTION_NAME } from '../features/auth/authService';
 
 const IMAGES_COLLECTION = 'images';
 const PROJECTS_COLLECTION = 'projects';

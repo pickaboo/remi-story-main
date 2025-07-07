@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Button, LoadingSpinner } from '../ui';
 import { useAppContext } from '../../context/AppContext';
 import { User } from '../../types';
-import { updateUserProfile } from '../../services/authService';
+import { updateUserProfile } from '../../features/auth/authService';
 import { isProfileComplete } from '../../utils/profileUtils';
 
 const AVATAR_COLORS = [

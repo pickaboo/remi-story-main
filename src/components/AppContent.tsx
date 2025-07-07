@@ -8,7 +8,7 @@ import { ModalManager } from './ModalManager';
 import { ViewRenderer } from './ViewRenderer';
 import { LoadingScreen } from './LoadingScreen';
 import { ErrorScreen } from './ErrorScreen';
-import { getCurrentAuthenticatedUser } from '../services/authService';
+import { getCurrentAuthenticatedUser } from '../features/auth/services/authService';
 import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';
 import { auth } from '../../firebase';

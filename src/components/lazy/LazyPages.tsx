@@ -1,10 +1,10 @@
 import { lazy } from 'react';
 
 // Auth pages
-export const LoginPage = lazy(() => import('../../pages/auth/LoginPage').then(module => ({ default: module.LoginPage })));
-export const SignupPage = lazy(() => import('../../pages/auth/SignupPage').then(module => ({ default: module.SignupPage })));
-export const EmailConfirmationPage = lazy(() => import('../../pages/auth/EmailConfirmationPage').then(module => ({ default: module.EmailConfirmationPage })));
-export const ProfileCompletionPage = lazy(() => import('../../pages/auth/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage })));
+export const LoginPage = lazy(() => import('../../features/auth/LoginPage').then(module => ({ default: module.LoginPage })));
+export const SignupPage = lazy(() => import('../../features/auth/SignupPage').then(module => ({ default: module.SignupPage })));
+export const EmailConfirmationPage = lazy(() => import('../../features/auth/EmailConfirmationPage').then(module => ({ default: module.EmailConfirmationPage })));
+export const ProfileCompletionPage = lazy(() => import('../../features/auth/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage })));
 
 // Main pages
 export const FeedPage = lazy(() => import('../../pages/FeedPage').then(module => ({ default: module.FeedPage })));

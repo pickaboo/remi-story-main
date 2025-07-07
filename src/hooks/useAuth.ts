@@ -6,7 +6,7 @@ import {
   getAllUsers as authGetAllUsers, 
   acceptSphereInvitation as authAcceptSphereInvitation,
   declineSphereInvitation as authDeclineSphereInvitation,
-} from '../services/authService';
+} from '../features/auth/authService';
 import { getPendingInvitationsForEmail } from '../services/storageService';
 
 export const useAuth = () => {

@@ -10,7 +10,7 @@ export const SlideshowProjectsPage = lazy(() => import('./SlideshowProjectsPage'
 export const SlideshowPlayerPage = lazy(() => import('./SlideshowPlayerPage').then(module => ({ default: module.SlideshowPlayerPage })));
 
 // Auth pages
-export const LoginPage = lazy(() => import('./auth/LoginPage').then(module => ({ default: module.LoginPage })));
-export const SignupPage = lazy(() => import('./auth/SignupPage').then(module => ({ default: module.SignupPage })));
-export const EmailConfirmationPage = lazy(() => import('./auth/EmailConfirmationPage').then(module => ({ default: module.EmailConfirmationPage })));
-export const ProfileCompletionPage = lazy(() => import('./auth/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage }))); 
+export const LoginPage = lazy(() => import('../features/auth/LoginPage').then(module => ({ default: module.LoginPage })));
+export const SignupPage = lazy(() => import('../features/auth/SignupPage').then(module => ({ default: module.SignupPage })));
+export const EmailConfirmationPage = lazy(() => import('../features/auth/EmailConfirmationPage').then(module => ({ default: module.EmailConfirmationPage })));
+export const ProfileCompletionPage = lazy(() => import('../features/auth/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage }))); 

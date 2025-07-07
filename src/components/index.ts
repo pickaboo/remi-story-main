@@ -18,7 +18,7 @@ export * from './ModalManager';
 export * from './modals';
 
 // Auth components
-export * from './auth/AuthContainer';
+export * from '../features/auth/AuthContainer';
 
 // Form components
 export * from './forms';

@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Views } from '../../constants/viewEnum';
 import type { View } from '../../constants/viewEnum';
 import { useAppContext } from '../../context/AppContext';
-import { AuthContainer } from '../../components/auth/AuthContainer';
+import { AuthContainer } from './AuthContainer';
 import { Button, Input } from '../../components/ui';
-import { signupWithEmailPassword, loginWithOAuth } from '../../services/authService';
+import { signupWithEmailPassword, loginWithOAuth } from './authService';
 
 // Simple SVG Icons for OAuth providers (can be reused or moved to a common place)
 const GoogleIcon = () => (
