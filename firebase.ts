@@ -1,9 +1,12 @@
-/// <reference path="./types.ts" />
+/// <reference path="./src/types.ts" />
 
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getAuth, Auth } from 'firebase/auth';
+import { connectFirestoreEmulator } from 'firebase/firestore';
+import { connectAuthEmulator } from 'firebase/auth';
+import { connectStorageEmulator } from 'firebase/storage';
 
 // Ensure import.meta.env is available (Vite specific)
 if (typeof import.meta.env === 'undefined') {
@@ -48,6 +51,14 @@ try {
   storage = getStorage(app);
   auth = getAuth(app);
   console.log("Real Firebase Initialized successfully.");
+
+  // Anslut till emulatorerna i utvecklingsläge
+  if (import.meta.env.MODE === "development") {
+    connectFirestoreEmulator(db, "127.0.0.1", 8089);
+    connectAuthEmulator(auth, "http://127.0.0.1:9099");
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
+    console.log("Ansluten till Firebase Emulator Suite (Firestore:8089, Auth:9099, Storage:9199)");
+  }
 } catch (error) {
   console.error("Error initializing real Firebase:", error);
   // I en produktionsapp kanske du vill hantera detta mer graciöst.

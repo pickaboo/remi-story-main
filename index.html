@@ -13,7 +13,10 @@
         extend: {
           colors: {
             'light-bg': '#F7FAFC', // Very light gray, almost white (was #FFFFFF)
-            'primary': '#3B82F6', // Vibrant Blue (kept)
+            //'primary': '#3B82F6', // Vibrant Blue (kept)
+            'primary': '#1e2228', // From Stefan
+            //'dark-bg': '#1e293b', // Original slate-800 color
+            'dark-bg': '#1e2228', // Dark background color
             'primary-hover': '#2563EB', // Darker vibrant blue for hover
             'secondary': '#F59E0B', // Amber/Orange (was #10B981 Emerald)
             'secondary-hover': '#D97706', // Darker Amber/Orange
@@ -151,9 +154,9 @@
 }
 </script>
 </head>
-<body class="text-slate-800 dark:text-slate-200 font-sans bg-light-bg dark:bg-slate-900">
+<body class="text-slate-800 dark:text-slate-200 font-sans bg-light-bg dark:bg-dark-bg">
   <div id="page-background"></div>
   <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+  <script type="module" src="./src/index.tsx"></script>
 </body>
 </html>
