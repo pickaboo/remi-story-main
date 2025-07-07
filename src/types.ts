@@ -151,13 +151,15 @@ export interface Sphere {
   createdAt: string;
   /** Timestamp when sphere was last updated */
   updatedAt: string;
+  /** Whether this is the user's personal sphere */
+  isPersonal?: boolean;
 }
 
 /**
  * Helper function to check if a sphere is personal (only owner is member)
  */
 export const isPersonalSphere = (sphere: Sphere): boolean => {
-  return sphere.memberIds.length === 1 && sphere.memberIds[0] === sphere.ownerId;
+  return !!sphere.isPersonal;
 };
 
 /**

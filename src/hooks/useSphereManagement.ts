@@ -55,6 +55,7 @@ export const useSphereManagement = () => {
             ownerId: user.id, // User owns this sphere
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            isPersonal: true, // Mark as personal sphere
           };
           
           try {
@@ -144,6 +145,7 @@ export const useSphereManagement = () => {
         ownerId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        isPersonal: false, // Explicitly mark as not personal (or omit)
       };
       console.log("[useSphereManagement] Sphere object created:", newSphere);
 

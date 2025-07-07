@@ -22,7 +22,7 @@ import {
     getPendingInvitationsForEmail // Import missing function
 } from './storageService'; // Använd .real versionen
 
-const USERS_COLLECTION_NAME = 'users';
+export const USERS_COLLECTION_NAME = 'users';
 
 // --- Hjälpfunktioner ---
 const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Omit<AuthUserRecord, 'id' | 'email'>): User => {

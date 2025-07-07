@@ -24,6 +24,9 @@ import {
   UploadTaskSnapshot
 } from 'firebase/storage';
 import { ImageRecord, SlideshowProject, DiaryEntry, Sphere, SphereInvitation } from '../types';
+import { updateUserProfile } from '../services/authService';
+import { getUserById } from '../services/userService';
+import { USERS_COLLECTION_NAME } from '../services/authService';
 
 const IMAGES_COLLECTION = 'images';
 const PROJECTS_COLLECTION = 'projects';
@@ -440,6 +443,21 @@ export const createSphereInvitation = async (invitationData: Omit<SphereInvitati
     (key) => (newInvitation as any)[key] === undefined && delete (newInvitation as any)[key]
   );
   await setDoc(invitationDocRef, newInvitation);
+
+  // --- NEW: Update invited user's pendingInvitationCount ---
+  if (invitationData.inviteeEmail) {
+    const pendingInvites = await getPendingInvitationsForEmail(invitationData.inviteeEmail);
+    // Find the user by email
+    const usersCol = collection(db, USERS_COLLECTION_NAME);
+    const q = query(usersCol, where('email', '==', invitationData.inviteeEmail.toLowerCase()));
+    const userQuerySnap = await getDocs(q);
+    if (!userQuerySnap.empty) {
+      const userDoc = userQuerySnap.docs[0];
+      await updateUserProfile(userDoc.id, { pendingInvitationCount: pendingInvites.length });
+    }
+  }
+  // --- END NEW ---
+
   return newInvitation;
 };
 

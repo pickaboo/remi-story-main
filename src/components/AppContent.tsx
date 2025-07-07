@@ -12,6 +12,8 @@ import { applyBackgroundPreference } from '../utils/backgroundUtils';
 import { auth } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useProfileCompletion } from '../hooks/useProfileCompletion';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 export const AppContent: React.FC = memo(() => {
   const {
@@ -159,6 +161,22 @@ export const AppContent: React.FC = memo(() => {
       fetchAllUsers().then(setAllUsers);
     }
   }, [currentUser, fetchAllUsers]);
+
+  // Add this effect after the main useEffect for auth state
+  useEffect(() => {
+    if (!currentUser) return;
+    const userDocRef = doc(db, 'users', currentUser.id);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Only update if something actually changed
+        if (data) {
+          setCurrentUser({ ...currentUser, ...data });
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [currentUser?.id]);
 
   const handleAcceptInvitation = async (invitationId: string) => {
     if (currentUser) {
