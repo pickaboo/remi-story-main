@@ -9,9 +9,7 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
       resolve: {
-        alias: {
-          '@': path.resolve(__dirname, './src'),
-        }
+        // alias removed for troubleshooting
       },
       test: {
         globals: true,
@@ -62,7 +60,7 @@ export default defineConfig(({ mode }) => {
         },
         chunkSizeWarningLimit: 1000,
         sourcemap: mode === 'development',
-        minify: mode === 'production' ? 'terser' : false,
+        minify: false,
         terserOptions: mode === 'production' ? {
           compress: {
             drop_console: true,

@@ -1,4 +1,5 @@
-import { isPersonalSphere, Sphere } from '../../types';
+import { isPersonalSphere } from '../../utils/sphereUtils';
+import { Sphere } from '../../types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as storageService from '../../services/storageService';
 import * as userService from '../../services/userService';

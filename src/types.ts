@@ -5,28 +5,13 @@
  * Types are organized by feature area and include comprehensive documentation.
  */
 
+import type { View } from './constants/viewEnum';
+
 // ============================================================================
 // CORE APPLICATION TYPES
 // ============================================================================
 
-/**
- * Main application view types for navigation
- */
-export enum View {
-  // Authentication views
-  Login = 'login',
-  Signup = 'signup',
-  EmailConfirmation = 'email-confirmation',
-  ProfileCompletion = 'profile-completion',
-  
-  // Main application views
-  Home = 'home',
-  Diary = 'diary',
-  ImageBank = 'image-bank',
-  EditImage = 'edit-image',
-  SlideshowProjects = 'slideshow-projects',
-  PlaySlideshow = 'play-slideshow',
-}
+// View enum moved to viewEnum.ts
 
 /**
  * Parameters passed to views for navigation
@@ -154,13 +139,6 @@ export interface Sphere {
   /** Whether this is the user's personal sphere */
   isPersonal?: boolean;
 }
-
-/**
- * Helper function to check if a sphere is personal (only owner is member)
- */
-export const isPersonalSphere = (sphere: Sphere): boolean => {
-  return !!sphere.isPersonal;
-};
 
 /**
  * Sphere invitation entity

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button, Input, LoadingSpinner } from '../components/ui';
-import { ImageRecord, SlideshowProject, View } from '../types'; 
+import { ImageRecord, SlideshowProject } from '../types';
+import { Views } from '../constants/viewEnum';
+import type { View } from '../constants/viewEnum';
 import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
 import { generatePhotoAlbumPdf } from '../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
@@ -522,7 +524,7 @@ export const SlideshowProjectsPage: React.FC = () => {
           {projects.map(proj => {
             const handlePrimaryAction = () => {
                 if (proj.projectType === 'slideshow') {
-                    handleNavigate(View.PlaySlideshow, { projectId: proj.id });
+                    handleNavigate(Views.PlaySlideshow, { projectId: proj.id });
                 } else if (proj.projectType === 'photoAlbum') {
                     handleGeneratePdfForProject(proj.id);
                 }

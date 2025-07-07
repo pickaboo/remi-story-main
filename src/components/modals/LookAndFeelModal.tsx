@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sphere } from '../../types';
 import { Button } from '../ui';
+import { User } from '../../types';
 
 interface LookAndFeelModalProps {
   isOpen: boolean;

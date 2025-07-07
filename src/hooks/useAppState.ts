@@ -1,36 +1,38 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, ViewParams, LegacyFeedback, User } from '../types';
+import { Views } from '../constants/viewEnum';
+import type { View } from '../constants/viewEnum';
+import { ViewParams, LegacyFeedback, User } from '../types';
 
 const viewToPathMap: Record<View, string> = {
-  [View.Home]: '',
-  [View.ImageBank]: 'image-bank',
-  [View.Diary]: 'diary',
-  [View.EditImage]: 'edit-image',
-  [View.SlideshowProjects]: 'projects',
-  [View.PlaySlideshow]: 'play-slideshow',
-  [View.Login]: 'login',
-  [View.Signup]: 'signup',
+  [Views.Home]: '',
+  [Views.ImageBank]: 'image-bank',
+  [Views.Diary]: 'diary',
+  [Views.EditImage]: 'edit-image',
+  [Views.SlideshowProjects]: 'projects',
+  [Views.PlaySlideshow]: 'play-slideshow',
+  [Views.Login]: 'login',
+  [Views.Signup]: 'signup',
 
-  [View.EmailConfirmation]: 'confirm-email',
-  [View.ProfileCompletion]: 'complete-profile',
+  [Views.EmailConfirmation]: 'confirm-email',
+  [Views.ProfileCompletion]: 'complete-profile',
 };
 
 const pathToViewMap: Record<string, View> = {
-  '': View.Home,
-  'image-bank': View.ImageBank,
-  'diary': View.Diary,
-  'edit-image': View.EditImage,
-  'projects': View.SlideshowProjects,
-  'play-slideshow': View.PlaySlideshow,
-  'login': View.Login,
-  'signup': View.Signup,
+  '': Views.Home,
+  'image-bank': Views.ImageBank,
+  'diary': Views.Diary,
+  'edit-image': Views.EditImage,
+  'projects': Views.SlideshowProjects,
+  'play-slideshow': Views.PlaySlideshow,
+  'login': Views.Login,
+  'signup': Views.Signup,
 
-  'confirm-email': View.EmailConfirmation,
-  'complete-profile': View.ProfileCompletion,
+  'confirm-email': Views.EmailConfirmation,
+  'complete-profile': Views.ProfileCompletion,
 };
 
 export const useAppState = () => {
-  const [currentView, setCurrentView] = useState<View>(View.Login);
+  const [currentView, setCurrentView] = useState<View>(Views.Login);
   const [viewParams, setViewParams] = useState<ViewParams | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -61,7 +63,7 @@ export const useAppState = () => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
       const [basePath, paramString] = hash.split('?');
-      const newView = pathToViewMap[basePath] || View.Home;
+      const newView = pathToViewMap[basePath] || Views.Home;
       let params: ViewParams | null = null;
       if (paramString) {
         params = Object.fromEntries(new URLSearchParams(paramString)) as ViewParams;

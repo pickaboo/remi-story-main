@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button, LoadingSpinner } from '../components/ui';
-import { ImageRecord, View } from '../types';
+import { ImageRecord } from '../types';
+import { Views } from '../constants/viewEnum';
+import type { View } from '../constants/viewEnum';
 import { useAppContext } from '../context/AppContext';
 import { useImageBank } from '../hooks/useImageBank';
 import { ConfirmDeleteModal, ImageMetadataUserDetails, ImageUploadPreview } from '../components/imageBank';
@@ -297,7 +299,7 @@ export const ImageBankPage: React.FC = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleNavigate(View.Home, { scrollToPostId: image.id });
+                            handleNavigate(Views.Home, { scrollToPostId: image.id });
                           }}
                           className="text-xs text-accent dark:text-emerald-400 hover:underline mb-2 font-medium focus:outline-none focus:ring-1 focus:ring-accent/50 dark:focus:ring-emerald-400/50 rounded"
                           title="Gå till publicerat inlägg i flödet"
@@ -313,7 +315,7 @@ export const ImageBankPage: React.FC = () => {
                             className="w-full text-xs !font-medium"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleNavigate(View.Home, { prefillPostWithImageId: image.id });
+                              handleNavigate(Views.Home, { prefillPostWithImageId: image.id });
                             }}
                             title={`Skapa inlägg med "${image.name}"`}
                           >

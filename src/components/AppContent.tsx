@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
-import { User, View } from '../types';
+import { Views } from '../constants/viewEnum';
+import type { View } from '../constants/viewEnum';
+import { User } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { AppLayout } from './AppLayout';
 import { ModalManager } from './ModalManager';
@@ -96,32 +98,32 @@ export const AppContent: React.FC = memo(() => {
             // Förbättrad logik: Navigera endast till EmailConfirmation om användaren är o-verifierad
             if (!user.emailVerified) {
               console.log('[AppContent] User needs email verification, setting view to EmailConfirmation');
-              handleNavigate(View.EmailConfirmation);
+              handleNavigate(Views.EmailConfirmation);
             } else {
               // Om användaren är verifierad, gå alltid till Home
               console.log('[AppContent] User is authenticated, navigating to Home');
               await handleLoginSuccess(user);
               await fetchUserAndSphereData(user);
-              handleNavigate(View.Home);
+              handleNavigate(Views.Home);
             }
           } else {
             console.log('[AppContent] Firebase user exists but getCurrentAuthenticatedUser returned null');
             setIsAuthenticated(false);
             setCurrentUser(null);
-            handleNavigate(View.Login);
+            handleNavigate(Views.Login);
           }
         } else {
           console.log('[AppContent] No Firebase user found, setting view to Login');
           setIsAuthenticated(false);
           setCurrentUser(null);
-          handleNavigate(View.Login);
+          handleNavigate(Views.Login);
         }
       } catch (err) {
         console.error('[AppContent] Auth check failed:', err);
         setAuthError(err instanceof Error ? err.message : 'Autentiseringsfel');
         setIsAuthenticated(false);
         setCurrentUser(null);
-        handleNavigate(View.Login);
+        handleNavigate(Views.Login);
       } finally {
         setIsLoading(false);
         setIsAuthStateInitialized(true);
@@ -221,7 +223,7 @@ export const AppContent: React.FC = memo(() => {
         // Reset app state after successful Firebase logout
         setCurrentUser(null);
         setIsAuthenticated(false);
-        handleNavigate(View.Login);
+        handleNavigate(Views.Login);
       } else {
         console.log('[AppContent] Logout was not successful');
       }

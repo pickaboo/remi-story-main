@@ -1,4 +1,4 @@
-
+console.log('ENTRYPOINT: App start');
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx'; // Added .tsx extension

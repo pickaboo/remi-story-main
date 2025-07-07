@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, View } from '../types';
+import { User } from '../types';
+import { View } from '../constants/viewEnum';
 import { getCurrentAuthenticatedUser } from '../services/authService';
 import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';

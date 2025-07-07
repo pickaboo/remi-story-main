@@ -1,3 +1,5 @@
+console.log('ENTRYPOINT: App start');
+
 // Layout components
 export * from './AppLayout';
 export * from './layout/Header';

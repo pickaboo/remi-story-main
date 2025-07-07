@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui';
 import { Input } from '../ui';
 import { TextArea } from '../ui';
-import { Sphere } from '../../types';
+import { Sphere, User } from '../../types';
 
 interface InviteToSphereModalProps {
   isOpen: boolean;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, LoadingSpinner } from '../../components/ui';
-import { View } from '../../types';
+import { Views } from '../../constants/viewEnum';
+import type { View } from '../../constants/viewEnum';
+import { User } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { AuthContainer } from '../../components/auth/AuthContainer';
-import { User } from '../../types';
 import { updateUserProfile } from '../../services/authService';
 
 const AVATAR_COLORS = [
@@ -65,7 +66,7 @@ export const ProfileCompletionPage: React.FC = () => {
         setCurrentUser(updatedUser);
         await handleProfileComplete(updatedUser);
         // Navigate to home after successful profile completion
-        handleNavigate(View.Home);
+        handleNavigate(Views.Home);
       } else {
         console.log('[ProfileCompletionPage] Failed to update profile');
         setError('Kunde inte uppdatera profilen. Försök igen.');

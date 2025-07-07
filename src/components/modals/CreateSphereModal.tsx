@@ -3,6 +3,7 @@ import { Button } from '../ui';
 import { Input } from '../ui';
 import { PREDEFINED_SPHERE_GRADIENTS } from '../../constants';
 import { useFocusTrap, useReturnFocus } from '../../hooks/useFocusTrap';
+import { Sphere, User } from '../../types';
 // SphereDisplay could be used for preview, but for simplicity, we'll just show colors.
 
 interface CreateSphereModalProps {

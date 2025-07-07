@@ -1,6 +1,3 @@
-
-
-
 import { User, Sphere } from './types';
 
 // Keys for mock Firestore database collections (managed within firebase.ts)
@@ -29,10 +26,10 @@ export const LOCAL_STORAGE_USER_SHOW_IMAGE_METADATA_KEY_PREFIX = 'imageStorytell
 export const GEMINI_TEXT_MODEL = 'gemini-2.5-flash-preview-04-17';
 export const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-preview-04-17';
 
-export const NAV_ITEMS = [
-  { label: 'Hem', path: '/' }, 
-  { label: 'Skapa', path: '/projects' },
-];
+// export const NAV_ITEMS = [
+//   { label: 'Hem', path: '/' }, 
+//   { label: 'Skapa', path: '/projects' },
+// ];
 
 export const MAX_AUDIO_DURATION_MS = 60000; // 1 minute
 
@@ -43,12 +40,6 @@ export const MOCK_SPHERES: Sphere[] = [
   { id: 'sphere4', name: 'Resekompisar', gradientColors: ['#10b981', '#34d399'], memberIds: ['user3'], ownerId: 'user3', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
 ];
 
-export const MOCK_USERS: User[] = [
-  { id: 'user1', name: 'Alice Andersson', initials: 'AA', avatarColor: 'bg-pink-500', sphereIds: ['sphere1', 'sphere2', 'sphere4'], email: 'alice@example.com', emailVerified: true, backgroundPreference: { type: 'url', value: 'https://images.unsplash.com/photo-1500964757637-c85e8a162699?q=80&w=1000&auto=format&fit=crop' }, themePreference: 'light', showImageMetadataInBank: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'user2', name: 'Bob Berg', initials: 'BB', avatarColor: 'bg-indigo-500', sphereIds: ['sphere1', 'sphere3'], email: 'bob@example.com', emailVerified: true, backgroundPreference: { type: 'color', value: '#334155' }, themePreference: 'dark', showImageMetadataInBank: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'user3', name: 'Cecilia Carlsson', initials: 'CC', avatarColor: 'bg-teal-500', sphereIds: ['sphere2', 'sphere3', 'sphere4'], email: 'cecilia@example.com', emailVerified: true, themePreference: 'system', showImageMetadataInBank: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'user4', name: 'David Dahl', initials: 'DD', avatarColor: 'bg-orange-500', sphereIds: ['sphere1', 'sphere4'], email: 'david@example.com', emailVerified: false, themePreference: 'light', showImageMetadataInBank: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-];
 
 export const PREDEFINED_SPHERE_GRADIENTS: { name: string, colors: [string, string] }[] = [
   { name: 'Solnedgång', colors: ['#FF8C00', '#FF0080'] },

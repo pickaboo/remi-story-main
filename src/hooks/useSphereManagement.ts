@@ -17,7 +17,7 @@ import {
   addUserToSphere,
 } from '../services/authService';
 import { MOCK_SPHERES } from '../constants';
-import { isPersonalSphere } from '../types';
+import { isPersonalSphere } from '../utils/sphereUtils';
 
 export const useSphereManagement = () => {
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
