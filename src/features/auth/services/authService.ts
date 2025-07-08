@@ -1,4 +1,4 @@
-import { auth, db } from '../../../firebase'; // Importera från den riktiga Firebase-initieraren
+import { auth, db } from '../../../../firebase'; // Importera från den riktiga Firebase-initieraren
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,14 +13,14 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, arrayUnion, arrayRemove, Timestamp, collection, getDocs, where, query } from 'firebase/firestore';
-import { User, AuthUserRecord, SphereInvitation } from '../../types'; 
-import { MOCK_SPHERES } from "../constants"; // För initial sfärtilldelning
+import { User, AuthUserRecord, SphereInvitation } from '../../../types'; 
+import { MOCK_SPHERES } from "../../../constants"; // För initial sfärtilldelning
 import { 
     createSphereInvitation as storageCreateSphereInvitation, 
     updateSphereInvitationStatus, 
     getSphereById,
     getPendingInvitationsForEmail // Import missing function
-} from '../../services/storageService'; // Använd .real versionen
+} from '../../../services/storageService'; // Använd .real versionen
 
 export const USERS_COLLECTION_NAME = 'users';
 

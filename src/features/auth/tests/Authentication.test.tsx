@@ -2,8 +2,8 @@ import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import { signOut } from 'firebase/auth';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '../../App';
-import { auth } from '../../../firebase';
+import App from '../../../App';
+import { auth } from '../../../../firebase';
 
 // Ensure a clean auth state before and after all tests
 beforeAll(async () => {

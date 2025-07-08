@@ -2,9 +2,9 @@ import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { db, auth } from '../../../firebase';
+import { db, auth } from '../../../../firebase';
 import { collection, addDoc, updateDoc, doc, setDoc, getDocs } from 'firebase/firestore';
-import App from '../../App';
+import App from '../../../App';
 
 const TEST_USER_EMAIL = 'testuser@example.com';
 const TEST_USER_PASSWORD = 'password123';

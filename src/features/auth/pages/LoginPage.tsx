@@ -5,7 +5,7 @@ import type { View } from '../../../constants/viewEnum';
 import { useAppContext } from '../../../context/AppContext';
 import { AuthContainer } from '../components/AuthContainer';
 import { Button, Input } from '../../../components/ui';
-import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from './authService';
+import { loginWithEmailPassword, loginWithOAuth, sendPasswordResetEmail } from '../services/authService';
 
 // Simple SVG Icons for OAuth providers
 const GoogleIcon = () => (

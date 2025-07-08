@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
-import { View } from '../constants/viewEnum';
-import { getCurrentAuthenticatedUser } from '../features/auth/authService';
+import { Views, View } from '../constants/viewEnum';
+import { getCurrentAuthenticatedUser } from '../features/auth/services/authService';
 import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';
 
@@ -54,9 +54,9 @@ export function useAuthentication({
           
           // Handle new users or profile completion
           if (!user.name || user.name === "Ny Användare") {
-            setCurrentView(View.ProfileCompletion);
+            setCurrentView(Views.ProfileCompletion);
           } else if (!user.emailVerified) {
-            setCurrentView(View.EmailConfirmation);
+            setCurrentView(Views.EmailConfirmation);
           } else {
             try {
               await handleLoginSuccess(user);
@@ -64,30 +64,30 @@ export function useAuthentication({
               // Try to fetch sphere data with better error handling
               try {
                 await fetchUserAndSphereData(user);
-                setCurrentView(View.Home);
+                setCurrentView(Views.Home);
               } catch (sphereError) {
                 console.error('Failed to fetch sphere data:', sphereError);
                 // If sphere data fetch fails, still navigate to home but with limited functionality
-                setCurrentView(View.Home);
+                setCurrentView(Views.Home);
                 // You could also set a flag to show a warning about limited functionality
               }
             } catch (loginError) {
               console.error('Login success handling failed:', loginError);
               setError(loginError instanceof Error ? loginError.message : 'Inloggning misslyckades');
-              setCurrentView(View.Login);
+              setCurrentView(Views.Login);
             }
           }
         } else {
           setIsAuthenticated(false);
           setCurrentUser(null);
-          setCurrentView(View.Login);
+          setCurrentView(Views.Login);
         }
       } catch (err) {
         console.error('Auth check failed:', err);
         setError(err instanceof Error ? err.message : 'Autentiseringsfel');
         setIsAuthenticated(false);
         setCurrentUser(null);
-        setCurrentView(View.Login);
+        setCurrentView(Views.Login);
       } finally {
         setIsLoading(false);
       }

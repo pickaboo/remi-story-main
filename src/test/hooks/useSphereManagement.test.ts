@@ -3,7 +3,7 @@ import { Sphere } from '../../types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as storageService from '../../services/storageService';
 import * as userService from '../../services/userService';
-import * as authService from '../../features/auth/authService';
+import * as authService from '../../features/auth/services/authService';
 import { useSphereManagement } from '../../hooks/useSphereManagement';
 import { renderHook, act } from '@testing-library/react';
 import { createMockUser } from '../utils';
