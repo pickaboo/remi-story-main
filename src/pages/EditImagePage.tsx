@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Input, TextArea, LoadingSpinner } from '../components/ui';
 import { PageContainer } from '../components/layout/PageContainer';
-import { ImageRecord, View, UserDescriptionEntry } from '../types';
+import { ImageRecord, UserDescriptionEntry } from '../types';
+import { Views } from '../constants/viewEnum';
+import type { View } from '../constants/viewEnum';
 import { getImageById, saveImage } from '../services/storageService';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
@@ -169,7 +171,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
       };
 
       await saveImage(imageToSave); 
-      handleNavigate(View.Home); 
+      handleNavigate(Views.Home); 
     } catch (err: any) {
       console.error("Error saving image:", err);
       if (err.name === 'QuotaExceededError' || (typeof err.message === 'string' && err.message.includes('quota'))) {
@@ -329,7 +331,7 @@ export const EditImagePage: React.FC<EditImagePageProps> = ({ imageId }) => {
             </div>
             
             <div className="pt-6 border-t border-border-color dark:border-slate-600 flex justify-end gap-3">
-              <Button onClick={() => handleNavigate(View.Home)} variant="secondary" disabled={isSaving}>Avbryt</Button>
+              <Button onClick={() => handleNavigate(Views.Home)} variant="secondary" disabled={isSaving}>Avbryt</Button>
               <Button onClick={handleSave} isLoading={isSaving} variant="primary" size="lg">Spara Inlägg</Button>
             </div>
           </div>

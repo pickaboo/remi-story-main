@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { User, DiaryEntry } from '../../types';
+import { User } from '../../types';
+import { DiaryEntry } from '../../types';
 import { saveDiaryEntry, generateId } from '../../services/storageService';
 import { TextArea } from '../ui';
 import { Button } from '../ui';

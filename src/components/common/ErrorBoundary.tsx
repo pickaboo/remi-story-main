@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AppError, ErrorType } from '../../types';
+import { AppError } from '../../types';
+import { ErrorType } from '../../types';
 import { errorService } from '../../services/errorService';
 
 interface Props {

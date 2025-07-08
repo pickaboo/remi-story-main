@@ -1,3 +1,5 @@
+console.log('ENTRYPOINT: App start');
+
 // Layout components
 export * from './AppLayout';
 export * from './layout/Header';
@@ -16,7 +18,7 @@ export * from './ModalManager';
 export * from './modals';
 
 // Auth components
-export * from './auth/AuthContainer';
+export * from '../features/auth/components/AuthContainer';
 
 // Form components
 export * from './forms';

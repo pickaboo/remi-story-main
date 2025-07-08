@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { View, Sphere, User, ViewParams, isPersonalSphere } from '@/types';
-import { SphereDisplay } from '@/components/ui';
-import { useAppContext } from '@/context/AppContext';
+import { Sphere, User, ViewParams } from '../../types';
+import { SphereDisplay } from '../ui/SphereDisplay';
+import { useAppContext } from '../../context/AppContext';
+import { Views } from '../../constants/viewEnum';
+import type { View } from '../../constants/viewEnum';
+import { isPersonalSphere } from '../../utils/sphereUtils';
 
 interface SidebarProps {
   currentPath: string;
@@ -20,36 +23,37 @@ interface SidebarProps {
   allUsers: User[]; // Added for member count
 }
 
-// ... (NAV_ITEMS_SIDEBAR and Icons remain the same) ...
-const NAV_ITEMS_SIDEBAR = [
-  { 
-    label: 'Hem', 
-    path: '/', 
-    view: View.Home, 
-    icon: (isExpanded: boolean, isActive: boolean) => 
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
-      </svg> 
-  },
-  { 
-    label: 'Bildbank', 
-    path: '/image-bank', 
-    view: View.ImageBank, 
-    icon: (isExpanded: boolean, isActive: boolean) => 
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-      </svg>
-  },
-  { 
-    label: 'Skapa', 
-    path: '/projects', 
-    view: View.SlideshowProjects, 
-    icon: (isExpanded: boolean, isActive: boolean) => 
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 20.25h12m-7.5-3.75v3.75m4.125-3.75v3.75m2.625-3.75v3.75M12 21.75H4.875A2.625 2.625 0 012.25 19.125V7.875A2.625 2.625 0 014.875 5.25h14.25A2.625 2.625 0 0121.75 7.875v8.625M12 5.25v3.75m0 0H8.25m3.75 0a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
-      </svg> 
-  },
-];
+function getNavItemsSidebar() {
+  return [
+    { 
+      label: 'Hem', 
+      path: '/', 
+      view: Views.Home, 
+      icon: (isExpanded: boolean, isActive: boolean) => 
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
+        </svg> 
+    },
+    { 
+      label: 'Bildbank', 
+      path: '/image-bank', 
+      view: Views.ImageBank, 
+      icon: (isExpanded: boolean, isActive: boolean) => 
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+    },
+    { 
+      label: 'Skapa', 
+      path: '/projects', 
+      view: Views.SlideshowProjects, 
+      icon: (isExpanded: boolean, isActive: boolean) => 
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 20.25h12m-7.5-3.75v3.75m4.125-3.75v3.75m2.625-3.75v3.75M12 21.75H4.875A2.625 2.625 0 012.25 19.125V7.875A2.625 2.625 0 014.875 5.25h14.25A2.625 2.625 0 0121.75 7.875v8.625M12 5.25v3.75m0 0H8.25m3.75 0a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
+        </svg> 
+    },
+  ];
+}
 
 const ChevronLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -168,6 +172,8 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
   const otherSpheres = activeSphere ? userSpheres.filter(s => s.id !== activeSphere.id) : [];
   
   const memberCount = activeSphere ? allUsers.filter(user => user.sphereIds.includes(activeSphere.id)).length : 0;
+
+  const NAV_ITEMS_SIDEBAR = getNavItemsSidebar();
 
   return (
     <aside 

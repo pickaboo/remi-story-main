@@ -3,6 +3,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppProvider } from '../context/AppContext';
 import { vi } from 'vitest';
+import { User, AvatarColor } from '../types';
 
 // Custom render function that includes providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
@@ -25,14 +26,14 @@ export * from '@testing-library/react';
 export { customRender as render };
 
 // Test data factories
-export const createMockUser = (overrides = {}) => ({
+export const createMockUser = (overrides: Partial<User> = {}): User => ({
   id: 'test-user-id',
   email: 'test@example.com',
   name: 'Test User',
   initials: 'TU',
-  avatarColor: 'bg-blue-500',
+  avatarColor: 'bg-blue-500' as AvatarColor,
   emailVerified: true,
-  themePreference: 'system' as const,
+  themePreference: 'system',
   pendingInvitationCount: 0,
   sphereIds: ['test-sphere-id'],
   createdAt: '2024-01-01T00:00:00.000Z',

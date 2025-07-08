@@ -24,8 +24,6 @@ export default defineConfig({
     testTimeout: 30000
   },
   resolve: {
-    alias: {
-      '@': resolve(__dirname, './src')
-    }
+    // alias removed for troubleshooting
   }
 }); 

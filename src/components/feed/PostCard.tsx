@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { ImageRecord, User, UserDescriptionEntry } from '../../types';
+import { User, ImageRecord, UserDescriptionEntry } from '../../types';
 import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
 import { uploadAudioFile } from '../../services/storageService';

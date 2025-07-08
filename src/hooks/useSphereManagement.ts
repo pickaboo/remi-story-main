@@ -15,9 +15,9 @@ import {
   mock_inviteUserToSphereByEmail,
   removeUserFromSphere,
   addUserToSphere,
-} from '../services/authService';
+} from '../features/auth/authService';
 import { MOCK_SPHERES } from '../constants';
-import { isPersonalSphere } from '../types';
+import { isPersonalSphere } from '../utils/sphereUtils';
 
 export const useSphereManagement = () => {
   const [allSpheres, setAllSpheres] = useState<Sphere[]>([]);
@@ -55,6 +55,7 @@ export const useSphereManagement = () => {
             ownerId: user.id, // User owns this sphere
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            isPersonal: true, // Mark as personal sphere
           };
           
           try {
@@ -144,6 +145,7 @@ export const useSphereManagement = () => {
         ownerId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        isPersonal: false, // Explicitly mark as not personal (or omit)
       };
       console.log("[useSphereManagement] Sphere object created:", newSphere);
 

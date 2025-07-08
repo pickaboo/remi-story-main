@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { View } from '../types';
+import { Views, View } from '../constants/viewEnum';
 import { PageLoadingSpinner } from './common/LazyLoadingSpinner';
 import { 
   LoginPage, 
@@ -32,13 +32,13 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   // Render unauthenticated views (full screen)
   if (isAuthenticated === false) {
     switch (currentView) {
-      case View.Signup:
+      case Views.Signup:
         return (
           <Suspense fallback={<PageLoadingSpinner message="Laddar registreringssida..." />}>
             <SignupPage />
           </Suspense>
         );
-      case View.EmailConfirmation:
+      case Views.EmailConfirmation:
         return (
           <Suspense fallback={<PageLoadingSpinner message="Laddar e-postbekräftelse..." />}>
             <EmailConfirmationPage />
@@ -57,13 +57,13 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   // Render authenticated views (within layout)
   return (
     <Suspense fallback={<PageLoadingSpinner message="Laddar sida..." />}>
-      {currentView === View.Home && <FeedPage />}
-      {currentView === View.Diary && <DiaryPage />}
-      {currentView === View.EditImage && viewParams?.imageId && <EditImagePage imageId={viewParams.imageId} />}
-      {currentView === View.ImageBank && <ImageBankPage />}
-      {currentView === View.SlideshowProjects && <SlideshowProjectsPage />}
-      {currentView === View.PlaySlideshow && viewParams?.projectId && <SlideshowPlayerPage projectId={viewParams.projectId} />}
-      {currentView === View.EmailConfirmation && <EmailConfirmationPage />}
+      {currentView === Views.Home && <FeedPage />}
+      {currentView === Views.Diary && <DiaryPage />}
+      {currentView === Views.EditImage && viewParams?.imageId && <EditImagePage imageId={viewParams.imageId} />}
+      {currentView === Views.ImageBank && <ImageBankPage />}
+      {currentView === Views.SlideshowProjects && <SlideshowProjectsPage />}
+      {currentView === Views.PlaySlideshow && viewParams?.projectId && <SlideshowPlayerPage projectId={viewParams.projectId} />}
+      {currentView === Views.EmailConfirmation && <EmailConfirmationPage />}
     </Suspense>
   );
 }; 

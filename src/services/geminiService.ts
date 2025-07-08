@@ -2,7 +2,7 @@
 
 import { GoogleGenAI, GenerateContentResponse, Part } from "@google/genai";
 import { GEMINI_TEXT_MODEL } from "../constants"; // GEMINI_IMAGE_MODEL was same as text, using text directly
-import { UserDescriptionEntry } from "../types";
+import { UserDescriptionEntry } from '../types';
 
 // Strict adherence to guideline: API key MUST be obtained from environment
 // For Vite, environment variables prefixed with VITE_ are exposed on import.meta.env

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sphere } from '../../types';
 import { Button } from '../ui';
+import { User } from '../../types';
 
 interface LookAndFeelModalProps {
   isOpen: boolean;
@@ -18,6 +19,12 @@ const PREDEFINED_BACKGROUND_IMAGES: { name: string; url: string; thumbnailUrl: s
   { name: "Stad Natt", url: "https://images.unsplash.com/photo-1488330890490-c291ecf62571?q=80&w=2070&auto=format&fit=crop", thumbnailUrl: "https://images.unsplash.com/photo-1488330890490-c291ecf62571?q=80&w=400&h=250&auto=format&fit=crop&crop=entropy" },
   { name: "Abstrakt Vågor", url: "https://images.unsplash.com/photo-1536566482680-fca31930a0bd?q=80&w=1974&auto=format&fit=crop", thumbnailUrl: "https://images.unsplash.com/photo-1536566482680-fca31930a0bd?q=80&w=400&h=250&auto=format&fit=crop&crop=entropy" },
   { name: "Pastellhimmel", url: "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?q=80&w=1974&auto=format&fit=crop", thumbnailUrl: "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?q=80&w=400&h=250&auto=format&fit=crop&crop=entropy" },
+  { name: "Andreas1", url: "/images/Andreas1.jpg", thumbnailUrl: "/images/Andreas1.jpg" },
+  { name: "Andreas2", url: "/images/Andreas2.jpg", thumbnailUrl: "/images/Andreas2.jpg" },
+  { name: "Andreas3", url: "/images/Andreas3.jpg", thumbnailUrl: "/images/Andreas3.jpg" },
+  { name: "Andreas4", url: "/images/Andreas4.jpg", thumbnailUrl: "/images/Andreas4.jpg" },
+  { name: "Andreas5", url: "/images/Andreas5.jpg", thumbnailUrl: "/images/Andreas5.jpg" },
+  { name: "Andreas6", url: "/images/Andreas6.jpg", thumbnailUrl: "/images/Andreas6.jpg" },
 ];
 
 export const LookAndFeelModal: React.FC<LookAndFeelModalProps> = ({

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, TextArea, LoadingSpinner, SphereDisplay } from '../ui';
-import { Sphere, User, isPersonalSphere } from '../../types';
+import { Sphere, User } from '../../types';
+import { isPersonalSphere } from '../../utils/sphereUtils';
 
 interface ManageSphereModalProps {
   isOpen: boolean;
