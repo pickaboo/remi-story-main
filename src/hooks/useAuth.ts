@@ -29,7 +29,7 @@ export const useAuth = () => {
 
   const handleProfileComplete = useCallback(async (updatedUser: User): Promise<User> => {
     console.log("[useAuth] Profile completion for user:", updatedUser.id);
-    // Note: Navigation should be handled by the calling component
+    // Note: Navigation and sphere creation should be handled by the calling component
     return updatedUser;
   }, []);
 

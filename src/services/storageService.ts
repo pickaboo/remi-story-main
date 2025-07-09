@@ -413,6 +413,7 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 };
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
+  console.log('[saveNewSphere] Called for user:', sphere.ownerId, 'sphereId:', sphere.id, 'name:', sphere.name, 'at:', new Date().toISOString());
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
   
   // Filter out undefined values before saving to Firestore

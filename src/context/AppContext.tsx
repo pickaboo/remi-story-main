@@ -123,6 +123,35 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (appState.currentUser) {
         console.log("[AppContext] Loading sphere data for user:", appState.currentUser.id);
         try {
+          // --- NY LOGIK: Återuppta pending sfärskapande om e-post nu är verifierad ---
+          if (appState.currentUser.emailVerified) {
+            const pending = localStorage.getItem('pendingSphereCreation');
+            if (pending) {
+              try {
+                const { userId, sphereName, gradientColors } = JSON.parse(pending);
+                if (userId === appState.currentUser.id && appState.currentUser.sphereIds.length === 0) {
+                  console.log('[AppContext] Attempting to resume pending sphere creation...');
+                  const result = await sphereManagement.handleCreateSphere(sphereName, gradientColors, appState.currentUser);
+                  if (result.success && result.sphere) {
+                    appState.setCurrentUser({ ...appState.currentUser, sphereIds: [result.sphere.id] });
+                    sphereManagement.setActiveSphere(result.sphere);
+                    localStorage.removeItem('pendingSphereCreation');
+                    sphereManagement.setUserSpheres([result.sphere]);
+                    sphereManagement.setAllSpheres(prev => [...prev, result.sphere]);
+                    contextValue.showGlobalFeedback?.('Din personliga sfär har nu skapats!', 'success');
+                  } else {
+                    console.error('[AppContext] Failed to resume pending sphere creation:', result.error);
+                  }
+                } else {
+                  localStorage.removeItem('pendingSphereCreation');
+                }
+              } catch (e) {
+                console.error('[AppContext] Error resuming pending sphere creation:', e);
+                localStorage.removeItem('pendingSphereCreation');
+              }
+            }
+          }
+          // --- SLUT NY LOGIK ---
           const activeSphere = await sphereManagement.fetchUserAndSphereData(appState.currentUser);
           console.log("[AppContext] Sphere data loaded, activeSphere:", activeSphere?.name);
         } catch (error) {

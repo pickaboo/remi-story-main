@@ -50,7 +50,7 @@ export const ModalManager: React.FC = () => {
     if (!currentUser) {
       throw new Error('No user logged in');
     }
-    
+    console.log('[ModalManager] handleCreateSphereSubmit called with:', name, gradientColors);
     const result = await handleCreateSphere(name, gradientColors, currentUser);
     console.log('[ModalManager] Create sphere result:', result);
     
@@ -78,6 +78,11 @@ export const ModalManager: React.FC = () => {
     
     // Show success feedback
     showGlobalFeedback(`Sfären "${name}" skapades framgångsrikt!`, 'success');
+  };
+
+  const handleCloseCreateSphereModalWithLog = () => {
+    console.log('[ModalManager] handleCloseCreateSphereModal called');
+    handleCloseCreateSphereModal();
   };
 
   const handleInviteSubmit = async (email: string, message?: string) => {
@@ -118,7 +123,7 @@ export const ModalManager: React.FC = () => {
       {isCreateSphereModalOpen && (
         <CreateSphereModal
           isOpen={isCreateSphereModalOpen}
-          onClose={handleCloseCreateSphereModal}
+          onClose={handleCloseCreateSphereModalWithLog}
           onCreateSphere={handleCreateSphereSubmit}
         />
       )}

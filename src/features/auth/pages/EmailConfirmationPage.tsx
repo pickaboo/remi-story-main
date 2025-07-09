@@ -69,24 +69,13 @@ export const EmailConfirmationPage: React.FC = () => {
         )}
         
         <p className="text-muted-text dark:text-slate-400">
-          Ett (simulerat) bekräftelsemail har skickats till <span className="font-medium text-primary dark:text-blue-400">{userEmail}</span>.
+          Ett bekräftelsemail har skickats till <span className="font-medium text-primary dark:text-blue-400">{userEmail}</span>.
         </p>
         <p className="text-muted-text dark:text-slate-400">
           I en riktig applikation skulle du klicka på länken i mailet för att verifiera ditt konto.
         </p>
-        
-        <Button 
-          onClick={handleSimulateVerification} 
-          variant="primary" 
-          size="lg" 
-          className="w-full"
-          isLoading={isVerifying}
-        >
-          Simulera E-postverifiering & Fortsätt
-        </Button>
-
+        {/* Simuleringsknapp och relaterad logik borttagen */}
         {error && <p className="text-sm text-danger dark:text-red-400 mt-4">{error}</p>}
-
         <p className="mt-4 text-sm text-muted-text dark:text-slate-400">
           Inget mail?{' '}
           <button onClick={() => handleNavigate(Views.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
