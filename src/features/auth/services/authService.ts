@@ -19,7 +19,9 @@ import {
     createSphereInvitation as storageCreateSphereInvitation, 
     updateSphereInvitationStatus, 
     getSphereById,
-    getPendingInvitationsForEmail // Import missing function
+    getPendingInvitationsForEmail, // Import missing function
+    saveNewSphere,
+    generateId as generateSphereId
 } from '../../../services/storageService'; // Använd .real versionen
 
 export const USERS_COLLECTION_NAME = 'users';
@@ -100,7 +102,7 @@ const createFirestoreUserRecord = async (firebaseUser: FirebaseUser, additionalD
   const nowISO = Timestamp.now().toDate().toISOString();
   const newUserRecordData: Omit<AuthUserRecord, 'id' | 'passwordHash'> = {
     email: firebaseUser.email || undefined,
-    emailVerified: firebaseUser.emailVerified, 
+    emailVerified: true, // Utvecklingsläge: alla användare är verifierade
     name: firebaseUser.displayName || "Ny Användare",
     initials: "NY",
     avatarColor: 'bg-gray-500',
@@ -128,9 +130,26 @@ export const signupWithEmailPassword = async (email: string, passwordAttempt: st
     const firebaseUser = userCredential.user;
     if (firebaseUser) {
       const firestoreRecord = await createFirestoreUserRecord(firebaseUser);
+
+      // Skapa personlig sfär direkt
+      const sphereName = 'Min Sfär';
+      const gradientColors: [string, string] = [firestoreRecord.avatarColor || '#3B82F6', '#1E40AF'];
+      const newSphere = {
+        id: generateSphereId(),
+        name: sphereName,
+        gradientColors,
+        memberIds: [firebaseUser.uid],
+        ownerId: firebaseUser.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isPersonal: true,
+      };
+      await saveNewSphere(newSphere);
+      await addUserToSphere(firebaseUser.uid, newSphere.id);
+
       await sendEmailVerification(firebaseUser);
       console.log(`Verification email sent to ${firebaseUser.email}`);
-      return { user: mapFirebaseUserToAppUser(firebaseUser, firestoreRecord) };
+      return { user: mapFirebaseUserToAppUser(firebaseUser, { ...firestoreRecord, sphereIds: [newSphere.id] }) };
     }
     return { user: null, error: "Kunde inte skapa Firebase-användare." };
   } catch (error: any) {
