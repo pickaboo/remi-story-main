@@ -14,7 +14,6 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, arrayUnion, arrayRemove, Timestamp, collection, getDocs, where, query } from 'firebase/firestore';
 import { User, AuthUserRecord, SphereInvitation } from '../../../types'; 
-import { MOCK_SPHERES } from "../../../constants"; // För initial sfärtilldelning
 import { 
     createSphereInvitation as storageCreateSphereInvitation, 
     updateSphereInvitationStatus, 

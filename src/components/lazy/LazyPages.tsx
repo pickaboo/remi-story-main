@@ -7,7 +7,7 @@ export const EmailConfirmationPage = lazy(() => import('../../features/auth/page
 export const ProfileCompletionPage = lazy(() => import('../../features/auth/pages/ProfileCompletionPage').then(module => ({ default: module.ProfileCompletionPage })));
 
 // Main pages
-export const FeedPage = lazy(() => import('../../pages/FeedPage').then(module => ({ default: module.FeedPage })));
+export const FeedPage = lazy(() => import('../../features/feed/FeedPage').then(module => ({ default: module.FeedPage })));
 export const DiaryPage = lazy(() => import('../../pages/DiaryPage').then(module => ({ default: module.DiaryPage })));
 export const EditImagePage = lazy(() => import('../../pages/EditImagePage').then(module => ({ default: module.EditImagePage })));
 export const ImageBankPage = lazy(() => import('../../features/imageBank/pages/ImageBankPage').then(module => ({ default: module.ImageBankPage })));

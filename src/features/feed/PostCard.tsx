@@ -4,10 +4,10 @@ import { saveImage } from '../../services/storageService';
 import { getUserById } from '../../services/userService';
 import { uploadAudioFile } from '../../services/storageService';
 import { generateId } from '../../services/storageService';
-import { TextArea } from '../ui';
-import { Button, Input } from '../ui';
-import { AudioPlayerButton } from '../ui';
-import { FullscreenImageViewer } from '../modals';
+import { TextArea } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
+import { AudioPlayerButton } from '../../components/ui';
+import { FullscreenImageViewer } from '../../components/modals';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 
 interface PostCardProps {

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CreatePost } from '../components/forms';
-import { PostCard } from '../components/feed/PostCard';
-import { Timeline } from '../components/feed/Timeline';
-import { LoadingSpinner } from '../components/ui';
-import { ImageRecord } from '../types';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
-import { getSphereFeedPostsListener } from '../services/storageService';
-import { useAppContext } from '../context/AppContext';
+import { CreatePost } from '../../components/forms';
+import { PostCard } from './PostCard';
+import { Timeline } from './Timeline';
+import { LoadingSpinner } from '../../components/ui';
+import { ImageRecord } from '../../types';
+import { Views } from '../../constants/viewEnum';
+import type { View } from '../../constants/viewEnum';
+import { getSphereFeedPostsListener } from '../../services/storageService';
+import { useAppContext } from '../../context/AppContext';
 
 export const FeedPage: React.FC = () => {
   const {
