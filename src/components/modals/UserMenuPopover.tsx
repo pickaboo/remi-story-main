@@ -114,8 +114,8 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
     } else {
       await onDeclineInvitation(invitationId);
     }
-    // App.tsx will refresh user data and thus invitations.
     setActionInProgress(prev => ({ ...prev, [invitationId]: false }));
+    onClose(); // Stäng dropdownen direkt efter åtgärd
   };
 
   const handleThemeChange = async (theme: ThemePreference) => {
