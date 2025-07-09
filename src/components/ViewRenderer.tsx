@@ -5,13 +5,13 @@ import {
   LoginPage, 
   SignupPage, 
   EmailConfirmationPage, 
-  FeedPage,
   DiaryPage,
   EditImagePage,
-  ImageBankPage,
-  SlideshowProjectsPage,
-  SlideshowPlayerPage
+  SlideshowPlayerPage,
+  SlideshowProjectsPage
 } from './lazy';
+import { ImageBankPage } from '../features/imageBank/pages/ImageBankPage';
+import { FeedPage } from '../features/feed/FeedPage';
 
 interface ViewRendererProps {
   currentView: View;
