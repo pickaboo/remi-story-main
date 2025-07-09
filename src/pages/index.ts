@@ -3,7 +3,7 @@ import { lazy } from 'react';
 // Lazy load all pages for better performance
 export const HomePage = lazy(() => import('./HomePage'));
 export const FeedPage = lazy(() => import('../features/feed/FeedPage').then(module => ({ default: module.FeedPage })));
-export const DiaryPage = lazy(() => import('./DiaryPage').then(module => ({ default: module.DiaryPage })));
+export const DiaryPage = lazy(() => import('../features/diary/DiaryPage').then(module => ({ default: module.DiaryPage })));
 export const EditImagePage = lazy(() => import('./EditImagePage').then(module => ({ default: module.EditImagePage })));
 export const ImageBankPage = lazy(() => import('../features/imageBank/pages/ImageBankPage').then(module => ({ default: module.ImageBankPage })));
 export const SlideshowProjectsPage = lazy(() => import('./SlideshowProjectsPage').then(module => ({ default: module.SlideshowProjectsPage })));
