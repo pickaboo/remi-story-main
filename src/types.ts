@@ -62,6 +62,8 @@ export interface User {
   themePreference: ThemePreference;
   /** Background preference for customization */
   backgroundPreference?: BackgroundPreference;
+  /** URL to user's profile image (optional) */
+  profileImageUrl?: string;
   /** IDs of spheres the user belongs to */
   sphereIds: string[];
   /** Number of pending invitations */

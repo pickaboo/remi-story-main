@@ -142,12 +142,20 @@ export const Header: React.FC<HeaderProps> = memo(({
                 aria-controls="user-menu-popover"
                 title="Användarmeny"
               >
-                <div 
-                  className={`w-8 h-8 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center text-sm font-semibold shadow-sm`}
-                  aria-hidden="true"
-                >
-                  {currentUser.initials}
-                </div>
+                {currentUser.profileImageUrl ? (
+                  <img
+                    src={currentUser.profileImageUrl}
+                    alt="Profilbild"
+                    className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600"
+                  />
+                ) : (
+                  <div 
+                    className={`w-8 h-8 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center text-sm font-semibold shadow-sm`}
+                    aria-hidden="true"
+                  >
+                    {currentUser.initials}
+                  </div>
+                )}
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:inline truncate max-w-[100px]">
                   {currentUser.name.split(' ')[0]}
                 </span>

@@ -3,8 +3,11 @@ import { User, SphereInvitation, Sphere } from '../../types';
 import { Button } from '../ui';
 import { LoadingSpinner } from '../ui';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
-import { getUserById } from '../../services/userService';
+import { getUserById, updateUserProfileImage } from '../../services/userService';
 import { SphereDisplay } from '../ui';
+import { ProfileSettingsForm } from '../../features/userSettings/components/ProfileSettingsForm';
+import { ProfileSettingsModal } from './ProfileSettingsModal';
+import { useAppContext } from '../../context/AppContext';
 
 type ThemePreference = User['themePreference'];
 
@@ -51,6 +54,8 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   const popoverRef = useRef<HTMLDivElement>(null);
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(currentUser.themePreference || 'system');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { setCurrentUser } = useAppContext();
 
 
   useEffect(() => {
@@ -201,33 +206,28 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
           </ul>
         )}
       </div>
-      <hr className="my-1 border-border-color dark:border-slate-700 mx-3" />
       <div className="p-3">
-        <h4 className="text-xs font-semibold uppercase text-muted-text dark:text-slate-500 mb-2">App Tema</h4>
-        <fieldset className="space-y-1.5" disabled={isSavingTheme}>
-            <legend className="sr-only">Välj app tema</legend>
-            {THEME_OPTIONS.map((option) => (
-            <label 
-                key={option.value} 
-                htmlFor={`theme-popover-${option.value}`} 
-                className={`flex items-center space-x-2.5 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-dark-bg/50 transition-colors cursor-pointer
-                            ${selectedTheme === option.value ? 'bg-primary/10 dark:bg-blue-400/10 ring-1 ring-primary/50 dark:ring-blue-400/50' : ''}`}
-            >
-                <input
-                type="radio"
-                id={`theme-popover-${option.value}`}
-                name="theme-popover-selection"
-                value={option.value}
-                checked={selectedTheme === option.value}
-                onChange={() => handleThemeChange(option.value)}
-                className="form-radio h-3.5 w-3.5 text-primary dark:text-blue-400 border-gray-300 dark:border-slate-500 focus:ring-primary dark:focus:ring-offset-0 bg-transparent dark:bg-slate-700"
-                />
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{option.label}</span>
-            </label>
-            ))}
-        </fieldset>
-        {isSavingTheme && <p className="text-xs text-muted-text dark:text-slate-400 mt-1.5 text-right">Sparar tema...</p>}
+        <button
+          className="w-full py-2 px-4 rounded bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+          onClick={() => setIsProfileModalOpen(true)}
+        >
+          Redigera profil
+        </button>
       </div>
+      <ProfileSettingsModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        userId={currentUser.id}
+        currentName={currentUser.name}
+        currentImageUrl={currentUser.profileImageUrl}
+        currentAvatarColor={currentUser.avatarColor}
+        onNameSave={(newName) => { console.log('Spara nytt namn:', newName); }}
+        onImageUpload={async (url) => {
+          await updateUserProfileImage(currentUser.id, url);
+          setCurrentUser({ ...currentUser, profileImageUrl: url });
+        }}
+        onAvatarColorChange={(color) => { console.log('Spara ny avatarfärg:', color); }}
+      />
     </div>
   );
 });

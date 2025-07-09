@@ -1,5 +1,5 @@
 import { db, auth } from '../../firebase'; // Importera från den riktiga Firebase-initieraren
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { User, Sphere, AuthUserRecord } from '../types';
 import {
   LOCAL_STORAGE_CURRENT_SPHERE_ID_KEY,
@@ -102,6 +102,11 @@ export const getUserSpheres = async (user: User | null, allSpheresList?: Sphere[
     }
   }
   return userSpheresData;
+};
+
+export const updateUserProfileImage = async (userId: string, imageUrl: string) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { profileImageUrl: imageUrl });
 };
 
 // IIFE för initialisering (tas bort eftersom detta hanteras av App.tsx's auth-flöde)
