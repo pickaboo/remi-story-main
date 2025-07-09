@@ -6,7 +6,7 @@ import { Views } from '../../../constants/viewEnum';
 import type { View } from '../../../constants/viewEnum';
 import { useAppContext } from '../../../context/AppContext';
 import { useImageBank } from '../../../hooks/useImageBank';
-import { ConfirmDeleteModal, ImageMetadataUserDetails, ImageUploadPreview } from '../components/imageBank';
+import { ConfirmDeleteModal, ImageMetadataUserDetails, ImageUploadPreview } from '..';
 import { EXIF_DISPLAY_MAP } from '../../../utils/exifUtils';
 
 // SVG Icons
