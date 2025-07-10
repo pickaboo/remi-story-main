@@ -8,6 +8,10 @@ import { ImageBankPickerModal } from '../modals';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../../firebase'; 
+import { TrainingFeatureCard } from '../../features/trainingDiary/components/TrainingFeatureCard';
+import { TrainingInfoModal } from '../../features/trainingDiary/components/TrainingInfoModal';
+import { updateUserEnabledFeatures } from '../../services/userService';
+import { useAppContext } from '../../context/AppContext';
 
 interface CreatePostProps {
   currentUser: User;
@@ -146,6 +150,7 @@ async function getBase64FromUrl(url: string, originalMimeType?: string | null): 
 
 
 export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
+  const { setCurrentUser } = useAppContext();
   const [postText, setPostText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -159,6 +164,8 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
 
   const [uploadedFileDetails, setUploadedFileDetails] = useState<ExtractedFileDetails | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false); 
+  const [trainingEnabled, setTrainingEnabled] = useState(!!currentUser.enabledFeatures?.trainingDiary);
+  const [showTrainingInfo, setShowTrainingInfo] = useState(false);
 
   useEffect(() => {
     const loadImage = async () => {
@@ -543,6 +550,13 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
   
   const canSubmit = !isPosting && !isProcessingFile && (!!selectedBankedImageInfo || !!imageFile || postText.trim() !== '' || !!audioRecorder.audioUrl);
   
+  const handleToggleTraining = async () => {
+    const newEnabled = !trainingEnabled;
+    setTrainingEnabled(newEnabled);
+    const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
+    await updateUserEnabledFeatures(currentUser.id, newFeatures);
+    setCurrentUser({ ...currentUser, enabledFeatures: newFeatures });
+  };
 
   return (
     <>

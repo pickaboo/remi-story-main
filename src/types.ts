@@ -70,6 +70,11 @@ export interface User {
   pendingInvitationCount?: number;
   /** Whether to show image metadata in bank */
   showImageMetadataInBank?: boolean;
+  /** Aktiverade features per användare */
+  enabledFeatures?: {
+    trainingDiary?: boolean;
+    // fler features kan läggas till här
+  };
   /** Timestamp when user was created */
   createdAt: string;
   /** Timestamp when user was last updated */

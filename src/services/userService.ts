@@ -109,5 +109,10 @@ export const updateUserProfileImage = async (userId: string, imageUrl: string) =
   await updateDoc(userRef, { profileImageUrl: imageUrl });
 };
 
+export const updateUserEnabledFeatures = async (userId: string, enabledFeatures: any) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { enabledFeatures });
+};
+
 // IIFE för initialisering (tas bort eftersom detta hanteras av App.tsx's auth-flöde)
 // ;(async () => { ... })();
