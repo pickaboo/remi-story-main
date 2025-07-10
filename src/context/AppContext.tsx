@@ -69,6 +69,9 @@ interface AppContextType {
   handleOpenProfileCompletionModal: () => void;
   handleCloseProfileCompletionModal: () => void;
   setAllUsersForManageModal: (users: User[]) => void;
+  isBucketListModalOpen: boolean;
+  handleOpenBucketListModal: () => void;
+  handleCloseBucketListModal: () => void;
 
   // Auth
   handleLoginSuccess: (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => Promise<User>;
@@ -112,6 +115,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     
     // Modal State
     ...modalState,
+    isBucketListModalOpen: modalState.isBucketListModalOpen,
+    handleOpenBucketListModal: modalState.handleOpenBucketListModal,
+    handleCloseBucketListModal: modalState.handleCloseBucketListModal,
     
     // Auth
     ...auth,

@@ -12,6 +12,8 @@ import { useAppContext } from '../context/AppContext';
 import { TrainingFeatureCard } from '../features/trainingDiary/components/TrainingFeatureCard';
 import { TrainingInfoModal } from '../features/trainingDiary/components/TrainingInfoModal';
 import { updateUserEnabledFeatures } from '../services/userService';
+import { BucketListFeatureCard } from '../features/bucketList/components/BucketListFeatureCard';
+import { BucketListInfoModal } from '../features/bucketList/components/BucketListInfoModal';
 
 // Custom Confirmation Modal Component (Local to SlideshowProjectsPage)
 interface ConfirmDeleteProjectModalProps {
@@ -224,6 +226,8 @@ export const SlideshowProjectsPage: React.FC = () => {
   const [projectForDeletionConfirmation, setProjectForDeletionConfirmation] = useState<SlideshowProject | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
   const [trainingInfoOpen, setTrainingInfoOpen] = useState(false);
+  const [bucketListEnabled, setBucketListEnabled] = useState(!!currentUser?.enabledFeatures?.bucketList);
+  const [bucketListInfoOpen, setBucketListInfoOpen] = useState(false);
 
   // Early return check - must be after all hooks
   if (!currentUser || !activeSphere) {
@@ -235,6 +239,16 @@ export const SlideshowProjectsPage: React.FC = () => {
     const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
     await updateUserEnabledFeatures(currentUser.id, newFeatures);
     setCurrentUser({ ...currentUser, enabledFeatures: newFeatures });
+  };
+
+  const handleToggleBucketList = async () => {
+    if (!currentUser) return;
+    const newEnabled = !bucketListEnabled;
+    setBucketListEnabled(newEnabled);
+    await updateUserEnabledFeatures(currentUser.id, {
+      ...currentUser.enabledFeatures,
+      bucketList: newEnabled,
+    });
   };
 
   const fetchData = useCallback(async () => {
@@ -464,9 +478,15 @@ export const SlideshowProjectsPage: React.FC = () => {
                     onToggle={handleToggleTraining}
                     onInfo={() => setTrainingInfoOpen(true)}
                   />
+                  <BucketListFeatureCard
+                    enabled={bucketListEnabled}
+                    onToggle={handleToggleBucketList}
+                    onInfo={() => setBucketListInfoOpen(true)}
+                  />
                   {/* Här kan fler feature cards läggas till */}
                 </div>
                 <TrainingInfoModal isOpen={trainingInfoOpen} onClose={() => setTrainingInfoOpen(false)} />
+                <BucketListInfoModal isOpen={bucketListInfoOpen} onClose={() => setBucketListInfoOpen(false)} />
               </div>
             </div>
           </>

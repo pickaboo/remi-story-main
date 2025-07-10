@@ -9,6 +9,7 @@ export const Views = {
   EditImage: 'edit-image',
   SlideshowProjects: 'slideshow-projects',
   PlaySlideshow: 'play-slideshow',
+  BucketList: 'bucket-list',
 } as const;
 
 export type View = typeof Views[keyof typeof Views]; 

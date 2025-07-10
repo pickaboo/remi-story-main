@@ -73,6 +73,7 @@ export interface User {
   /** Aktiverade features per användare */
   enabledFeatures?: {
     trainingDiary?: boolean;
+    bucketList?: boolean;
     // fler features kan läggas till här
   };
   /** Timestamp when user was created */

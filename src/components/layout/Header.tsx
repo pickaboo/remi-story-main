@@ -4,6 +4,7 @@ import { Views } from '../../constants/viewEnum';
 import type { View } from '../../constants/viewEnum';
 import { ViewParams } from '../../types';
 import { DiaryPopover, UserMenuPopover } from '../modals';
+import { useAppContext } from '../../context/AppContext';
 
 type ThemePreference = User['themePreference']; // Define ThemePreference type
 
@@ -37,6 +38,10 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
   </svg>
 );
 
+const BucketIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <span role="img" aria-label="bucket" className={className}>🪣</span>
+);
+
 
 export const Header: React.FC<HeaderProps> = memo(({ 
     currentUser, 
@@ -56,6 +61,7 @@ export const Header: React.FC<HeaderProps> = memo(({
   const [isDarkMode, setIsDarkMode] = useState(() => 
     document.documentElement.classList.contains('dark')
   );
+  const { handleOpenBucketListModal } = useAppContext();
 
   // Lyssnar på tema-ändringar
   useEffect(() => {
@@ -128,6 +134,17 @@ export const Header: React.FC<HeaderProps> = memo(({
                 anchorRef={diaryButtonRef.current}
               />
             </div>
+          )}
+
+          {currentUser && currentUser.enabledFeatures?.bucketList && (
+            <button
+              onClick={handleOpenBucketListModal}
+              className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-accent rounded-lg border border-border-color dark:border-dark-bg/30 transition-colors ml-2"
+              title="Öppna Bucketlist"
+              aria-label="Öppna Bucketlist"
+            >
+              <BucketIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
           )}
 
           {/* Current User Menu */}
