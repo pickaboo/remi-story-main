@@ -193,7 +193,7 @@ export const BucketListPage: React.FC = () => {
   return (
     <>
       <ReactCanvasConfetti
-        ref={(instance: any) => { confettiRef.current = instance; }}
+        onInit={({ confetti }) => { confettiRef.current = confetti; }}
         className="pointer-events-none fixed inset-0 w-screen h-screen z-[9999]"
         style={{ position: 'fixed', pointerEvents: 'none', width: '100vw', height: '100vh', top: 0, left: 0, zIndex: 9999 }}
       />
