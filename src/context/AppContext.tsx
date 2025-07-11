@@ -6,7 +6,6 @@ import { useAuth } from '../hooks/useAuth';
 import { 
   User, 
   Sphere, 
-  View, 
   ViewParams, 
   NavigationHandler, 
   LegacyFeedback,
@@ -16,13 +15,13 @@ import {
 
 interface AppContextType {
   // App State
-  currentView: View;
+  currentView: any;
   viewParams: ViewParams | null;
   isAuthenticated: boolean | null;
   currentUser: User | null;
   isSidebarExpanded: boolean;
   globalFeedback: LegacyFeedback | null;
-  setCurrentView: (view: View) => void;
+  setCurrentView: (view: any) => void;
   setViewParams: (params: ViewParams | null) => void;
   setIsAuthenticated: (auth: boolean | null) => void;
   setCurrentUser: (user: User | null) => void;
@@ -143,7 +142,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
                     sphereManagement.setActiveSphere(result.sphere);
                     localStorage.removeItem('pendingSphereCreation');
                     sphereManagement.setUserSpheres([result.sphere]);
-                    sphereManagement.setAllSpheres(prev => [...prev, result.sphere]);
+                    sphereManagement.setAllSpheres(prev => result.sphere ? [...prev, result.sphere] : prev);
                     contextValue.showGlobalFeedback?.('Din personliga sfär har nu skapats!', 'success');
                   } else {
                     console.error('[AppContext] Failed to resume pending sphere creation:', result.error);
