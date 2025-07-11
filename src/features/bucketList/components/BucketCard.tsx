@@ -40,7 +40,13 @@ export const BucketCard: React.FC<BucketCardProps> = ({ bucket, onStatusCycle, o
         {bucket.imageUrl ? (
           <img src={bucket.imageUrl} alt="Bucket" className="w-20 h-20 object-cover rounded-full shadow-lg" style={{ boxShadow: '0 0 0 8px rgba(255,255,255,0.7), 0 4px 24px 0 rgba(0,0,0,0.10)' }} />
         ) : (
-          <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 shadow-lg" style={{ boxShadow: '0 0 0 8px rgba(255,255,255,0.7), 0 4px 24px 0 rgba(0,0,0,0.10)' }}>🪣</div>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 shadow-lg" style={{ fontSize: 48, marginBottom: 8, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.07)) drop-shadow(0 1.5px 4px rgba(0,0,0,0.07)), 0 4px 24px 0 rgba(0,0,0,0.10)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 48, height: 48, display: 'block', color: 'var(--accent-color, #6366f1)' }} aria-label="bucket-list-target">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </div>
         )}
         <button onClick={() => onStatusCycle(bucket.id)} className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow p-1 hover:scale-110 transition-transform" title="Byt status">
           {statusIcon[bucket.status]}

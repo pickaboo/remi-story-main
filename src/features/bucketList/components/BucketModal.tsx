@@ -35,7 +35,6 @@ export const BucketModal: React.FC<BucketModalProps> = ({ open, onClose, onSave,
   const [imageUrl, setImageUrl] = useState(initialValues?.imageUrl || '');
   const [checklist, setChecklist] = useState<ChecklistItem[]>(initialValues?.checklist || []);
   const [newChecklistText, setNewChecklistText] = useState('');
-  const [emoji, setEmoji] = useState('🪣');
 
   useEffect(() => {
     setTitle(initialValues?.title || '');
@@ -72,7 +71,7 @@ export const BucketModal: React.FC<BucketModalProps> = ({ open, onClose, onSave,
 
   const handleSave = () => {
     if (!title.trim()) return;
-    onSave({ title, description, priority, deadline, imageUrl: imageUrl || emoji, checklist });
+    onSave({ title, description, priority, deadline, imageUrl: imageUrl || 'target', checklist });
   };
 
   return (
@@ -88,12 +87,25 @@ export const BucketModal: React.FC<BucketModalProps> = ({ open, onClose, onSave,
             {imageUrl ? (
               <img src={imageUrl} alt="Bucket" className="w-16 h-16 object-cover rounded-full shadow" />
             ) : (
-              <span className="text-4xl">{emoji}</span>
+              <span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-16 h-16 block text-accent dark:text-accent"
+                  aria-label="bucket-list-target"
+                >
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </span>
             )}
             <div className="flex gap-2 mt-1">
               <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="bucket-image-upload" />
               <label htmlFor="bucket-image-upload" className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs cursor-pointer">Ladda upp bild</label>
-              <button className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs" onClick={() => setEmoji(prompt('Emoji', emoji) || emoji)}>Emoji</button>
             </div>
           </div>
           {/* Titel */}

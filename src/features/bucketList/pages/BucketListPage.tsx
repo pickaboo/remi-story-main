@@ -197,7 +197,7 @@ export const BucketListPage: React.FC = () => {
         className="pointer-events-none fixed inset-0 w-screen h-screen z-[9999]"
         style={{ position: 'fixed', pointerEvents: 'none', width: '100vw', height: '100vh', top: 0, left: 0, zIndex: 9999 }}
       />
-      <div className="max-w-5xl mx-auto py-14 px-4 sm:px-8 lg:px-20 bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-lg min-h-[90vh] rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.10)] mt-8 relative">
+      <div className="max-w-6xl mx-auto py-14 px-4 sm:px-8 lg:px-20 bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-lg min-h-[90vh] rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.10)] mt-8 relative">
         {/* Add-knapp överst */}
         <div className="flex justify-end mb-10">
           <button
@@ -214,7 +214,13 @@ export const BucketListPage: React.FC = () => {
         </div>
         {buckets.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-            <span className="text-7xl mb-4">🪣</span>
+            <span className="text-7xl mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 block text-accent dark:text-accent" aria-label="bucket-list-target">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </span>
             <span className="text-xl font-light text-center" style={{ fontFamily: 'SF Pro Display, Inter, sans-serif' }}>Din bucket list är tom.<br />Klicka på <span className='text-accent'>＋</span> för att lägga till!</span>
           </div>
         )}
@@ -226,10 +232,16 @@ export const BucketListPage: React.FC = () => {
               <div key={bucket.id} className="relative flex items-center bg-slate-100 dark:bg-dark-bg/50 rounded-2xl shadow p-4 min-h-[72px] group transition-all">
                 {/* Ikon till vänster */}
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center mr-4 overflow-hidden">
-                  {bucket.imageUrl ? (
+                  {bucket.imageUrl && bucket.imageUrl !== 'target' ? (
                     <img src={bucket.imageUrl} alt="Bucket" className="w-12 h-12 object-cover rounded-full" />
                   ) : (
-                    <span className="text-2xl">🪣</span>
+                    <span className="text-2xl">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 block text-accent dark:text-accent" aria-label="bucket-list-target">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                        <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+                        <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    </span>
                   )}
                 </div>
                 {/* Innehåll i mitten */}

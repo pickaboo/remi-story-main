@@ -14,7 +14,13 @@ export const BucketListInfoModal: React.FC<BucketListInfoModalProps> = ({ isOpen
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
         <h2 className="text-xl font-bold mb-4 text-primary flex items-center gap-2">
-          <span className="inline-block w-7 h-7 rounded-full bg-gradient-to-tr from-yellow-300 to-pink-400 flex items-center justify-center text-lg">🪣</span>
+          <span className="inline-flex items-center justify-center text-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 block text-accent dark:text-accent" aria-label="bucket-list-target">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </span>
           Bucketlist
         </h2>
         <p className="mb-2 text-slate-700 dark:text-slate-200">En bucketlist är en inspirerande lista över saker du vill uppleva, uppnå eller drömmer om att göra i livet. Lägg till dina mål, bocka av när du klarat dem och låt dig motiveras av dina drömmar!</p>

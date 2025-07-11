@@ -35,7 +35,13 @@ export const BucketListGrid: React.FC<BucketListGridProps> = ({
       {/* Grid med bucket cards */}
       {buckets.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-slate-400">
-          <span className="text-7xl mb-4">🪣</span>
+          <span className="text-7xl mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 block text-accent dark:text-accent" aria-label="bucket-list-target">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </span>
           <span className="text-xl font-light" style={{ fontFamily: 'SF Pro Display, Inter, sans-serif' }}>Din bucket list är tom.<br />Klicka på <span className='text-accent'>＋</span> för att lägga till!</span>
         </div>
       ) : (
