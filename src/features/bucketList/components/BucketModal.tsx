@@ -75,8 +75,8 @@ export const BucketModal: React.FC<BucketModalProps> = ({ open, onClose, onSave,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md h-screen overflow-y-auto">
-      <div className="bg-white dark:bg-[#18181b] rounded-2xl p-8 shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-800 relative flex flex-col items-center max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md min-h-screen h-full">
+      <div className="bg-white dark:bg-[#18181b] rounded-2xl p-8 shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-800 relative flex flex-col overflow-y-auto">
         <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Stäng">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>

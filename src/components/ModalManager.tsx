@@ -180,7 +180,10 @@ export const ModalManager: React.FC = () => {
       )}
 
       {isBucketListModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl">
+        <div
+          className="fixed inset-0 z-50 flex justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl"
+          style={{ paddingTop: 50, paddingBottom: 50, paddingLeft: 16, paddingRight: 16, overflow: 'auto' }}
+        >
           {(() => {
             const [isDark, setIsDark] = useState(false);
             useEffect(() => {
@@ -190,7 +193,7 @@ export const ModalManager: React.FC = () => {
             const darkBg = 'rgba(24,24,27,0.85)'; // zinc-900
             return (
               <div
-                className="rounded-xl p-6 shadow-xl w-full max-w-2xl relative border border-slate-100 dark:border-slate-800"
+                className="rounded-xl p-6 shadow-xl w-full max-w-2xl h-full relative border border-slate-100 dark:border-slate-800"
                 style={{
                   background: isDark ? darkBg : lightBg,
                   boxShadow: '0 12px 48px 0 rgba(0,0,0,0.18)'
