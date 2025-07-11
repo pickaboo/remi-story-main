@@ -204,7 +204,7 @@ export const DiaryPage: React.FC = () => {
             placeholder="Skriv dina tankar här, eller spela in en ljudanteckning..."
             value={newEntryContent}
             onChange={(e) => setNewEntryContent(e.target.value)}
-            className="min-h-[120px] max-h-80 pr-12 relative"
+            className="min-h-[120px] max-h-80 pr-12 relative mb-6"
             rows={5}
             disabled={isSaving || audioRecorder.isRecording}
           />

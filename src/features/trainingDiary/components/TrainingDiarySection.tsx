@@ -132,7 +132,7 @@ export const TrainingDiarySection: React.FC<TrainingDiarySectionProps> = ({ edit
   };
 
   return (
-    <section className="mt-8 p-6 bg-slate-100 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+    <section className="mt-8 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
       <h3 className="text-lg font-semibold mb-2 text-primary">
         {editingEntry ? 'Redigera träningsdagbok' : 'Träningsdagbok'}
       </h3>
