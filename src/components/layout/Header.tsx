@@ -39,8 +39,12 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
   </svg>
 );
 
-const BucketIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <span role="img" aria-label="bucket" className={className}>🪣</span>
+const TargetIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} aria-label="bucket-list-target">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
 );
 
 const SunIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -155,7 +159,7 @@ export const Header: React.FC<HeaderProps> = memo(({
                   title="Öppna Bucketlist"
                   aria-label="Öppna Bucketlist"
                 >
-                  <BucketIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <TargetIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               )}
 
