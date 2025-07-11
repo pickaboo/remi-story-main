@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Button, TextArea, LoadingSpinner } from '../../components/ui';
 import { DiaryEntry } from '../../types';
-import { getDiaryEntriesByUserId, saveDiaryEntry, deleteDiaryEntry, generateId } from '../../services/storageService';
+import { fetchDiaryEntries, saveDiaryEntry as saveDiaryEntryFS, deleteDiaryEntry as deleteDiaryEntryFS } from './services/diaryService';
+import { generateId } from '../../services/storageService';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; 
 import { useAppContext } from '../../context/AppContext';
 import { TrainingDiarySection } from '../trainingDiary/components/TrainingDiarySection';
@@ -80,7 +81,7 @@ export const DiaryPage: React.FC = () => {
 
   const fetchEntries = useCallback(async () => {
     setIsLoading(true);
-    const userEntries = await getDiaryEntriesByUserId(currentUser.id);
+    const userEntries = await fetchDiaryEntries(currentUser.id);
     const userTrainingEntries = await getAllTrainingEntriesByUserId(currentUser.id);
     setEntries(userEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setTrainingEntries(userTrainingEntries);
@@ -130,7 +131,7 @@ export const DiaryPage: React.FC = () => {
       audioRecUrl: audioRecorder.audioUrl || editingEntry?.audioRecUrl || undefined,
       transcribedText: audioRecorder.audioUrl ? (audioRecorder.transcribedText.trim() || newEntryContent.trim()) : (editingEntry?.transcribedText || undefined),
     };
-    await saveDiaryEntry(entryToSave);
+    await saveDiaryEntryFS(currentUser.id, entryToSave);
     setEditingEntry(null);
     setNewEntryContent('');
     setEntryDate(new Date().toISOString().split('T')[0]);
@@ -157,7 +158,7 @@ export const DiaryPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!entryForDeletionConfirmation) return;
     setIsDeletingEntry(true);
-    await deleteDiaryEntry(entryForDeletionConfirmation.id, currentUser.id);
+    await deleteDiaryEntryFS(currentUser.id, entryForDeletionConfirmation.id);
     setEntryForDeletionConfirmation(null);
     fetchEntries();
     setIsDeletingEntry(false);
