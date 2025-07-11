@@ -133,9 +133,9 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
     const style = document.createElement('style');
     style.textContent = `
       .sidebar-logo-large {
-        width: ${isExpanded ? '400px' : '100px'} !important;
+        width: ${isExpanded ? '280px' : '100px'} !important;
         height: auto !important;
-        min-width: ${isExpanded ? '400px' : '100px'} !important;
+        min-width: ${isExpanded ? '280px' : '100px'} !important;
         max-width: none !important;
         transform: rotate(-90deg) !important;
         flex-shrink: 0 !important;
@@ -339,11 +339,11 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
               className="sidebar-logo-large"
               style={{
                 marginBottom: isExpanded ? '20rem' : '1rem',
-                marginTop: isExpanded ? '-16rem' : '-6rem',
+                marginTop: isExpanded ? '-11rem' : '-6rem',
                 transformOrigin: 'center',
                 position: 'absolute',
                 zIndex: 10,
-                left: isExpanded ? '-8rem' : '-1rem',
+                left: isExpanded ? '-5rem' : '-1rem',
                 right: isExpanded ? 'auto' : '1rem'
               }}
             />
