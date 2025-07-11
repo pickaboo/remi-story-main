@@ -5,6 +5,7 @@ import type { View } from '../../constants/viewEnum';
 import { ViewParams } from '../../types';
 import { DiaryPopover, UserMenuPopover } from '../modals';
 import { useAppContext } from '../../context/AppContext';
+import { applyThemePreference } from '../../utils/themeUtils';
 
 type ThemePreference = User['themePreference']; // Define ThemePreference type
 
@@ -40,6 +41,17 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
 
 const BucketIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <span role="img" aria-label="bucket" className={className}>🪣</span>
+);
+
+const SunIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m0 13.5V21m8.25-9H21M3 12h2.25m12.364-6.364l-1.591 1.591m-9.192 9.192l-1.591 1.591m12.364 0l-1.591-1.591m-9.192-9.192L4.636 5.636M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+  </svg>
+);
+const MoonIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+  </svg>
 );
 
 
@@ -106,112 +118,116 @@ export const Header: React.FC<HeaderProps> = memo(({
       {/* Right-aligned controls */}
       <div className="w-1/3 flex items-center justify-end h-full space-x-3 sm:space-x-4">
           {currentUser && (
-            <div className="relative" ref={diaryButtonRef}>
-              <div className="flex rounded-lg border border-border-color dark:border-dark-bg/30 shadow-sm">
-                <button
-                  onClick={() => onNavigate(Views.Diary)}
-                  className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
-                  title="Öppna Dagbok"
-                  aria-label="Öppna Dagbok"
-                >
-                  <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
-                <button
-                  onClick={() => setIsDiaryPopoverOpen(prev => !prev)}
-                  className="px-1 sm:px-1.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-r-md border-l border-border-color dark:border-dark-bg/30 transition-colors"
-                  aria-haspopup="true"
-                  aria-expanded={isDiaryPopoverOpen}
-                  title="Snabbanteckning i dagboken"
-                  aria-label="Öppna snabbanteckning för dagboken"
-                >
-                  <ChevronDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 dark:text-slate-400" />
-                </button>
-              </div>
-              <DiaryPopover 
-                currentUser={currentUser} 
-                isOpen={isDiaryPopoverOpen} 
-                onClose={() => setIsDiaryPopoverOpen(false)}
-                anchorRef={diaryButtonRef.current}
-              />
-            </div>
-          )}
-
-          {currentUser && currentUser.enabledFeatures?.bucketList && (
-            <button
-              onClick={handleOpenBucketListModal}
-              className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-accent rounded-lg border border-border-color dark:border-dark-bg/30 transition-colors ml-2"
-              title="Öppna Bucketlist"
-              aria-label="Öppna Bucketlist"
-            >
-              <BucketIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          )}
-
-          {/* Current User Menu */}
-          {currentUser && (
-            <div className="relative" ref={userMenuButtonRef}>
-              <button
-                id="user-menu-button"
-                onClick={() => setIsUserMenuOpen(prev => !prev)}
-                className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 transition-colors"
-                aria-haspopup="true"
-                aria-expanded={isUserMenuOpen}
-                aria-controls="user-menu-popover"
-                title="Användarmeny"
-              >
-                {currentUser.profileImageUrl ? (
-                  <img
-                    src={currentUser.profileImageUrl}
-                    alt="Profilbild"
-                    className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600"
-                  />
-                ) : (
-                  <div 
-                    className={`w-8 h-8 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center text-sm font-semibold shadow-sm`}
-                    aria-hidden="true"
+            <>
+              <div className="relative" ref={diaryButtonRef}>
+                <div className="flex rounded-lg border border-border-color dark:border-dark-bg/30 shadow-sm">
+                  <button
+                    onClick={() => onNavigate(Views.Diary)}
+                    className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
+                    title="Öppna Dagbok"
+                    aria-label="Öppna Dagbok"
                   >
-                    {currentUser.initials}
-                  </div>
-                )}
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:inline truncate max-w-[100px]">
-                  {currentUser.name.split(' ')[0]}
-                </span>
-                {Number(currentUser.pendingInvitationCount) > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4" aria-label={`${currentUser.pendingInvitationCount} väntande inbjudningar`}>
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" aria-hidden="true"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
-                            {currentUser.pendingInvitationCount! > 9 ? '9+' : currentUser.pendingInvitationCount}
-                        </span>
-                    </span>
-                )}
-                <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isUserMenuOpen && (
-                <UserMenuPopover
-                  currentUser={currentUser}
-                  isOpen={isUserMenuOpen}
-                  onClose={() => setIsUserMenuOpen(false)}
-                  anchorRef={userMenuButtonRef.current}
-                  onAcceptInvitation={onAcceptInvitation}
-                  onDeclineInvitation={onDeclineInvitation}
-                  onSaveThemePreference={onSaveThemePreference} // Pass down the prop
+                    <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                  <button
+                    onClick={() => setIsDiaryPopoverOpen(prev => !prev)}
+                    className="px-1 sm:px-1.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-r-md border-l border-border-color dark:border-dark-bg/30 transition-colors"
+                    aria-haspopup="true"
+                    aria-expanded={isDiaryPopoverOpen}
+                    title="Snabbanteckning i dagboken"
+                    aria-label="Öppna snabbanteckning för dagboken"
+                  >
+                    <ChevronDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 dark:text-slate-400" />
+                  </button>
+                </div>
+                <DiaryPopover 
+                  currentUser={currentUser} 
+                  isOpen={isDiaryPopoverOpen} 
+                  onClose={() => setIsDiaryPopoverOpen(false)}
+                  anchorRef={diaryButtonRef.current}
                 />
-              )}
-            </div>
-          )}
+              </div>
 
-          {/* Logout Button */}
-          {currentUser && onLogout && (
-            <button
-              onClick={onLogout}
-              className="p-2.5 text-slate-600 dark:text-slate-300 hover:text-danger dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger dark:focus:ring-red-400 transition-colors"
-              title="Logga ut"
-              aria-label="Logga ut"
-            >
-              <ArrowRightOnRectangleIcon className="w-5 h-5" />
-            </button>
+              {currentUser.enabledFeatures?.bucketList && (
+                <button
+                  onClick={handleOpenBucketListModal}
+                  className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-accent rounded-lg border border-border-color dark:border-dark-bg/30 transition-colors ml-2"
+                  title="Öppna Bucketlist"
+                  aria-label="Öppna Bucketlist"
+                >
+                  <BucketIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              )}
+
+              {/* Current User Menu */}
+              <div className="relative" ref={userMenuButtonRef}>
+                <button
+                  id="user-menu-button"
+                  onClick={() => setIsUserMenuOpen(prev => !prev)}
+                  className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 transition-colors"
+                  aria-haspopup="true"
+                  aria-expanded={isUserMenuOpen}
+                  aria-controls="user-menu-popover"
+                  title="Användarmeny"
+                >
+                  {currentUser.profileImageUrl ? (
+                    <img
+                      src={currentUser.profileImageUrl}
+                      alt="Profilbild"
+                      className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600"
+                    />
+                  ) : (
+                    <div 
+                      className={`w-8 h-8 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center text-sm font-semibold shadow-sm`}
+                      aria-hidden="true"
+                    >
+                      {currentUser.initials}
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:inline truncate max-w-[100px]">
+                    {currentUser.name.split(' ')[0]}
+                  </span>
+                  {Number(currentUser.pendingInvitationCount) > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4" aria-label={`${currentUser.pendingInvitationCount} väntande inbjudningar`}>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" aria-hidden="true"></span>
+                          <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
+                              {currentUser.pendingInvitationCount! > 9 ? '9+' : currentUser.pendingInvitationCount}
+                          </span>
+                      </span>
+                  )}
+                  <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isUserMenuOpen && (
+                  <UserMenuPopover
+                    currentUser={currentUser}
+                    isOpen={isUserMenuOpen}
+                    onClose={() => setIsUserMenuOpen(false)}
+                    anchorRef={userMenuButtonRef.current}
+                    onAcceptInvitation={onAcceptInvitation}
+                    onDeclineInvitation={onDeclineInvitation}
+                    onSaveThemePreference={onSaveThemePreference} // Pass down the prop
+                    onLogout={onLogout}
+                  />
+                )}
+              </div>
+
+              {/* Theme toggle button (moved here) */}
+              <button
+                onClick={() => {
+                  const newTheme = isDarkMode ? 'light' : 'dark';
+                  applyThemePreference(newTheme);
+                  setIsDarkMode(!isDarkMode);
+                }}
+                className="p-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-accent transition-colors ml-2"
+                aria-label={isDarkMode ? 'Byt till ljust tema' : 'Byt till mörkt tema'}
+                title={isDarkMode ? 'Byt till ljust tema' : 'Byt till mörkt tema'}
+              >
+                {/* Visa symbolen för det tema man kan byta till */}
+                {isDarkMode ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-slate-700" />}
+              </button>
+            </>
           )}
-        </div>
+      </div>
     </header>
   );
 });
