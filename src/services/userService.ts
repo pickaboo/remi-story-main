@@ -1,5 +1,5 @@
 import { db, auth } from '../../firebase'; // Importera från den riktiga Firebase-initieraren
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { User, Sphere, AuthUserRecord } from '../types';
 import {
   LOCAL_STORAGE_CURRENT_SPHERE_ID_KEY,
@@ -33,8 +33,10 @@ export const getUserById = async (userId: string | undefined | null): Promise<Us
       themePreference: firestoreData?.themePreference || 'system',
       showImageMetadataInBank: firestoreData?.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
       pendingInvitationCount: firestoreData?.pendingInvitationCount,
+      enabledFeatures: firestoreData?.enabledFeatures || {}, // ✅ Added this - default to empty object
       createdAt: firestoreData?.createdAt || new Date().toISOString(),
       updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
+      profileImageUrl: firestoreData?.profileImageUrl // <-- Add this line
     };
 
     if (firebaseUser && firebaseUser.uid === docSnap.id) {
@@ -102,6 +104,22 @@ export const getUserSpheres = async (user: User | null, allSpheresList?: Sphere[
     }
   }
   return userSpheresData;
+};
+
+export const updateUserProfileImage = async (userId: string, imageUrl: string) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { 
+    profileImageUrl: imageUrl,
+    updatedAt: new Date().toISOString()
+  });
+};
+
+export const updateUserEnabledFeatures = async (userId: string, enabledFeatures: any) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { 
+    enabledFeatures,
+    updatedAt: new Date().toISOString()
+  });
 };
 
 // IIFE för initialisering (tas bort eftersom detta hanteras av App.tsx's auth-flöde)

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { User } from '../../types';
 import { DiaryEntry } from '../../types';
-import { saveDiaryEntry, generateId } from '../../services/storageService';
+import { saveDiaryEntry as saveDiaryEntryFS } from '../../features/diary/services/diaryService';
+import { generateId } from '../../services/storageService';
 import { TextArea } from '../ui';
 import { Button } from '../ui';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'; // Import useAudioRecorder
@@ -81,7 +82,7 @@ export const DiaryPopover: React.FC<DiaryPopoverProps> = memo(({ currentUser, is
       audioRecUrl: audioRecorder.audioUrl || undefined,
       transcribedText: audioRecorder.audioUrl ? (audioRecorder.transcribedText.trim() || content.trim()) : undefined,
     };
-    await saveDiaryEntry(newEntry);
+    await saveDiaryEntryFS(currentUser.id, newEntry);
     setIsSaving(false);
     onClose(); // Resets content and audio via useEffect on isOpen change
   };

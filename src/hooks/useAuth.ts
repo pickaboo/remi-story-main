@@ -6,7 +6,7 @@ import {
   getAllUsers as authGetAllUsers, 
   acceptSphereInvitation as authAcceptSphereInvitation,
   declineSphereInvitation as authDeclineSphereInvitation,
-} from '../features/auth/authService';
+} from '../features/auth/services/authService';
 import { getPendingInvitationsForEmail } from '../services/storageService';
 
 export const useAuth = () => {
@@ -29,7 +29,7 @@ export const useAuth = () => {
 
   const handleProfileComplete = useCallback(async (updatedUser: User): Promise<User> => {
     console.log("[useAuth] Profile completion for user:", updatedUser.id);
-    // Note: Navigation should be handled by the calling component
+    // Note: Navigation and sphere creation should be handled by the calling component
     return updatedUser;
   }, []);
 
@@ -44,14 +44,14 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleAcceptSphereInvitation = useCallback(async (invitationId: string, currentUser: User): Promise<boolean> => {
+  const handleAcceptSphereInvitation = useCallback(async (invitationId: string, currentUser: User): Promise<User | null> => {
     console.log("[useAuth] Accepting sphere invitation:", invitationId);
     try {
-      await authAcceptSphereInvitation(invitationId, currentUser);
-      return true;
+      const updatedUser = await authAcceptSphereInvitation(invitationId, currentUser);
+      return updatedUser;
     } catch (error) {
       console.error("[useAuth] Failed to accept invitation:", error);
-      return false;
+      return null;
     }
   }, []);
 

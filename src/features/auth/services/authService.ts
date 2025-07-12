@@ -1,4 +1,4 @@
-import { auth, db } from '../../../firebase'; // Importera från den riktiga Firebase-initieraren
+import { auth, db } from '../../../../firebase'; // Importera från den riktiga Firebase-initieraren
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,14 +13,15 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, arrayUnion, arrayRemove, Timestamp, collection, getDocs, where, query } from 'firebase/firestore';
-import { User, AuthUserRecord, SphereInvitation } from '../../types'; 
-import { MOCK_SPHERES } from "../constants"; // För initial sfärtilldelning
+import { User, AuthUserRecord, SphereInvitation } from '../../../types'; 
 import { 
     createSphereInvitation as storageCreateSphereInvitation, 
     updateSphereInvitationStatus, 
     getSphereById,
-    getPendingInvitationsForEmail // Import missing function
-} from '../../services/storageService'; // Använd .real versionen
+    getPendingInvitationsForEmail, // Import missing function
+    saveNewSphere,
+    generateId as generateSphereId
+} from '../../../services/storageService'; // Använd .real versionen
 
 export const USERS_COLLECTION_NAME = 'users';
 
@@ -54,11 +55,13 @@ const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Om
     name: hasProperName ? firestoreData!.name : (firebaseUser.displayName || "Ny Användare"),
     initials: hasProperInitials ? firestoreData!.initials : "NY",
     avatarColor: firestoreData?.avatarColor || 'bg-gray-500',
+    profileImageUrl: firestoreData?.profileImageUrl, // ✅ Added this
     sphereIds: firestoreData?.sphereIds || [],
     backgroundPreference: firestoreData?.backgroundPreference,
     themePreference: firestoreData?.themePreference || 'system',
     showImageMetadataInBank: firestoreData?.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
     pendingInvitationCount: firestoreData?.pendingInvitationCount,
+    enabledFeatures: firestoreData?.enabledFeatures || {}, // ✅ Added this - default to empty object
     createdAt: firestoreData?.createdAt || new Date().toISOString(),
     updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
   };
@@ -100,13 +103,14 @@ const createFirestoreUserRecord = async (firebaseUser: FirebaseUser, additionalD
   const nowISO = Timestamp.now().toDate().toISOString();
   const newUserRecordData: Omit<AuthUserRecord, 'id' | 'passwordHash'> = {
     email: firebaseUser.email || undefined,
-    emailVerified: firebaseUser.emailVerified, 
+    emailVerified: true, // Utvecklingsläge: alla användare är verifierade
     name: firebaseUser.displayName || "Ny Användare",
     initials: "NY",
     avatarColor: 'bg-gray-500',
     sphereIds: initialSphereIds,
     themePreference: 'system',
     showImageMetadataInBank: false,
+    enabledFeatures: {}, // ✅ Added this - empty object for new users
     createdAt: nowISO, 
     updatedAt: nowISO,
     ...additionalData,
@@ -128,9 +132,26 @@ export const signupWithEmailPassword = async (email: string, passwordAttempt: st
     const firebaseUser = userCredential.user;
     if (firebaseUser) {
       const firestoreRecord = await createFirestoreUserRecord(firebaseUser);
+
+      // Skapa personlig sfär direkt
+      const sphereName = 'Min Sfär';
+      const gradientColors: [string, string] = [firestoreRecord.avatarColor || '#3B82F6', '#1E40AF'];
+      const newSphere = {
+        id: generateSphereId(),
+        name: sphereName,
+        gradientColors,
+        memberIds: [firebaseUser.uid],
+        ownerId: firebaseUser.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isPersonal: true,
+      };
+      await saveNewSphere(newSphere);
+      await addUserToSphere(firebaseUser.uid, newSphere.id);
+
       await sendEmailVerification(firebaseUser);
       console.log(`Verification email sent to ${firebaseUser.email}`);
-      return { user: mapFirebaseUserToAppUser(firebaseUser, firestoreRecord) };
+      return { user: mapFirebaseUserToAppUser(firebaseUser, { ...firestoreRecord, sphereIds: [newSphere.id] }) };
     }
     return { user: null, error: "Kunde inte skapa Firebase-användare." };
   } catch (error: any) {
@@ -215,7 +236,7 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
 // --- Profil och Användarhantering ---
 export const updateUserProfile = async (
   userId: string,
-  profileData: Partial<Pick<User, 'name' | 'initials' | 'avatarColor' | 'backgroundPreference' | 'themePreference' | 'showImageMetadataInBank' | 'pendingInvitationCount'>>
+  profileData: Partial<Pick<User, 'name' | 'initials' | 'avatarColor' | 'profileImageUrl' | 'backgroundPreference' | 'themePreference' | 'showImageMetadataInBank' | 'pendingInvitationCount' | 'enabledFeatures'>>
 ): Promise<User | null> => {
   const userDocRef = doc(db, USERS_COLLECTION_NAME, userId);
   

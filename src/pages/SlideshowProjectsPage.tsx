@@ -2,13 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Button, Input, LoadingSpinner } from '../components/ui';
 import { ImageRecord, SlideshowProject } from '../types';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
 import { getAllImages, getAllProjects, saveProject, generateId, deleteProject, getProjectById, getImageById } from '../services/storageService'; 
 import { generatePhotoAlbumPdf } from '../services/pdfService';
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../firebase'; 
 import { useAppContext } from '../context/AppContext';
+import { TrainingFeatureCard } from '../features/trainingDiary/components/TrainingFeatureCard';
+import { TrainingInfoModal } from '../features/trainingDiary/components/TrainingInfoModal';
+import { updateUserEnabledFeatures } from '../services/userService';
+import { BucketListFeatureCard } from '../features/bucketList/components/BucketListFeatureCard';
+import { BucketListInfoModal } from '../features/bucketList/components/BucketListInfoModal';
 
 // Custom Confirmation Modal Component (Local to SlideshowProjectsPage)
 interface ConfirmDeleteProjectModalProps {
@@ -207,7 +210,7 @@ const CreationOptionCard: React.FC<CreationOptionCardProps> = ({
 };
 
 export const SlideshowProjectsPage: React.FC = () => {
-  const { currentUser, activeSphere, handleNavigate } = useAppContext();
+  const { currentUser, activeSphere, handleNavigate, setCurrentUser } = useAppContext();
   const [projects, setProjects] = useState<SlideshowProject[]>([]);
   const [availableImagesForSelection, setAvailableImagesForSelection] = useState<ImageRecord[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -220,11 +223,38 @@ export const SlideshowProjectsPage: React.FC = () => {
 
   const [projectForDeletionConfirmation, setProjectForDeletionConfirmation] = useState<SlideshowProject | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [trainingInfoOpen, setTrainingInfoOpen] = useState(false);
+  const [bucketListEnabled, setBucketListEnabled] = useState(!!currentUser?.enabledFeatures?.bucketList);
+  const [bucketListInfoOpen, setBucketListInfoOpen] = useState(false);
 
   // Early return check - must be after all hooks
   if (!currentUser || !activeSphere) {
     return <LoadingSpinner message="Laddar användare och sfär..." />;
   }
+  const trainingEnabled = !!currentUser.enabledFeatures?.trainingDiary;
+  const handleToggleTraining = async () => {
+    const newEnabled = !trainingEnabled;
+    const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
+    await updateUserEnabledFeatures(currentUser.id, newFeatures);
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
+    });
+  };
+
+  const handleToggleBucketList = async () => {
+    if (!currentUser) return;
+    const newEnabled = !bucketListEnabled;
+    const newFeatures = { ...currentUser.enabledFeatures, bucketList: newEnabled };
+    await updateUserEnabledFeatures(currentUser.id, newFeatures);
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
+    });
+    setBucketListEnabled(newEnabled);
+  };
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -414,36 +444,57 @@ export const SlideshowProjectsPage: React.FC = () => {
         )}
 
         {!isCreating && (
-           <div className="mb-10">
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <>
+            <div className="mb-10">
+              <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-2">
                 <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-200">Vad vill du skapa i sfären "{activeSphere.name}"?</h2>
                 <p className="text-muted-text dark:text-slate-400 sm:text-right">Välj en mall nedan för att starta ett nytt projekt.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+                <CreationOptionCard 
+                  imageUrl="https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=800&auto=format&fit=crop" 
+                  title="Bildspel"
+                  tagline="Skapa dynamiska presentationer med dina bilder och berättelser."
+                  actionText="Starta bildspelsprojekt"
+                  onClick={() => { setIsCreating(true); setProjectCreationMode('slideshow'); setNewProjectName(''); setSelectedImageIds([]); setGeneralError(null); }}
+                />
+                <CreationOptionCard 
+                  imageUrl="https://cdn.pixabay.com/photo/2013/12/30/07/58/photo-album-235603_1280.jpg"
+                  title="Fotoalbum (PDF)"
+                  tagline="Sammanställ vackra album, perfekta för utskrift och delning."
+                  actionText="Starta albumprojekt"
+                  onClick={() => { setIsCreating(true); setProjectCreationMode('photoAlbum'); setNewProjectName(''); setSelectedImageIds([]); setGeneralError(null);}}
+                />
+                <CreationOptionCard 
+                  imageUrl="https://cdn.pixabay.com/photo/2020/04/19/02/18/handwriting-5061596_1280.jpg"
+                  title="Års-dagbok (PDF)"
+                  tagline="Samla dina dagboksanteckningar från ett helt år i en vacker bok."
+                  onClick={() => alert("Funktionen 'Års-dagbok' är under utveckling och kommer snart!")}
+                  disabled={true}
+                  comingSoonText="Kommer snart"
+                />
+              </div>
+              {/* Extra features section */}
+              <div className="mt-10">
+                <h3 className="text-lg font-semibold mb-2 text-slate-700 dark:text-slate-200">Extra funktioner</h3>
+                <div className="flex gap-4 flex-wrap">
+                  <TrainingFeatureCard
+                    enabled={trainingEnabled}
+                    onToggle={handleToggleTraining}
+                    onInfo={() => setTrainingInfoOpen(true)}
+                  />
+                  <BucketListFeatureCard
+                    enabled={bucketListEnabled}
+                    onToggle={handleToggleBucketList}
+                    onInfo={() => setBucketListInfoOpen(true)}
+                  />
+                  {/* Här kan fler feature cards läggas till */}
+                </div>
+                <TrainingInfoModal isOpen={trainingInfoOpen} onClose={() => setTrainingInfoOpen(false)} />
+                <BucketListInfoModal isOpen={bucketListInfoOpen} onClose={() => setBucketListInfoOpen(false)} />
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
-              <CreationOptionCard 
-                imageUrl="https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=800&auto=format&fit=crop" 
-                title="Bildspel"
-                tagline="Skapa dynamiska presentationer med dina bilder och berättelser."
-                actionText="Starta bildspelsprojekt"
-                onClick={() => { setIsCreating(true); setProjectCreationMode('slideshow'); setNewProjectName(''); setSelectedImageIds([]); setGeneralError(null); }}
-              />
-              <CreationOptionCard 
-                imageUrl="https://cdn.pixabay.com/photo/2013/12/30/07/58/photo-album-235603_1280.jpg"
-                title="Fotoalbum (PDF)"
-                tagline="Sammanställ vackra album, perfekta för utskrift och delning."
-                actionText="Starta albumprojekt"
-                onClick={() => { setIsCreating(true); setProjectCreationMode('photoAlbum'); setNewProjectName(''); setSelectedImageIds([]); setGeneralError(null);}}
-              />
-              <CreationOptionCard 
-                imageUrl="https://cdn.pixabay.com/photo/2020/04/19/02/18/handwriting-5061596_1280.jpg"
-                title="Års-dagbok (PDF)"
-                tagline="Samla dina dagboksanteckningar från ett helt år i en vacker bok."
-                onClick={() => alert("Funktionen 'Års-dagbok' är under utveckling och kommer snart!")}
-                disabled={true}
-                comingSoonText="Kommer snart"
-              />
-            </div>
-          </div>
+          </>
         )}
 
 
@@ -524,7 +575,7 @@ export const SlideshowProjectsPage: React.FC = () => {
           {projects.map(proj => {
             const handlePrimaryAction = () => {
                 if (proj.projectType === 'slideshow') {
-                    handleNavigate(Views.PlaySlideshow, { projectId: proj.id });
+                    handleNavigate('/play-slideshow/' + proj.id);
                 } else if (proj.projectType === 'photoAlbum') {
                     handleGeneratePdfForProject(proj.id);
                 }

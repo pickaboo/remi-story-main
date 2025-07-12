@@ -15,7 +15,7 @@ import {
   mock_inviteUserToSphereByEmail,
   removeUserFromSphere,
   addUserToSphere,
-} from '../features/auth/authService';
+} from '../features/auth/services/authService';
 import { MOCK_SPHERES } from '../constants';
 import { isPersonalSphere } from '../utils/sphereUtils';
 
@@ -40,54 +40,18 @@ export const useSphereManagement = () => {
         
         // For first-time users or users without spheres, create a default sphere
         if (!user.sphereIds || user.sphereIds.length === 0) {
-          console.log("[useSphereManagement] User has no spheres, creating personal sphere");
-          
-          // Create a personal sphere for the user
-          const personalSphereName = user.name && user.name !== "Ny Användare" 
-            ? `${user.name}s personliga sfär` 
-            : "Min personliga sfär";
-            
-          const personalSphere: Sphere = {
-            id: generateSphereId(),
-            name: personalSphereName,
-            gradientColors: ['#3B82F6', '#1E40AF'], // Blue gradient
-            memberIds: [user.id], // Only the user is a member
-            ownerId: user.id, // User owns this sphere
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            isPersonal: true, // Mark as personal sphere
-          };
-          
-          try {
-            // Save the personal sphere to Firestore
-            await saveNewSphere(personalSphere);
-            console.log("[useSphereManagement] Personal sphere saved to Firestore:", personalSphere.name);
-            
-            // Add user to the sphere
-            const updatedUser = await addUserToSphere(user.id, personalSphere.id);
-            if (updatedUser) {
-              console.log("[useSphereManagement] User added to personal sphere");
-            }
-            
-            // Update local state
-            setAllSpheres(prev => [...prev, personalSphere]);
-            setUserSpheres([personalSphere]);
-            setActiveSphere(personalSphere);
-            
-            console.log("[useSphereManagement] Personal sphere created and set as active:", personalSphere.name);
-            return personalSphere;
-          } catch (error) {
-            console.error("[useSphereManagement] Failed to create personal sphere:", error);
-            // Fallback to null if sphere creation fails
-            setActiveSphere(null);
-            setUserSpheres([]);
-            return null;
-          }
+          // Do not create a personal sphere automatically here anymore
+          setAllSpheres(spheresToUse);
+          setUserSpheres([]);
+          setActiveSphere(null);
+          return null;
         }
         
         const currentActiveSphere = await getActiveSphereFromService(user, spheresToUse);
         setActiveSphere(currentActiveSphere);
-        setUserSpheres(await getUserSpheresFromService(user, spheresToUse));
+        const userSpheres = await getUserSpheresFromService(user, spheresToUse);
+        setUserSpheres(userSpheres);
+        console.log('[fetchUserAndSphereData] User spheres:', userSpheres.map(s => s.id + ':' + s.name));
         
         return currentActiveSphere;
       })();
@@ -133,6 +97,7 @@ export const useSphereManagement = () => {
   }, [allSpheres]);
 
   const handleCreateSphere = useCallback(async (name: string, gradientColors: [string, string], user: User): Promise<SphereCreationResult> => {
+    console.log('[useSphereManagement] handleCreateSphere called for user:', user.id, 'name:', name, 'gradientColors:', gradientColors);
     console.log("[useSphereManagement] Creating new sphere:", name);
     
     try {
@@ -149,7 +114,8 @@ export const useSphereManagement = () => {
       };
       console.log("[useSphereManagement] Sphere object created:", newSphere);
 
-      console.log("[useSphereManagement] Step 2: Saving sphere to database");
+      console.log('[useSphereManagement] Step 2: Saving sphere to database');
+      console.log('[handleCreateSphere] About to call saveNewSphere for user:', user.id, 'name:', name);
       await saveNewSphere(newSphere);
       console.log("[useSphereManagement] Sphere saved to database successfully");
       

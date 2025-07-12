@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Sphere, User, ViewParams } from '../../types';
 import { SphereDisplay } from '../ui/SphereDisplay';
 import { useAppContext } from '../../context/AppContext';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
+
 import { isPersonalSphere } from '../../utils/sphereUtils';
 
 interface SidebarProps {
   currentPath: string;
-  onNavigate: (view: View, params?: ViewParams) => void;
+  onNavigate: (path: string, params?: ViewParams) => void;
   isExpanded: boolean;
   onToggle: () => void;
   activeSphere: Sphere | null;
@@ -27,8 +27,7 @@ function getNavItemsSidebar() {
   return [
     { 
       label: 'Hem', 
-      path: '/', 
-      view: Views.Home, 
+      path: '/home', 
       icon: (isExpanded: boolean, isActive: boolean) => 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
@@ -37,7 +36,6 @@ function getNavItemsSidebar() {
     { 
       label: 'Bildbank', 
       path: '/image-bank', 
-      view: Views.ImageBank, 
       icon: (isExpanded: boolean, isActive: boolean) => 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -45,8 +43,7 @@ function getNavItemsSidebar() {
     },
     { 
       label: 'Skapa', 
-      path: '/projects', 
-      view: Views.SlideshowProjects, 
+      path: '/slideshow-projects', 
       icon: (isExpanded: boolean, isActive: boolean) => 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 20.25h12m-7.5-3.75v3.75m4.125-3.75v3.75m2.625-3.75v3.75M12 21.75H4.875A2.625 2.625 0 012.25 19.125V7.875A2.625 2.625 0 014.875 5.25h14.25A2.625 2.625 0 0121.75 7.875v8.625M12 5.25v3.75m0 0H8.25m3.75 0a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
@@ -127,15 +124,28 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
     onOpenImageBankSettingsModal,
     allUsers
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { themePreference } = useAppContext();
+
+  // Determine if dark mode is active based on theme preference and system preference
+  const isDarkMode = React.useMemo(() => {
+    if (themePreference === 'dark') return true;
+    if (themePreference === 'light') return false;
+    // For 'system', check if system prefers dark mode
+    if (themePreference === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  }, [themePreference]);
   // Add CSS for the large logo
   React.useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
       .sidebar-logo-large {
-        width: ${isExpanded ? '400px' : '100px'} !important;
+        width: ${isExpanded ? '280px' : '100px'} !important;
         height: auto !important;
-        min-width: ${isExpanded ? '400px' : '100px'} !important;
+        min-width: ${isExpanded ? '280px' : '100px'} !important;
         max-width: none !important;
         transform: rotate(-90deg) !important;
         flex-shrink: 0 !important;
@@ -303,22 +313,31 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
       <div className="flex-grow flex flex-col">
         <nav className="mt-4 flex-grow" role="navigation" aria-label="Huvudnavigation">
           {NAV_ITEMS_SIDEBAR.map((item) => {
-            const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+            // Use React Router location for current path
+            const currentPath = location.pathname;
+            const normalize = (p: string) => p.replace(/^\//, '').replace(/\/$/, '');
+            const current = normalize(currentPath);
+            const target = normalize(item.path);
+            // Home: match both "/" and "home"
+            const isHome = (target === '' || target === 'home') && (current === '' || current === 'home');
+            // Skapa: match both "/slideshow-projects" and "slideshow-projects"
+            const isSkapa = (target === 'slideshow-projects') && (current === 'slideshow-projects');
+            const isActive = isHome || isSkapa || (target !== '' && target !== 'home' && target !== 'slideshow-projects' && current.startsWith(target));
             return (
               <button
                 key={item.path}
-                onClick={() => onNavigate(item.view)}
+                onClick={() => navigate(item.path)}
                 title={isExpanded ? undefined : item.label}
                 aria-label={isExpanded ? undefined : item.label}
                 className={`
                   flex items-center text-left text-sm font-medium transition-all duration-150 ease-in-out group
                   ${isExpanded
                     ? (isActive 
-                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-full mx-2 px-4 py-3 my-0.5 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full')
+                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-full mx-2 px-4 py-3 my-0.5 shadow-sm border border-primary dark:border-blue-400' 
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full border border-transparent')
                     : (isActive 
-                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-lg mx-auto w-11 h-11 p-0 justify-center my-1 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg')
+                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-lg mx-auto w-11 h-11 p-0 justify-center my-1 shadow-sm border border-primary dark:border-blue-400' 
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg border border-transparent')
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
@@ -334,16 +353,16 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
         <div className={`py-0 ${isExpanded ? 'px-0' : 'px-0'}`} style={{ overflow: 'visible' }}>
           <div className="relative flex items-start justify-end">
             <img 
-              src={themePreference === 'dark' ? "/images/Remi_namn_neg.gif" : "/images/Remi_namn_neg.gif"} 
+              src={isDarkMode ? "/images/Remi_namn_neg.gif" : "/images/Remi_namn40_neg.png"} 
               alt="REMI Namn" 
               className="sidebar-logo-large"
               style={{
                 marginBottom: isExpanded ? '20rem' : '1rem',
-                marginTop: isExpanded ? '-16rem' : '-6rem',
+                marginTop: isExpanded ? '-11rem' : '-6rem',
                 transformOrigin: 'center',
                 position: 'absolute',
                 zIndex: 10,
-                left: isExpanded ? '-8rem' : '-1rem',
+                left: isExpanded ? '-5rem' : '-1rem',
                 right: isExpanded ? 'auto' : '1rem'
               }}
             />

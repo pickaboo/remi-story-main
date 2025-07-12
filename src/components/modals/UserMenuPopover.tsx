@@ -3,10 +3,11 @@ import { User, SphereInvitation, Sphere } from '../../types';
 import { Button } from '../ui';
 import { LoadingSpinner } from '../ui';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
-import { getUserById } from '../../services/userService';
+import { getUserById, updateUserProfileImage } from '../../services/userService';
 import { SphereDisplay } from '../ui';
 
-type ThemePreference = User['themePreference'];
+import { ProfileSettingsModal } from './ProfileSettingsModal';
+import { useAppContext } from '../../context/AppContext';
 
 interface UserMenuPopoverProps {
   currentUser: User;
@@ -15,7 +16,7 @@ interface UserMenuPopoverProps {
   anchorRef: HTMLElement | null;
   onAcceptInvitation: (invitationId: string) => Promise<void>;
   onDeclineInvitation: (invitationId: string) => Promise<void>;
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // New prop
+  onLogout?: () => void;
 }
 
 interface InvitationDisplayData extends SphereInvitation {
@@ -30,11 +31,13 @@ const EnvelopeIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" 
   </svg>
 );
 
-const THEME_OPTIONS: { label: string; value: ThemePreference }[] = [
-    { label: "Systemstandard", value: "system" },
-    { label: "Ljust", value: "light" },
-    { label: "Mörkt", value: "dark" },
-];
+const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+  </svg>
+);
+
+
 
 export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   currentUser,
@@ -43,14 +46,15 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   anchorRef,
   onAcceptInvitation,
   onDeclineInvitation,
-  onSaveThemePreference,
+  onLogout,
 }) => {
   const [invitations, setInvitations] = useState<InvitationDisplayData[]>([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<Record<string, boolean>>({});
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [isSavingTheme, setIsSavingTheme] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(currentUser.themePreference || 'system');
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { setCurrentUser } = useAppContext();
 
 
   useEffect(() => {
@@ -83,13 +87,10 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
 
     if (isOpen) {
         fetchInvitations();
-        setSelectedTheme(currentUser.themePreference || 'system');
     }
   }, [isOpen, currentUser.email, currentUser.themePreference]);
 
-  useEffect(() => {
-    setSelectedTheme(currentUser.themePreference || 'system');
-  }, [currentUser.themePreference]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -114,27 +115,11 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
     } else {
       await onDeclineInvitation(invitationId);
     }
-    // App.tsx will refresh user data and thus invitations.
     setActionInProgress(prev => ({ ...prev, [invitationId]: false }));
+    onClose(); // Stäng dropdownen direkt efter åtgärd
   };
 
-  const handleThemeChange = async (theme: ThemePreference) => {
-    setSelectedTheme(theme); // Optimistically update UI
-    setIsSavingTheme(true);
-    try {
-      await onSaveThemePreference(theme);
-      // Theme is now applied immediately in App.tsx, so no need to revert on success
-      // Show brief success feedback
-      setTimeout(() => {
-        setIsSavingTheme(false);
-      }, 500); // Brief delay to show "Saving..." message
-    } catch (error) {
-        console.error("Failed to save theme preference:", error);
-        // Don't revert selectedTheme since the theme was already applied immediately
-        // The user will see the change even if saving to DB failed
-        setIsSavingTheme(false);
-    }
-  };
+
 
 
   if (!isOpen) return null;
@@ -174,6 +159,14 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
                     <span className="text-xs text-muted-text dark:text-slate-400">från {inv.inviterName}</span>
                 </div>
 
+                {inv.message && (
+                  <div className="mb-2 p-2 bg-white dark:bg-dark-bg/40 rounded border border-border-color dark:border-dark-bg/20">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 italic">
+                      "{inv.message}"
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-2">
                   <Button
                     variant="ghost"
@@ -201,33 +194,48 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
           </ul>
         )}
       </div>
-      <hr className="my-1 border-border-color dark:border-slate-700 mx-3" />
       <div className="p-3">
-        <h4 className="text-xs font-semibold uppercase text-muted-text dark:text-slate-500 mb-2">App Tema</h4>
-        <fieldset className="space-y-1.5" disabled={isSavingTheme}>
-            <legend className="sr-only">Välj app tema</legend>
-            {THEME_OPTIONS.map((option) => (
-            <label 
-                key={option.value} 
-                htmlFor={`theme-popover-${option.value}`} 
-                className={`flex items-center space-x-2.5 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-dark-bg/50 transition-colors cursor-pointer
-                            ${selectedTheme === option.value ? 'bg-primary/10 dark:bg-blue-400/10 ring-1 ring-primary/50 dark:ring-blue-400/50' : ''}`}
-            >
-                <input
-                type="radio"
-                id={`theme-popover-${option.value}`}
-                name="theme-popover-selection"
-                value={option.value}
-                checked={selectedTheme === option.value}
-                onChange={() => handleThemeChange(option.value)}
-                className="form-radio h-3.5 w-3.5 text-primary dark:text-blue-400 border-gray-300 dark:border-slate-500 focus:ring-primary dark:focus:ring-offset-0 bg-transparent dark:bg-slate-700"
-                />
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{option.label}</span>
-            </label>
-            ))}
-        </fieldset>
-        {isSavingTheme && <p className="text-xs text-muted-text dark:text-slate-400 mt-1.5 text-right">Sparar tema...</p>}
+        <button
+          className="w-full py-2 px-4 rounded bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+          onClick={() => setIsProfileModalOpen(true)}
+        >
+          Redigera profil
+        </button>
       </div>
+      <ProfileSettingsModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        userId={currentUser.id}
+        currentName={currentUser.name}
+        currentImageUrl={currentUser.profileImageUrl}
+        currentAvatarColor={currentUser.avatarColor}
+        onNameSave={(newName) => { 
+          // TODO: Implement name update
+        }}
+        onImageUpload={async (url) => {
+          await updateUserProfileImage(currentUser.id, url);
+          setCurrentUser({ 
+            ...currentUser, 
+            profileImageUrl: url,
+            updatedAt: new Date().toISOString()
+          });
+        }}
+        onAvatarColorChange={async (color) => { 
+          // TODO: Implement avatar color update
+          console.log('Spara ny avatarfärg:', color);
+        }}
+      />
+      {onLogout && (
+        <div className="p-3 border-t border-border-color dark:border-slate-700">
+          <button
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-danger text-white font-medium hover:bg-danger/90 transition-colors"
+            onClick={onLogout}
+          >
+            <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            Logga ut
+          </button>
+        </div>
+      )}
     </div>
   );
 });

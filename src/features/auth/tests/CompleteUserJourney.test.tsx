@@ -2,12 +2,12 @@ import { vi } from 'vitest';
 import { getAuth, signOut } from 'firebase/auth';
 
 // Import the app's Firebase instances (already connected to emulators in development)
-import { auth } from '../../../firebase';
+import { auth } from '../../../../firebase';
 
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '../../App';
+import App from '../../../App';
 
 beforeAll(async () => {
   // Säkerställ att ingen är inloggad före test

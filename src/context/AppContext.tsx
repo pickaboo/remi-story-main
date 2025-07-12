@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { useSphereManagement } from '../hooks/useSphereManagement';
 import { useModalState } from '../hooks/useModalState';
@@ -6,7 +7,6 @@ import { useAuth } from '../hooks/useAuth';
 import { 
   User, 
   Sphere, 
-  View, 
   ViewParams, 
   NavigationHandler, 
   LegacyFeedback,
@@ -16,14 +16,10 @@ import {
 
 interface AppContextType {
   // App State
-  currentView: View;
-  viewParams: ViewParams | null;
   isAuthenticated: boolean | null;
   currentUser: User | null;
   isSidebarExpanded: boolean;
   globalFeedback: LegacyFeedback | null;
-  setCurrentView: (view: View) => void;
-  setViewParams: (params: ViewParams | null) => void;
   setIsAuthenticated: (auth: boolean | null) => void;
   setCurrentUser: (user: User | null) => void;
   setGlobalFeedback: (feedback: LegacyFeedback | null) => void;
@@ -32,6 +28,8 @@ interface AppContextType {
   showGlobalFeedback: (message: string, type: 'success' | 'error') => void;
   themePreference: User['themePreference'];
   setThemePreference: (theme: User['themePreference']) => void;
+  viewParams: ViewParams;
+  setViewParams: (params: ViewParams) => void;
 
   // Sphere Management
   allSpheres: Sphere[];
@@ -69,12 +67,15 @@ interface AppContextType {
   handleOpenProfileCompletionModal: () => void;
   handleCloseProfileCompletionModal: () => void;
   setAllUsersForManageModal: (users: User[]) => void;
+  isBucketListModalOpen: boolean;
+  handleOpenBucketListModal: () => void;
+  handleCloseBucketListModal: () => void;
 
   // Auth
   handleLoginSuccess: (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => Promise<User>;
   handleProfileComplete: (updatedUser: User) => Promise<User>;
   handleLogout: () => Promise<boolean>;
-  handleAcceptSphereInvitation: (invitationId: string, currentUser: User) => Promise<boolean>;
+  handleAcceptSphereInvitation: (invitationId: string, currentUser: User) => Promise<User | null>;
   handleDeclineSphereInvitation: (invitationId: string, currentUserEmail?: string) => Promise<boolean>;
   handleSaveThemePreference: (theme: User['themePreference'], userId: string) => Promise<boolean>;
   handleSaveShowImageMetadataPreference: (show: boolean, userId: string) => Promise<boolean>;
@@ -96,7 +97,8 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const appState = useAppState();
+  const navigate = useNavigate();
+  const appState = useAppState(navigate);
   const sphereManagement = useSphereManagement();
   const modalState = useModalState();
   const auth = useAuth();
@@ -106,12 +108,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     ...appState,
     themePreference: appState.themePreference,
     setThemePreference: appState.setThemePreference,
+    viewParams: appState.viewParams,
+    setViewParams: appState.setViewParams,
     
     // Sphere Management
     ...sphereManagement,
     
     // Modal State
     ...modalState,
+    isBucketListModalOpen: modalState.isBucketListModalOpen,
+    handleOpenBucketListModal: modalState.handleOpenBucketListModal,
+    handleCloseBucketListModal: modalState.handleCloseBucketListModal,
     
     // Auth
     ...auth,
@@ -123,6 +130,35 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (appState.currentUser) {
         console.log("[AppContext] Loading sphere data for user:", appState.currentUser.id);
         try {
+          // --- NY LOGIK: Återuppta pending sfärskapande om e-post nu är verifierad ---
+          if (appState.currentUser.emailVerified) {
+            const pending = localStorage.getItem('pendingSphereCreation');
+            if (pending) {
+              try {
+                const { userId, sphereName, gradientColors } = JSON.parse(pending);
+                if (userId === appState.currentUser.id && appState.currentUser.sphereIds.length === 0) {
+                  console.log('[AppContext] Attempting to resume pending sphere creation...');
+                  const result = await sphereManagement.handleCreateSphere(sphereName, gradientColors, appState.currentUser);
+                  if (result.success && result.sphere) {
+                    appState.setCurrentUser({ ...appState.currentUser, sphereIds: [result.sphere.id] });
+                    sphereManagement.setActiveSphere(result.sphere);
+                    localStorage.removeItem('pendingSphereCreation');
+                    sphereManagement.setUserSpheres([result.sphere]);
+                    sphereManagement.setAllSpheres(prev => result.sphere ? [...prev, result.sphere] : prev);
+                    contextValue.showGlobalFeedback?.('Din personliga sfär har nu skapats!', 'success');
+                  } else {
+                    console.error('[AppContext] Failed to resume pending sphere creation:', result.error);
+                  }
+                } else {
+                  localStorage.removeItem('pendingSphereCreation');
+                }
+              } catch (e) {
+                console.error('[AppContext] Error resuming pending sphere creation:', e);
+                localStorage.removeItem('pendingSphereCreation');
+              }
+            }
+          }
+          // --- SLUT NY LOGIK ---
           const activeSphere = await sphereManagement.fetchUserAndSphereData(appState.currentUser);
           console.log("[AppContext] Sphere data loaded, activeSphere:", activeSphere?.name);
         } catch (error) {

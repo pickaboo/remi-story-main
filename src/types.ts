@@ -5,14 +5,6 @@
  * Types are organized by feature area and include comprehensive documentation.
  */
 
-import type { View } from './constants/viewEnum';
-
-// ============================================================================
-// CORE APPLICATION TYPES
-// ============================================================================
-
-// View enum moved to viewEnum.ts
-
 /**
  * Parameters passed to views for navigation
  */
@@ -62,12 +54,20 @@ export interface User {
   themePreference: ThemePreference;
   /** Background preference for customization */
   backgroundPreference?: BackgroundPreference;
+  /** URL to user's profile image (optional) */
+  profileImageUrl?: string;
   /** IDs of spheres the user belongs to */
   sphereIds: string[];
   /** Number of pending invitations */
   pendingInvitationCount?: number;
   /** Whether to show image metadata in bank */
   showImageMetadataInBank?: boolean;
+  /** Aktiverade features per användare */
+  enabledFeatures?: {
+    trainingDiary?: boolean;
+    bucketList?: boolean;
+    // fler features kan läggas till här
+  };
   /** Timestamp when user was created */
   createdAt: string;
   /** Timestamp when user was last updated */

@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Header } from './layout/Header';
 import { Sidebar } from './layout/Sidebar';
 import { useAppContext } from '../context/AppContext';
@@ -28,6 +29,8 @@ interface MainProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ children, onLogout }) => {
+  const location = useLocation();
+  
   const {
     isSidebarExpanded,
     currentUser,
@@ -48,18 +51,13 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
     handleSaveThemePreference,
     setThemePreference,
     setCurrentUser,
+    fetchUserAndSphereData,
   } = useAppContext();
 
   const mainScrollContainerRef = useRef<HTMLDivElement>(null);
 
   const getCurrentPathForSidebar = () => {
-    const hash = window.location.hash.replace(/^#\/?|\/$/g, '');
-    const basePath = hash.split('/')[0].split('?')[0]; 
-    if (basePath === 'projects') return '/projects';
-    if (basePath === 'image-bank') return '/image-bank';
-    if (basePath === 'diary') return '/diary';
-    if (basePath === '') return '/'; 
-    return `/${basePath}`; 
+    return location.pathname;
   };
 
   const handleSwitchSphereWithUser = async (sphereId: string) => {
@@ -70,13 +68,24 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
 
   const handleAcceptInvitationWrapper = async (invitationId: string) => {
     if (currentUser) {
-      await handleAcceptSphereInvitation(invitationId, currentUser);
+      const updatedUser = await handleAcceptSphereInvitation(invitationId, currentUser);
+      if (updatedUser) {
+        // Update the current user with the updated user data
+        setCurrentUser(updatedUser);
+        
+        // Refresh sphere data to include the new sphere
+        await fetchUserAndSphereData(updatedUser);
+      }
     }
   };
 
   const handleDeclineInvitationWrapper = async (invitationId: string) => {
     if (currentUser) {
-      await handleDeclineSphereInvitation(invitationId, currentUser.email);
+      const success = await handleDeclineSphereInvitation(invitationId, currentUser.email);
+      if (success) {
+        // Refresh sphere data to update pending invitation count
+        await fetchUserAndSphereData(currentUser);
+      }
     }
   };
 
@@ -85,11 +94,18 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
       setThemePreference(theme);
       const updatedUser = { ...currentUser, themePreference: theme };
       setCurrentUser(updatedUser);
+      
+      // Save to localStorage immediately
+      localStorage.setItem('themePreference', theme);
+      
       try {
         await handleSaveThemePreference(theme, currentUser.id);
       } catch (error) {
         console.error('Failed to save theme preference to database:', error);
       }
+    } else {
+      // If no user is logged in, still save to localStorage
+      localStorage.setItem('themePreference', theme);
     }
   };
 

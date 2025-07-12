@@ -8,6 +8,10 @@ import { ImageBankPickerModal } from '../modals';
 import ExifReader from 'exifreader'; // Import ExifReader
 import { getDownloadURL, ref } from 'firebase/storage'; 
 import { storage } from '../../../firebase'; 
+import { TrainingFeatureCard } from '../../features/trainingDiary/components/TrainingFeatureCard';
+import { TrainingInfoModal } from '../../features/trainingDiary/components/TrainingInfoModal';
+import { updateUserEnabledFeatures } from '../../services/userService';
+import { useAppContext } from '../../context/AppContext';
 
 interface CreatePostProps {
   currentUser: User;
@@ -146,6 +150,7 @@ async function getBase64FromUrl(url: string, originalMimeType?: string | null): 
 
 
 export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, activeSphereId, onPostCreated, initialImageIdToLoad }) => {
+  const { setCurrentUser } = useAppContext();
   const [postText, setPostText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -159,6 +164,8 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
 
   const [uploadedFileDetails, setUploadedFileDetails] = useState<ExtractedFileDetails | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false); 
+  const [trainingEnabled, setTrainingEnabled] = useState(!!currentUser.enabledFeatures?.trainingDiary);
+  const [showTrainingInfo, setShowTrainingInfo] = useState(false);
 
   useEffect(() => {
     const loadImage = async () => {
@@ -543,18 +550,39 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
   
   const canSubmit = !isPosting && !isProcessingFile && (!!selectedBankedImageInfo || !!imageFile || postText.trim() !== '' || !!audioRecorder.audioUrl);
   
+  const handleToggleTraining = async () => {
+    const newEnabled = !trainingEnabled;
+    setTrainingEnabled(newEnabled);
+    const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
+    await updateUserEnabledFeatures(currentUser.id, newFeatures);
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
+    });
+  };
 
   return (
     <>
       <form onSubmit={handleSubmit} className="bg-card-bg dark:bg-dark-bg p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-dark-bg/50 space-y-4">
         <div className="flex items-center space-x-3">
-          <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
-            {currentUser.initials}
-          </div>
+          {currentUser.profileImageUrl ? (
+            <img
+              src={`${currentUser.profileImageUrl}?t=${currentUser.updatedAt}`}
+              alt={currentUser.name + ' avatar'}
+              className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0 shadow-sm"
+              title={currentUser.name}
+              key={currentUser.profileImageUrl}
+            />
+          ) : (
+            <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
+              {currentUser.initials}
+            </div>
+          )}
           <div className="relative flex-grow">
             <TextArea
               id="postText"
-              placeholder={`Vad tänker du på, ${currentUser.name.split(' ')[0]}?`}
+              placeholder={`Skapa ett nytt minne.`}
               value={postText}
               onChange={handleTextChange}
               className="pr-12" 

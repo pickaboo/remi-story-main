@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { 
   CreateSphereModal,
@@ -8,6 +8,7 @@ import {
   ImageBankSettingsModal
 } from './modals';
 import { ProfileCompletionModal } from './modals/ProfileCompletionModal';
+import { BucketListPage } from '../features/bucketList/pages/BucketListPage';
 
 export const ModalManager: React.FC = () => {
   const {
@@ -20,6 +21,7 @@ export const ModalManager: React.FC = () => {
     isImageBankSettingsModalOpen,
     isProfileCompletionModalOpen,
     allUsersForManageModal,
+    isBucketListModalOpen,
     
     // Sphere management
     currentUser,
@@ -38,6 +40,7 @@ export const ModalManager: React.FC = () => {
     handleCloseManageSphereModal,
     handleCloseImageBankSettingsModal,
     handleCloseProfileCompletionModal,
+    handleCloseBucketListModal,
     
     // Auth functions
     handleSaveThemePreference,
@@ -50,7 +53,7 @@ export const ModalManager: React.FC = () => {
     if (!currentUser) {
       throw new Error('No user logged in');
     }
-    
+    console.log('[ModalManager] handleCreateSphereSubmit called with:', name, gradientColors);
     const result = await handleCreateSphere(name, gradientColors, currentUser);
     console.log('[ModalManager] Create sphere result:', result);
     
@@ -78,6 +81,11 @@ export const ModalManager: React.FC = () => {
     
     // Show success feedback
     showGlobalFeedback(`Sfären "${name}" skapades framgångsrikt!`, 'success');
+  };
+
+  const handleCloseCreateSphereModalWithLog = () => {
+    console.log('[ModalManager] handleCloseCreateSphereModal called');
+    handleCloseCreateSphereModal();
   };
 
   const handleInviteSubmit = async (email: string, message?: string) => {
@@ -118,7 +126,7 @@ export const ModalManager: React.FC = () => {
       {isCreateSphereModalOpen && (
         <CreateSphereModal
           isOpen={isCreateSphereModalOpen}
-          onClose={handleCloseCreateSphereModal}
+          onClose={handleCloseCreateSphereModalWithLog}
           onCreateSphere={handleCreateSphereSubmit}
         />
       )}
@@ -169,6 +177,36 @@ export const ModalManager: React.FC = () => {
           isOpen={isProfileCompletionModalOpen}
           onClose={handleCloseProfileCompletionModal}
         />
+      )}
+
+      {isBucketListModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl"
+          style={{ paddingTop: 50, paddingBottom: 50, paddingLeft: 16, paddingRight: 16, overflow: 'auto' }}
+        >
+          {(() => {
+            const [isDark, setIsDark] = useState(false);
+            useEffect(() => {
+              setIsDark(document.documentElement.classList.contains('dark'));
+            }, []);
+            const lightBg = 'rgba(255,255,255,0.85)';
+            const darkBg = 'rgba(24,24,27,0.85)'; // zinc-900
+            return (
+              <div
+                className="rounded-xl p-6 shadow-xl w-full max-w-2xl h-full relative border border-slate-100 dark:border-slate-800"
+                style={{
+                  background: isDark ? darkBg : lightBg,
+                  boxShadow: '0 12px 48px 0 rgba(0,0,0,0.18)'
+                }}
+              >
+                <button onClick={handleCloseBucketListModal} className="absolute top-3 right-3 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Stäng">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <BucketListPage />
+              </div>
+            );
+          })()}
+        </div>
       )}
     </>
   );

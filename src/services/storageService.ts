@@ -329,77 +329,6 @@ export const deleteProject = async (id: string): Promise<void> => {
   await fbDeleteDoc(docRef);
 };
 
-export const getDiaryEntriesByUserId = async (userId: string): Promise<DiaryEntry[]> => {
-  const diaryCol = collection(db, DIARY_ENTRIES_COLLECTION);
-  const q = query(diaryCol, where('userId', '==', userId), orderBy('date', 'desc'));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(docSnap => {
-    const data = docSnap.data();
-    const createdAtValue = data.createdAt;
-    const updatedAtValue = data.updatedAt;
-    return {
-        id: docSnap.id,
-        ...data,
-        createdAt: (createdAtValue instanceof Timestamp)
-          ? createdAtValue.toDate().toISOString()
-          : (typeof createdAtValue === 'string' ? createdAtValue : undefined),
-        updatedAt: (updatedAtValue instanceof Timestamp)
-          ? updatedAtValue.toDate().toISOString()
-          : (typeof updatedAtValue === 'string' ? updatedAtValue : undefined),
-    } as DiaryEntry
-  });
-};
-
-export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
-  const docRef = doc(db, DIARY_ENTRIES_COLLECTION, entry.id);
-  const { createdAt: originalCreatedAtStr, updatedAt: originalUpdatedAtStr, ...restOfEntryData } = entry;
-
-  const dataForFirestore: { [key: string]: any } = {
-    ...restOfEntryData,
-  };
-
-  // Handle createdAt
-  if (!originalCreatedAtStr) {
-    dataForFirestore.createdAt = serverTimestamp();
-  } else {
-    try {
-      const date = new Date(originalCreatedAtStr);
-      if (isNaN(date.getTime())) {
-        console.warn(`Invalid date string for diaryEntry.createdAt: "${originalCreatedAtStr}". Using serverTimestamp.`);
-        dataForFirestore.createdAt = serverTimestamp();
-      } else {
-        dataForFirestore.createdAt = Timestamp.fromDate(date);
-      }
-    } catch (e) {
-      console.warn(`Error parsing date string for diaryEntry.createdAt: "${originalCreatedAtStr}". Using serverTimestamp. Error: ${e}`);
-      dataForFirestore.createdAt = serverTimestamp();
-    }
-  }
-
-  // Handle updatedAt
-  dataForFirestore.updatedAt = serverTimestamp();
-
-  // Handle optional fields
-  if (dataForFirestore.audioRecUrl === undefined) {
-    dataForFirestore.audioRecUrl = null;
-  }
-  if (dataForFirestore.transcribedText === undefined) {
-    dataForFirestore.transcribedText = null;
-  }
-
-  await setDoc(docRef, dataForFirestore, { merge: true });
-};
-
-export const deleteDiaryEntry = async (id: string, userId: string): Promise<boolean> => {
-  const docRef = doc(db, DIARY_ENTRIES_COLLECTION, id);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists() && docSnap.data().userId === userId) {
-    await fbDeleteDoc(docRef);
-    return true;
-  }
-  return false;
-};
-
 export const getAllSpheres = async (): Promise<Sphere[]> => {
   const spheresCol = collection(db, SPHERES_COLLECTION);
   const snapshot = await getDocs(spheresCol);
@@ -413,6 +342,7 @@ export const getSphereById = async (id: string): Promise<Sphere | undefined> => 
 };
 
 export const saveNewSphere = async (sphere: Sphere): Promise<void> => {
+  console.log('[saveNewSphere] Called for user:', sphere.ownerId, 'sphereId:', sphere.id, 'name:', sphere.name, 'at:', new Date().toISOString());
   const docRef = doc(db, SPHERES_COLLECTION, sphere.id);
   
   // Filter out undefined values before saving to Firestore

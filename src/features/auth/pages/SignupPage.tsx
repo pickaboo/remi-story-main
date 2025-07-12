@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Views } from '../../../constants/viewEnum';
-import type { View } from '../../../constants/viewEnum';
+
 import { useAppContext } from '../../../context/AppContext';
 import { AuthContainer } from '../components/AuthContainer';
 import { Button, Input } from '../../../components/ui';
-import { signupWithEmailPassword, loginWithOAuth } from './authService';
+import { signupWithEmailPassword, loginWithOAuth } from '../services/authService';
 
 // Simple SVG Icons for OAuth providers (can be reused or moved to a common place)
 const GoogleIcon = () => (
@@ -29,7 +28,8 @@ const AppleIcon = () => (
 );
 
 export const SignupPage: React.FC = () => {
-  const { handleNavigate, handleLoginSuccess } = useAppContext();
+  const { handleLoginSuccess } = useAppContext();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,9 +47,9 @@ export const SignupPage: React.FC = () => {
       if (result.user) {
         handleLoginSuccess(result.user);
         if (!result.user.emailVerified) {
-          handleNavigate(Views.EmailConfirmation);
+          navigate('/email-confirmation');
         } else {
-          handleNavigate(Views.Home);
+          navigate('/home');
         }
       } else {
         setError(result.error || 'Kunde inte skapa konto. Försök igen.');
@@ -69,9 +69,9 @@ export const SignupPage: React.FC = () => {
       if (result && result.user) {
         handleLoginSuccess(result.user, result.isNewUser);
         if (!result.user.emailVerified) {
-          handleNavigate(Views.EmailConfirmation);
+          navigate('/email-confirmation');
         } else {
-          handleNavigate(Views.Home);
+          navigate('/home');
         }
       } else {
         setError(`Kunde inte skapa konto med ${provider}.`);
@@ -164,7 +164,7 @@ export const SignupPage: React.FC = () => {
 
       <p className="mt-8 text-center text-sm text-muted-text dark:text-slate-400">
         Har du redan ett konto?{' '}
-        <button onClick={() => handleNavigate(Views.Login)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
+        <button onClick={() => navigate('/login')} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
           Logga in här
         </button>
       </p>

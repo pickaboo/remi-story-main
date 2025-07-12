@@ -11,6 +11,7 @@ export const useModalState = () => {
   const [isImageBankSettingsModalOpen, setIsImageBankSettingsModalOpen] = useState(false);
   const [isProfileCompletionModalOpen, setIsProfileCompletionModalOpen] = useState(false);
   const [allUsersForManageModal, setAllUsersForManageModal] = useState<User[]>([]);
+  const [isBucketListModalOpen, setIsBucketListModalOpen] = useState(false);
 
   // Modal handlers
   const handleOpenCreateSphereModal = useCallback(() => {
@@ -63,6 +64,14 @@ export const useModalState = () => {
     setIsProfileCompletionModalOpen(false);
   }, []);
 
+  const handleOpenBucketListModal = useCallback(() => {
+    setIsBucketListModalOpen(true);
+  }, []);
+
+  const handleCloseBucketListModal = useCallback(() => {
+    setIsBucketListModalOpen(false);
+  }, []);
+
   return {
     // Modal states
     isCreateSphereModalOpen,
@@ -73,6 +82,7 @@ export const useModalState = () => {
     isImageBankSettingsModalOpen,
     isProfileCompletionModalOpen,
     allUsersForManageModal,
+    isBucketListModalOpen,
 
     // Modal handlers
     handleOpenCreateSphereModal,
@@ -87,6 +97,8 @@ export const useModalState = () => {
     handleCloseImageBankSettingsModal,
     handleOpenProfileCompletionModal,
     handleCloseProfileCompletionModal,
+    handleOpenBucketListModal,
+    handleCloseBucketListModal,
 
     // Setters
     setAllUsersForManageModal,
