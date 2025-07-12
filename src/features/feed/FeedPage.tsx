@@ -4,8 +4,6 @@ import { PostCard } from './PostCard';
 import { Timeline } from './Timeline';
 import { LoadingSpinner } from '../../components/ui';
 import { ImageRecord } from '../../types';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
 import { getSphereFeedPostsListener } from '../../services/storageService';
 import { useAppContext } from '../../context/AppContext';
 
@@ -176,7 +174,7 @@ export const FeedPage: React.FC = () => {
                         post={post} 
                         currentUser={currentUser} 
                         onPostUpdated={() => {}} 
-                        onNavigateToEdit={() => handleNavigate(Views.EditImage, { imageId: post.id })}
+                        onNavigateToEdit={() => handleNavigate('/edit-image/' + post.id)}
                     />
                   </div>
                 ))}

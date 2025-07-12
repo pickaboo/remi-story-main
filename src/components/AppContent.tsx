@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
+
 import { User } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { LoadingScreen } from './LoadingScreen';
@@ -98,15 +97,15 @@ export const AppContent: React.FC = () => {
               // Navigate based on user state
               if (!user.emailVerified) {
                 console.log('[AppContent] User needs email verification, navigating to email-confirmation');
-                handleNavigate(Views.EmailConfirmation);
+                handleNavigate('/email-confirmation');
               } else if (!user.name || user.name === "Ny Användare") {
                 console.log('[AppContent] User needs profile completion, navigating to profile-completion');
-                handleNavigate(Views.ProfileCompletion);
+                                  handleNavigate('/profile-completion');
               } else {
                 console.log('[AppContent] User is authenticated, navigating to home');
                 await handleLoginSuccess(user);
                 await fetchUserAndSphereData(user);
-                handleNavigate(Views.Home);
+                                  handleNavigate('/home');
               }
             }
           } else {
@@ -115,7 +114,7 @@ export const AppContent: React.FC = () => {
             setCurrentUser(null);
             // Only navigate to login if we're not already on an auth page
             if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
-              handleNavigate(Views.Login);
+              handleNavigate('/login');
             }
           }
         } else {
@@ -124,7 +123,7 @@ export const AppContent: React.FC = () => {
           setCurrentUser(null);
           // Only navigate to login if we're not already on an auth page
           if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
-            handleNavigate(Views.Login);
+            handleNavigate('/login');
           }
         }
       } catch (err) {
@@ -134,7 +133,7 @@ export const AppContent: React.FC = () => {
         setCurrentUser(null);
         // Only navigate to login if we're not already on an auth page
         if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
-          handleNavigate(Views.Login);
+          handleNavigate('/login');
         }
       } finally {
         setIsLoading(false);
@@ -195,7 +194,7 @@ export const AppContent: React.FC = () => {
         console.log('[AppContent] Logout completed successfully');
         setCurrentUser(null);
         setIsAuthenticated(false);
-        handleNavigate(Views.Login);
+        handleNavigate('/login');
       } else {
         console.log('[AppContent] Logout was not successful');
       }

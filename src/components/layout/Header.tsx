@@ -1,8 +1,6 @@
 import React, { useState, useRef, memo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../../types';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
 import { ViewParams } from '../../types';
 import { DiaryPopover, UserMenuPopover } from '../modals';
 import { useAppContext } from '../../context/AppContext';
@@ -13,12 +11,12 @@ type ThemePreference = User['themePreference']; // Define ThemePreference type
 interface HeaderProps {
   currentUser: User | null;
   isSidebarExpanded: boolean;
-  onNavigate: (view: View, params?: ViewParams) => void;
+  onNavigate: (path: string, params?: ViewParams) => void;
   logoUrl?: string; 
   onLogout?: () => void; 
-  onAcceptInvitation: (invitationId: string) => Promise<void>; 
-  onDeclineInvitation: (invitationId: string) => Promise<void>; 
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // Added
+  onAcceptInvitation?: (invitationId: string) => void; 
+  onDeclineInvitation?: (invitationId: string) => void; 
+  onSaveThemePreference: (theme: User['themePreference']) => void; // Added
 }
 
 // Icons

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
-import { Views } from '../constants/viewEnum';
+
 import { AppLayout } from '../components/AppLayout';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorScreen } from '../components/ErrorScreen';

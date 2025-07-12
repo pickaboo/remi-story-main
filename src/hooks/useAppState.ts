@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
+
 import { ViewParams, LegacyFeedback, User } from '../types';
 import { LOCAL_STORAGE_USER_THEME_PREFERENCE_KEY_PREFIX } from '../constants';
 
@@ -31,49 +30,9 @@ export const useAppState = (navigate?: (path: string) => void) => {
     localStorage.setItem('themePreference', themePreference);
   }, [themePreference]);
 
-  // Navigate to a view using React Router
-  const handleNavigate = useCallback((view: View, params?: ViewParams) => {
+  // Navigate to a path using React Router
+  const handleNavigate = useCallback((path: string, params?: ViewParams) => {
     if (!navigate) return;
-    
-    let path = '';
-    
-    switch (view) {
-      case Views.Home:
-        path = '/home';
-        break;
-      case Views.ImageBank:
-        path = '/image-bank';
-        break;
-      case Views.Diary:
-        path = '/diary';
-        break;
-      case Views.EditImage:
-        path = `/edit-image/${params?.imageId || ''}`;
-        break;
-      case Views.SlideshowProjects:
-        path = '/slideshow-projects';
-        break;
-      case Views.PlaySlideshow:
-        path = `/play-slideshow/${params?.projectId || ''}`;
-        break;
-      case Views.Login:
-        path = '/login';
-        break;
-      case Views.Signup:
-        path = '/signup';
-        break;
-      case Views.EmailConfirmation:
-        path = '/email-confirmation';
-        break;
-      case Views.ProfileCompletion:
-        path = '/profile-completion';
-        break;
-      case Views.BucketList:
-        path = '/bucket-list';
-        break;
-      default:
-        path = '/home';
-    }
     
     // Update viewParams if provided
     if (params) {
