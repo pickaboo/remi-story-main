@@ -233,12 +233,20 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
         currentName={currentUser.name}
         currentImageUrl={currentUser.profileImageUrl}
         currentAvatarColor={currentUser.avatarColor}
-        onNameSave={(newName) => { console.log('Spara nytt namn:', newName); }}
+        onNameSave={(newName) => { 
+          // TODO: Implement name update
+        }}
         onImageUpload={async (url) => {
           await updateUserProfileImage(currentUser.id, url);
-          setCurrentUser({ ...currentUser, profileImageUrl: url });
+          setCurrentUser({ 
+            ...currentUser, 
+            profileImageUrl: url,
+            updatedAt: new Date().toISOString()
+          });
         }}
-        onAvatarColorChange={(color) => { console.log('Spara ny avatarfärg:', color); }}
+        onAvatarColorChange={async (color) => { 
+          // TODO: Implement avatar color update
+        }}
       />
       {onLogout && (
         <div className="p-3 border-t border-border-color dark:border-slate-700">

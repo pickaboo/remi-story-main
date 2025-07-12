@@ -55,11 +55,13 @@ const mapFirebaseUserToAppUser = (firebaseUser: FirebaseUser, firestoreData?: Om
     name: hasProperName ? firestoreData!.name : (firebaseUser.displayName || "Ny Användare"),
     initials: hasProperInitials ? firestoreData!.initials : "NY",
     avatarColor: firestoreData?.avatarColor || 'bg-gray-500',
+    profileImageUrl: firestoreData?.profileImageUrl, // ✅ Added this
     sphereIds: firestoreData?.sphereIds || [],
     backgroundPreference: firestoreData?.backgroundPreference,
     themePreference: firestoreData?.themePreference || 'system',
     showImageMetadataInBank: firestoreData?.showImageMetadataInBank === undefined ? false : firestoreData.showImageMetadataInBank,
     pendingInvitationCount: firestoreData?.pendingInvitationCount,
+    enabledFeatures: firestoreData?.enabledFeatures || {}, // ✅ Added this - default to empty object
     createdAt: firestoreData?.createdAt || new Date().toISOString(),
     updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
   };
@@ -108,6 +110,7 @@ const createFirestoreUserRecord = async (firebaseUser: FirebaseUser, additionalD
     sphereIds: initialSphereIds,
     themePreference: 'system',
     showImageMetadataInBank: false,
+    enabledFeatures: {}, // ✅ Added this - empty object for new users
     createdAt: nowISO, 
     updatedAt: nowISO,
     ...additionalData,
@@ -233,7 +236,7 @@ export const getCurrentAuthenticatedUser = (): Promise<User | null> => {
 // --- Profil och Användarhantering ---
 export const updateUserProfile = async (
   userId: string,
-  profileData: Partial<Pick<User, 'name' | 'initials' | 'avatarColor' | 'backgroundPreference' | 'themePreference' | 'showImageMetadataInBank' | 'pendingInvitationCount'>>
+  profileData: Partial<Pick<User, 'name' | 'initials' | 'avatarColor' | 'profileImageUrl' | 'backgroundPreference' | 'themePreference' | 'showImageMetadataInBank' | 'pendingInvitationCount' | 'enabledFeatures'>>
 ): Promise<User | null> => {
   const userDocRef = doc(db, USERS_COLLECTION_NAME, userId);
   

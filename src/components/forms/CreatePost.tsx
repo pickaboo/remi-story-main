@@ -555,7 +555,11 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
     setTrainingEnabled(newEnabled);
     const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
     await updateUserEnabledFeatures(currentUser.id, newFeatures);
-    setCurrentUser({ ...currentUser, enabledFeatures: newFeatures });
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
+    });
   };
 
   return (
@@ -564,10 +568,11 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
         <div className="flex items-center space-x-3">
           {currentUser.profileImageUrl ? (
             <img
-              src={currentUser.profileImageUrl}
+              src={`${currentUser.profileImageUrl}?t=${currentUser.updatedAt}`}
               alt={currentUser.name + ' avatar'}
               className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0 shadow-sm"
               title={currentUser.name}
+              key={currentUser.profileImageUrl}
             />
           ) : (
             <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>

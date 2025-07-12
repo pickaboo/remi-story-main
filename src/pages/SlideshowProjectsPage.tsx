@@ -238,17 +238,24 @@ export const SlideshowProjectsPage: React.FC = () => {
     const newEnabled = !trainingEnabled;
     const newFeatures = { ...currentUser.enabledFeatures, trainingDiary: newEnabled };
     await updateUserEnabledFeatures(currentUser.id, newFeatures);
-    setCurrentUser({ ...currentUser, enabledFeatures: newFeatures });
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
+    });
   };
 
   const handleToggleBucketList = async () => {
     if (!currentUser) return;
     const newEnabled = !bucketListEnabled;
-    setBucketListEnabled(newEnabled);
-    await updateUserEnabledFeatures(currentUser.id, {
-      ...currentUser.enabledFeatures,
-      bucketList: newEnabled,
+    const newFeatures = { ...currentUser.enabledFeatures, bucketList: newEnabled };
+    await updateUserEnabledFeatures(currentUser.id, newFeatures);
+    setCurrentUser({ 
+      ...currentUser, 
+      enabledFeatures: newFeatures,
+      updatedAt: new Date().toISOString()
     });
+    setBucketListEnabled(newEnabled);
   };
 
   const fetchData = useCallback(async () => {

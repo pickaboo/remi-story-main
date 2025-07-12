@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Sphere, User, ViewParams } from '../../types';
 import { SphereDisplay } from '../ui/SphereDisplay';
 import { useAppContext } from '../../context/AppContext';
@@ -45,7 +46,7 @@ function getNavItemsSidebar() {
     },
     { 
       label: 'Skapa', 
-      path: '/projects', 
+      path: '/slideshow-projects', 
       view: Views.SlideshowProjects, 
       icon: (isExpanded: boolean, isActive: boolean) => 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 flex-shrink-0 ${isExpanded ? (isActive ? 'mr-2' : 'mr-3') : 'mr-0'}`}>
@@ -127,7 +128,20 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
     onOpenImageBankSettingsModal,
     allUsers
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { themePreference } = useAppContext();
+
+  // Determine if dark mode is active based on theme preference and system preference
+  const isDarkMode = React.useMemo(() => {
+    if (themePreference === 'dark') return true;
+    if (themePreference === 'light') return false;
+    // For 'system', check if system prefers dark mode
+    if (themePreference === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  }, [themePreference]);
   // Add CSS for the large logo
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -303,19 +317,20 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
       <div className="flex-grow flex flex-col">
         <nav className="mt-4 flex-grow" role="navigation" aria-label="Huvudnavigation">
           {NAV_ITEMS_SIDEBAR.map((item) => {
-            // Normalize currentPath and item.path for comparison
+            // Use React Router location for current path
+            const currentPath = location.pathname;
             const normalize = (p: string) => p.replace(/^\//, '').replace(/\/$/, '');
             const current = normalize(currentPath);
             const target = normalize(item.path);
             // Home: match both "/" and "home"
             const isHome = (target === '' || target === 'home') && (current === '' || current === 'home');
-            // Skapa: match both "/projects" and "slideshow-projects"
-            const isSkapa = (target === 'projects' || target === 'slideshow-projects') && (current === 'projects' || current === 'slideshow-projects');
-            const isActive = isHome || isSkapa || (target !== '' && target !== 'home' && target !== 'projects' && current.startsWith(target));
+            // Skapa: match both "/slideshow-projects" and "slideshow-projects"
+            const isSkapa = (target === 'slideshow-projects') && (current === 'slideshow-projects');
+            const isActive = isHome || isSkapa || (target !== '' && target !== 'home' && target !== 'slideshow-projects' && current.startsWith(target));
             return (
               <button
                 key={item.path}
-                onClick={() => onNavigate(item.view)}
+                onClick={() => navigate(item.path)}
                 title={isExpanded ? undefined : item.label}
                 aria-label={isExpanded ? undefined : item.label}
                 className={`
@@ -342,7 +357,7 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
         <div className={`py-0 ${isExpanded ? 'px-0' : 'px-0'}`} style={{ overflow: 'visible' }}>
           <div className="relative flex items-start justify-end">
             <img 
-              src={themePreference === 'dark' ? "/images/Remi_namn_neg.gif" : "/images/Remi_namn_neg.gif"} 
+              src={isDarkMode ? "/images/Remi_namn_neg.gif" : "/images/Remi_namn40_neg.png"} 
               alt="REMI Namn" 
               className="sidebar-logo-large"
               style={{

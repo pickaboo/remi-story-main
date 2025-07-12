@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { useSphereManagement } from '../hooks/useSphereManagement';
 import { useModalState } from '../hooks/useModalState';
@@ -15,14 +16,10 @@ import {
 
 interface AppContextType {
   // App State
-  currentView: any;
-  viewParams: ViewParams | null;
   isAuthenticated: boolean | null;
   currentUser: User | null;
   isSidebarExpanded: boolean;
   globalFeedback: LegacyFeedback | null;
-  setCurrentView: (view: any) => void;
-  setViewParams: (params: ViewParams | null) => void;
   setIsAuthenticated: (auth: boolean | null) => void;
   setCurrentUser: (user: User | null) => void;
   setGlobalFeedback: (feedback: LegacyFeedback | null) => void;
@@ -31,6 +28,8 @@ interface AppContextType {
   showGlobalFeedback: (message: string, type: 'success' | 'error') => void;
   themePreference: User['themePreference'];
   setThemePreference: (theme: User['themePreference']) => void;
+  viewParams: ViewParams;
+  setViewParams: (params: ViewParams) => void;
 
   // Sphere Management
   allSpheres: Sphere[];
@@ -76,7 +75,7 @@ interface AppContextType {
   handleLoginSuccess: (user: User, isNewUserViaOAuthOrEmailFlow?: boolean) => Promise<User>;
   handleProfileComplete: (updatedUser: User) => Promise<User>;
   handleLogout: () => Promise<boolean>;
-  handleAcceptSphereInvitation: (invitationId: string, currentUser: User) => Promise<boolean>;
+  handleAcceptSphereInvitation: (invitationId: string, currentUser: User) => Promise<User | null>;
   handleDeclineSphereInvitation: (invitationId: string, currentUserEmail?: string) => Promise<boolean>;
   handleSaveThemePreference: (theme: User['themePreference'], userId: string) => Promise<boolean>;
   handleSaveShowImageMetadataPreference: (show: boolean, userId: string) => Promise<boolean>;
@@ -98,7 +97,8 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const appState = useAppState();
+  const navigate = useNavigate();
+  const appState = useAppState(navigate);
   const sphereManagement = useSphereManagement();
   const modalState = useModalState();
   const auth = useAuth();
@@ -108,6 +108,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     ...appState,
     themePreference: appState.themePreference,
     setThemePreference: appState.setThemePreference,
+    viewParams: appState.viewParams,
+    setViewParams: appState.setViewParams,
     
     // Sphere Management
     ...sphereManagement,

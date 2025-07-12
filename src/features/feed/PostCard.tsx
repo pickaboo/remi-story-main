@@ -239,10 +239,11 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
     if (user.profileImageUrl) {
       return (
         <img
-          src={user.profileImageUrl}
+          src={`${user.profileImageUrl}?t=${user.updatedAt}`}
           alt={user.name + ' avatar'}
           className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0 shadow-sm"
           title={user.name}
+          key={user.profileImageUrl}
         />
       );
     }

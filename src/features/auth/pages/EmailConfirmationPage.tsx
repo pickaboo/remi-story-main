@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Views } from '../../../constants/viewEnum';
 import type { View } from '../../../constants/viewEnum';
 import { simulateVerifyEmail } from '../services/authService';

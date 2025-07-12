@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Views } from '../constants/viewEnum';
 import type { View } from '../constants/viewEnum';
 import { User } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { AppLayout } from './AppLayout';
-import { ModalManager } from './ModalManager';
-import { ViewRenderer } from './ViewRenderer';
 import { LoadingScreen } from './LoadingScreen';
 import { ErrorScreen } from './ErrorScreen';
 import { getCurrentAuthenticatedUser } from '../features/auth/services/authService';
@@ -17,14 +15,14 @@ import { useProfileCompletion } from '../hooks/useProfileCompletion';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 
-export const AppContent: React.FC = memo(() => {
+export const AppContent: React.FC = () => {
+  const location = useLocation();
+  
   const {
     currentUser,
     activeSphere,
     userSpheres,
     isSidebarExpanded,
-    currentView,
-    viewParams,
     isAuthenticated,
     handleNavigate,
     handleSwitchSphere,
@@ -39,7 +37,6 @@ export const AppContent: React.FC = memo(() => {
     handleSaveThemePreference,
     handleLogout,
     fetchAllUsers,
-    setCurrentView,
     setIsAuthenticated,
     setCurrentUser,
     handleLoginSuccess,
@@ -59,71 +56,86 @@ export const AppContent: React.FC = memo(() => {
   // Check profile completion
   useProfileCompletion();
 
-  // Firebase Auth state listener
+  // Theme and background setup
   useEffect(() => {
-    console.log('[AppContent] Setting up Firebase Auth state listener...');
+    const cleanup = setupThemeListener(currentUser, applyThemePreference);
+    themeCleanupRef.current = cleanup;
+    return cleanup;
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (themePreference) {
+      applyThemePreference(themePreference);
+    }
+  }, [themePreference]);
+
+  useEffect(() => {
+    if (activeSphere) {
+      applyBackgroundPreference(activeSphere, currentUser);
+    }
+  }, [activeSphere, currentUser]);
+
+  // Authentication state management
+  useEffect(() => {
+    console.log('[AppContent] Setting up Firebase Auth state listener');
     
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('[AppContent] Firebase Auth state changed:', firebaseUser ? {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        emailVerified: firebaseUser.emailVerified
-      } : 'null');
-      
-      // Skip auth check if we're logging out
-      if (isLoggingOut) {
-        console.log('[AppContent] Skipping auth check during logout');
-        return;
-      }
-      
       try {
-        setIsLoading(true);
-        setAuthError(null);
+        console.log('[AppContent] Firebase auth state changed:', firebaseUser?.uid);
         
         if (firebaseUser) {
-          // User is authenticated, get full user data
+          console.log('[AppContent] Firebase user found, checking authentication');
           const user = await getCurrentAuthenticatedUser();
-          console.log('[AppContent] Authentication check result:', user ? { 
-            name: user.name, 
-            initials: user.initials, 
-            emailVerified: user.emailVerified,
-            nameIsDefault: user.name === "Ny Användare",
-            initialsIsDefault: user.initials === "NY"
-          } : 'null');
           
           if (user) {
             setIsAuthenticated(true);
             setCurrentUser(user);
             
-            // Förbättrad logik: Navigera endast till EmailConfirmation om användaren är o-verifierad
-            if (!user.emailVerified) {
-              console.log('[AppContent] User needs email verification, setting view to EmailConfirmation');
-              handleNavigate(Views.EmailConfirmation);
-            } else {
-              // Om användaren är verifierad, gå alltid till Home
-              console.log('[AppContent] User is authenticated, navigating to Home');
-              await handleLoginSuccess(user);
-              await fetchUserAndSphereData(user);
-              handleNavigate(Views.Home);
+            // Only navigate if we're on an auth page
+            const isOnAuthPage = ['/login', '/signup', '/email-confirmation'].includes(location.pathname);
+            
+            if (isOnAuthPage) {
+              // Navigate based on user state
+              if (!user.emailVerified) {
+                console.log('[AppContent] User needs email verification, navigating to email-confirmation');
+                handleNavigate(Views.EmailConfirmation);
+              } else if (!user.name || user.name === "Ny Användare") {
+                console.log('[AppContent] User needs profile completion, navigating to profile-completion');
+                handleNavigate(Views.ProfileCompletion);
+              } else {
+                console.log('[AppContent] User is authenticated, navigating to home');
+                await handleLoginSuccess(user);
+                await fetchUserAndSphereData(user);
+                handleNavigate(Views.Home);
+              }
             }
           } else {
             console.log('[AppContent] Firebase user exists but getCurrentAuthenticatedUser returned null');
             setIsAuthenticated(false);
             setCurrentUser(null);
-            handleNavigate(Views.Login);
+            // Only navigate to login if we're not already on an auth page
+            if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
+              handleNavigate(Views.Login);
+            }
           }
         } else {
-          console.log('[AppContent] No Firebase user found, setting view to Login');
+          console.log('[AppContent] No Firebase user found');
           setIsAuthenticated(false);
           setCurrentUser(null);
-          handleNavigate(Views.Login);
+          // Only navigate to login if we're not already on an auth page
+          if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
+            handleNavigate(Views.Login);
+          }
         }
       } catch (err) {
         console.error('[AppContent] Auth check failed:', err);
         setAuthError(err instanceof Error ? err.message : 'Autentiseringsfel');
         setIsAuthenticated(false);
         setCurrentUser(null);
-        handleNavigate(Views.Login);
+        // Only navigate to login if we're not already on an auth page
+        if (!['/login', '/signup', '/email-confirmation'].includes(location.pathname)) {
+          handleNavigate(Views.Login);
+        }
       } finally {
         setIsLoading(false);
         setIsAuthStateInitialized(true);
@@ -138,70 +150,32 @@ export const AppContent: React.FC = memo(() => {
         authUnsubscribeRef.current();
       }
     };
-  }, [setIsAuthenticated, setCurrentUser, setCurrentView, handleLoginSuccess, fetchUserAndSphereData, isLoggingOut]);
+  }, [setIsAuthenticated, setCurrentUser, handleLoginSuccess, fetchUserAndSphereData, isLoggingOut, handleNavigate, location.pathname]);
 
-  // Theme effect
+  // Fetch all users for modals
   useEffect(() => {
-    applyThemePreference(themePreference || 'system');
-    if (currentUser) {
-      themeCleanupRef.current = setupThemeListener(currentUser, applyThemePreference);
+    const fetchUsers = async () => {
+      try {
+        const users = await fetchAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error('Failed to fetch all users:', error);
+      }
+    };
+
+    if (isAuthenticated && currentUser) {
+      fetchUsers();
     }
+  }, [isAuthenticated, currentUser, fetchAllUsers]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (themeCleanupRef.current) {
         themeCleanupRef.current();
       }
     };
-  }, [themePreference, currentUser]);
-
-  // Background effect
-  useEffect(() => {
-    applyBackgroundPreference(activeSphere, currentUser);
-  }, [activeSphere, currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchAllUsers().then(setAllUsers);
-    }
-  }, [currentUser, fetchAllUsers]);
-
-  // Add this effect after the main useEffect for auth state
-  useEffect(() => {
-    if (!currentUser) return;
-    const userDocRef = doc(db, 'users', currentUser.id);
-    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        // Only update if something actually changed
-        if (data) {
-          setCurrentUser({ ...currentUser, ...data });
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [currentUser?.id]);
-
-  const handleAcceptInvitation = async (invitationId: string) => {
-    if (currentUser) {
-      await handleAcceptSphereInvitation(invitationId, currentUser);
-    }
-  };
-
-  const handleDeclineInvitation = async (invitationId: string) => {
-    await handleDeclineSphereInvitation(invitationId, currentUser?.email);
-  };
-
-  const handleSaveThemePreferenceWrapper = async (theme: User['themePreference']) => {
-    if (currentUser) {
-      setThemePreference(theme);
-      const updatedUser = { ...currentUser, themePreference: theme };
-      setCurrentUser(updatedUser);
-      try {
-        await handleSaveThemePreference(theme, currentUser.id);
-      } catch (error) {
-        console.error('Failed to save theme preference to database:', error);
-      }
-    }
-  };
+  }, []);
 
   const handleSwitchSphereWrapper = async (sphereId: string) => {
     if (currentUser) {
@@ -214,13 +188,11 @@ export const AppContent: React.FC = memo(() => {
     setIsLoggingOut(true);
     
     try {
-      // First perform Firebase logout
       const success = await handleLogout();
       console.log('[AppContent] Logout result:', success);
       
       if (success) {
         console.log('[AppContent] Logout completed successfully');
-        // Reset app state after successful Firebase logout
         setCurrentUser(null);
         setIsAuthenticated(false);
         handleNavigate(Views.Login);
@@ -230,7 +202,6 @@ export const AppContent: React.FC = memo(() => {
     } catch (error) {
       console.error('[AppContent] Logout failed:', error);
     } finally {
-      // Reset logout flag after a longer delay to ensure Firebase state is cleared
       setTimeout(() => {
         setIsLoggingOut(false);
       }, 2000);
@@ -247,31 +218,7 @@ export const AppContent: React.FC = memo(() => {
     return <ErrorScreen message={`Autentiseringsfel: ${authError}`} title="Autentiseringsfel" />;
   }
 
-  // Render unauthenticated views without layout
-  if (isAuthenticated === false) {
-    return (
-      <div className="min-h-screen bg-light-bg dark:bg-slate-900">
-        <ModalManager />
-        <ViewRenderer 
-          currentView={currentView}
-          viewParams={viewParams}
-          isAuthenticated={isAuthenticated}
-        />
-      </div>
-    );
-  }
-
-  // Render authenticated views with layout
-  return (
-    <AppLayout onLogout={handleLogoutWrapper}>
-      <ModalManager />
-      <ViewRenderer 
-        currentView={currentView}
-        viewParams={viewParams}
-        isAuthenticated={isAuthenticated}
-      />
-    </AppLayout>
-  );
-});
-
-AppContent.displayName = 'AppContent'; 
+  // The actual routing is now handled by React Router
+  // This component just manages authentication state
+  return <></>;
+}; 
