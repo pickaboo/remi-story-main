@@ -577,7 +577,7 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
           <div className="relative flex-grow">
             <TextArea
               id="postText"
-              placeholder={`Vad tänker du på, ${currentUser.name.split(' ')[0]}?`}
+              placeholder={`Skapa ett nytt minne.`}
               value={postText}
               onChange={handleTextChange}
               className="pr-12" 
