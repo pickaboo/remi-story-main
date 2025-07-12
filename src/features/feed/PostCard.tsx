@@ -229,17 +229,27 @@ export const PostCard: React.FC<PostCardProps> = memo(({ post, currentUser, onPo
     const date = new Date(isoDateString);
     return (
       <span className="text-xs text-gray-400 dark:text-slate-500 ml-2" title={date.toLocaleString('sv-SE')}>
-        {date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
+        {date.toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' })}
       </span>
     );
   }, []);
   
   const renderUserAvatar = (user: User | null) => {
     if (!user) return <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-dark-bg flex-shrink-0 animate-pulse"></div>;
+    if (user.profileImageUrl) {
+      return (
+        <img
+          src={user.profileImageUrl}
+          alt={user.name + ' avatar'}
+          className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0 shadow-sm"
+          title={user.name}
+        />
+      );
+    }
     return (
-        <div className={`w-8 h-8 rounded-full ${user.avatarColor} text-white flex items-center justify-center font-semibold text-xs flex-shrink-0 shadow-sm`} title={user.name}>
-            {user.initials}
-        </div>
+      <div className={`w-8 h-8 rounded-full ${user.avatarColor} text-white flex items-center justify-center font-semibold text-xs flex-shrink-0 shadow-sm`} title={user.name}>
+        {user.initials}
+      </div>
     );
   };
 

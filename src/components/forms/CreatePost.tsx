@@ -562,9 +562,18 @@ export const CreatePost: React.FC<CreatePostProps> = memo(({ currentUser, active
     <>
       <form onSubmit={handleSubmit} className="bg-card-bg dark:bg-dark-bg p-4 sm:p-6 rounded-xl shadow-lg border border-border-color dark:border-dark-bg/50 space-y-4">
         <div className="flex items-center space-x-3">
-          <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
-            {currentUser.initials}
-          </div>
+          {currentUser.profileImageUrl ? (
+            <img
+              src={currentUser.profileImageUrl}
+              alt={currentUser.name + ' avatar'}
+              className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0 shadow-sm"
+              title={currentUser.name}
+            />
+          ) : (
+            <div className={`w-10 h-10 rounded-full ${currentUser.avatarColor} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
+              {currentUser.initials}
+            </div>
+          )}
           <div className="relative flex-grow">
             <TextArea
               id="postText"

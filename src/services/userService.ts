@@ -35,6 +35,7 @@ export const getUserById = async (userId: string | undefined | null): Promise<Us
       pendingInvitationCount: firestoreData?.pendingInvitationCount,
       createdAt: firestoreData?.createdAt || new Date().toISOString(),
       updatedAt: firestoreData?.updatedAt || new Date().toISOString(),
+      profileImageUrl: firestoreData?.profileImageUrl // <-- Add this line
     };
 
     if (firebaseUser && firebaseUser.uid === docSnap.id) {
