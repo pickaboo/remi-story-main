@@ -5,11 +5,9 @@ import { LoadingSpinner } from '../ui';
 import { getPendingInvitationsForEmail, getSphereById } from '../../services/storageService';
 import { getUserById, updateUserProfileImage } from '../../services/userService';
 import { SphereDisplay } from '../ui';
-import { ProfileSettingsForm } from '../../features/userSettings/components/ProfileSettingsForm';
+
 import { ProfileSettingsModal } from './ProfileSettingsModal';
 import { useAppContext } from '../../context/AppContext';
-
-type ThemePreference = User['themePreference'];
 
 interface UserMenuPopoverProps {
   currentUser: User;
@@ -18,8 +16,7 @@ interface UserMenuPopoverProps {
   anchorRef: HTMLElement | null;
   onAcceptInvitation: (invitationId: string) => Promise<void>;
   onDeclineInvitation: (invitationId: string) => Promise<void>;
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // New prop
-  onLogout?: () => void; // Add logout prop
+  onLogout?: () => void;
 }
 
 interface InvitationDisplayData extends SphereInvitation {
@@ -40,11 +37,7 @@ const ArrowRightOnRectangleIcon: React.FC<{ className?: string }> = ({ className
   </svg>
 );
 
-const THEME_OPTIONS: { label: string; value: ThemePreference }[] = [
-    { label: "Systemstandard", value: "system" },
-    { label: "Ljust", value: "light" },
-    { label: "Mörkt", value: "dark" },
-];
+
 
 export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   currentUser,
@@ -53,15 +46,13 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   anchorRef,
   onAcceptInvitation,
   onDeclineInvitation,
-  onSaveThemePreference,
   onLogout,
 }) => {
   const [invitations, setInvitations] = useState<InvitationDisplayData[]>([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<Record<string, boolean>>({});
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [isSavingTheme, setIsSavingTheme] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(currentUser.themePreference || 'system');
+
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { setCurrentUser } = useAppContext();
 
@@ -96,13 +87,10 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
 
     if (isOpen) {
         fetchInvitations();
-        setSelectedTheme(currentUser.themePreference || 'system');
     }
   }, [isOpen, currentUser.email, currentUser.themePreference]);
 
-  useEffect(() => {
-    setSelectedTheme(currentUser.themePreference || 'system');
-  }, [currentUser.themePreference]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -131,27 +119,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
     onClose(); // Stäng dropdownen direkt efter åtgärd
   };
 
-  const handleThemeChange = async (theme: ThemePreference) => {
-    setSelectedTheme(theme); // Optimistically update UI
-    setIsSavingTheme(true);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('themePreference', theme);
-    
-    try {
-      await onSaveThemePreference(theme);
-      // Theme is now applied immediately in App.tsx, so no need to revert on success
-      // Show brief success feedback
-      setTimeout(() => {
-        setIsSavingTheme(false);
-      }, 500); // Brief delay to show "Saving..." message
-    } catch (error) {
-        console.error("Failed to save theme preference:", error);
-        // Don't revert selectedTheme since the theme was already applied immediately
-        // The user will see the change even if saving to DB failed
-        setIsSavingTheme(false);
-    }
-  };
+
 
 
   if (!isOpen) return null;
@@ -190,6 +158,14 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
                     </div>
                     <span className="text-xs text-muted-text dark:text-slate-400">från {inv.inviterName}</span>
                 </div>
+
+                {inv.message && (
+                  <div className="mb-2 p-2 bg-white dark:bg-dark-bg/40 rounded border border-border-color dark:border-dark-bg/20">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 italic">
+                      "{inv.message}"
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex justify-end space-x-2">
                   <Button

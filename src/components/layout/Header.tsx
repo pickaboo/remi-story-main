@@ -14,8 +14,8 @@ interface HeaderProps {
   onNavigate: (path: string, params?: ViewParams) => void;
   logoUrl?: string; 
   onLogout?: () => void; 
-  onAcceptInvitation?: (invitationId: string) => void; 
-  onDeclineInvitation?: (invitationId: string) => void; 
+  onAcceptInvitation?: (invitationId: string) => Promise<void>; 
+  onDeclineInvitation?: (invitationId: string) => Promise<void>; 
   onSaveThemePreference: (theme: User['themePreference']) => void; // Added
 }
 
@@ -192,7 +192,7 @@ export const Header: React.FC<HeaderProps> = memo(({
                   )}
                   <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {isUserMenuOpen && (
+                {isUserMenuOpen && onAcceptInvitation && onDeclineInvitation && (
                   <UserMenuPopover
                     currentUser={currentUser}
                     isOpen={isUserMenuOpen}
@@ -200,7 +200,6 @@ export const Header: React.FC<HeaderProps> = memo(({
                     anchorRef={userMenuButtonRef.current}
                     onAcceptInvitation={onAcceptInvitation}
                     onDeclineInvitation={onDeclineInvitation}
-                    onSaveThemePreference={onSaveThemePreference} // Pass down the prop
                     onLogout={onLogout}
                   />
                 )}
