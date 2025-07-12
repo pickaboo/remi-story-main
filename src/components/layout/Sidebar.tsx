@@ -303,7 +303,15 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
       <div className="flex-grow flex flex-col">
         <nav className="mt-4 flex-grow" role="navigation" aria-label="Huvudnavigation">
           {NAV_ITEMS_SIDEBAR.map((item) => {
-            const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+            // Normalize currentPath and item.path for comparison
+            const normalize = (p: string) => p.replace(/^\//, '').replace(/\/$/, '');
+            const current = normalize(currentPath);
+            const target = normalize(item.path);
+            // Home: match both "/" and "home"
+            const isHome = (target === '' || target === 'home') && (current === '' || current === 'home');
+            // Skapa: match both "/projects" and "slideshow-projects"
+            const isSkapa = (target === 'projects' || target === 'slideshow-projects') && (current === 'projects' || current === 'slideshow-projects');
+            const isActive = isHome || isSkapa || (target !== '' && target !== 'home' && target !== 'projects' && current.startsWith(target));
             return (
               <button
                 key={item.path}
@@ -314,11 +322,11 @@ bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md overflow-hidden z-50
                   flex items-center text-left text-sm font-medium transition-all duration-150 ease-in-out group
                   ${isExpanded
                     ? (isActive 
-                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-full mx-2 px-4 py-3 my-0.5 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full')
+                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-full mx-2 px-4 py-3 my-0.5 shadow-sm border border-primary dark:border-blue-400' 
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 px-6 py-3 w-full border border-transparent')
                     : (isActive 
-                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-lg mx-auto w-11 h-11 p-0 justify-center my-1 shadow-sm' 
-                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg')
+                        ? 'bg-primary/10 dark:bg-blue-400/10 text-primary dark:text-blue-300 rounded-lg mx-auto w-11 h-11 p-0 justify-center my-1 shadow-sm border border-primary dark:border-blue-400' 
+                        : 'text-muted-text dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-bg/50 hover:text-slate-700 dark:hover:text-slate-200 justify-center py-3 w-11 h-11 mx-auto rounded-lg border border-transparent')
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}

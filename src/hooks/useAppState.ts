@@ -1,34 +1,35 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Views } from '../constants/viewEnum';
 import type { View } from '../constants/viewEnum';
 import { ViewParams, LegacyFeedback, User } from '../types';
+import { LOCAL_STORAGE_USER_THEME_PREFERENCE_KEY_PREFIX } from '../constants';
 
 const viewToPathMap: Record<View, string> = {
-  [Views.Home]: '',
+  [Views.Home]: 'home',
   [Views.ImageBank]: 'image-bank',
   [Views.Diary]: 'diary',
   [Views.EditImage]: 'edit-image',
-  [Views.SlideshowProjects]: 'projects',
+  [Views.SlideshowProjects]: 'slideshow-projects',
   [Views.PlaySlideshow]: 'play-slideshow',
   [Views.Login]: 'login',
   [Views.Signup]: 'signup',
-
-  [Views.EmailConfirmation]: 'confirm-email',
-  [Views.ProfileCompletion]: 'complete-profile',
+  [Views.EmailConfirmation]: 'email-confirmation',
+  [Views.ProfileCompletion]: 'profile-completion',
+  [Views.BucketList]: 'bucket-list',
 };
 
 const pathToViewMap: Record<string, View> = {
-  '': Views.Home,
+  'home': Views.Home,
   'image-bank': Views.ImageBank,
   'diary': Views.Diary,
   'edit-image': Views.EditImage,
-  'projects': Views.SlideshowProjects,
+  'slideshow-projects': Views.SlideshowProjects,
   'play-slideshow': Views.PlaySlideshow,
   'login': Views.Login,
   'signup': Views.Signup,
-
-  'confirm-email': Views.EmailConfirmation,
-  'complete-profile': Views.ProfileCompletion,
+  'email-confirmation': Views.EmailConfirmation,
+  'profile-completion': Views.ProfileCompletion,
+  'bucket-list': Views.BucketList,
 };
 
 export const useAppState = () => {
@@ -38,14 +39,26 @@ export const useAppState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [globalFeedback, setGlobalFeedback] = useState<LegacyFeedback | null>(null);
-  const [themePreference, setThemePreference] = useState<User['themePreference']>('system');
+  
+  // Initialize theme preference from localStorage or default to 'system'
+  const [themePreference, setThemePreference] = useState<User['themePreference']>(() => {
+    const savedTheme = localStorage.getItem('themePreference');
+    return (savedTheme as User['themePreference']) || 'system';
+  });
 
-  // Keep themePreference in sync with currentUser
+  // Keep themePreference in sync with currentUser and localStorage
   useEffect(() => {
     if (currentUser && currentUser.themePreference) {
       setThemePreference(currentUser.themePreference);
+      // Save to localStorage when user theme changes
+      localStorage.setItem('themePreference', currentUser.themePreference);
     }
   }, [currentUser]);
+
+  // Save theme preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('themePreference', themePreference);
+  }, [themePreference]);
 
   // Navigera till en vy och synka hash
   const navigate = useCallback((view: View, params?: ViewParams) => {

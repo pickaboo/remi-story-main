@@ -134,6 +134,10 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
   const handleThemeChange = async (theme: ThemePreference) => {
     setSelectedTheme(theme); // Optimistically update UI
     setIsSavingTheme(true);
+    
+    // Save to localStorage immediately
+    localStorage.setItem('themePreference', theme);
+    
     try {
       await onSaveThemePreference(theme);
       // Theme is now applied immediately in App.tsx, so no need to revert on success

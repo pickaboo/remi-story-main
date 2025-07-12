@@ -85,11 +85,18 @@ export const AppLayout: React.FC<AppLayoutProps> & AppLayoutComposition = ({ chi
       setThemePreference(theme);
       const updatedUser = { ...currentUser, themePreference: theme };
       setCurrentUser(updatedUser);
+      
+      // Save to localStorage immediately
+      localStorage.setItem('themePreference', theme);
+      
       try {
         await handleSaveThemePreference(theme, currentUser.id);
       } catch (error) {
         console.error('Failed to save theme preference to database:', error);
       }
+    } else {
+      // If no user is logged in, still save to localStorage
+      localStorage.setItem('themePreference', theme);
     }
   };
 

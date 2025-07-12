@@ -221,6 +221,12 @@ export const Header: React.FC<HeaderProps> = memo(({
                   const newTheme = isDarkMode ? 'light' : 'dark';
                   applyThemePreference(newTheme);
                   setIsDarkMode(!isDarkMode);
+                  // Save to localStorage
+                  localStorage.setItem('themePreference', newTheme);
+                  // Call the callback to save to database if user is logged in
+                  if (currentUser) {
+                    onSaveThemePreference(newTheme);
+                  }
                 }}
                 className="p-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-accent transition-colors ml-2"
                 aria-label={isDarkMode ? 'Byt till ljust tema' : 'Byt till mörkt tema'}
