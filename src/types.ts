@@ -5,14 +5,6 @@
  * Types are organized by feature area and include comprehensive documentation.
  */
 
-import type { View } from './constants/viewEnum';
-
-// ============================================================================
-// CORE APPLICATION TYPES
-// ============================================================================
-
-// View enum moved to viewEnum.ts
-
 /**
  * Parameters passed to views for navigation
  */

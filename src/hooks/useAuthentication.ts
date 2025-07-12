@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
-import { Views, View } from '../constants/viewEnum';
 import { getCurrentAuthenticatedUser } from '../features/auth/services/authService';
 import { applyThemePreference, setupThemeListener } from '../utils/themeUtils';
 import { applyBackgroundPreference } from '../utils/backgroundUtils';
@@ -8,7 +7,7 @@ import { applyBackgroundPreference } from '../utils/backgroundUtils';
 interface UseAuthenticationProps {
   handleLoginSuccess: (user: User) => Promise<User>;
   fetchUserAndSphereData: (user: User) => Promise<any>;
-  setCurrentView: (view: View) => void;
+  setCurrentView: (view: string) => void;
   setIsAuthenticated: (value: boolean) => void;
   setCurrentUser: (user: User | null) => void;
   activeSphere: any; // Replace with proper type
@@ -54,9 +53,9 @@ export function useAuthentication({
           
           // Handle new users or profile completion
           if (!user.name || user.name === "Ny Användare") {
-            setCurrentView(Views.ProfileCompletion);
+            setCurrentView('/profile-completion');
           } else if (!user.emailVerified) {
-            setCurrentView(Views.EmailConfirmation);
+            setCurrentView('/email-confirmation');
           } else {
             try {
               await handleLoginSuccess(user);
@@ -64,30 +63,30 @@ export function useAuthentication({
               // Try to fetch sphere data with better error handling
               try {
                 await fetchUserAndSphereData(user);
-                setCurrentView(Views.Home);
+                setCurrentView('/home');
               } catch (sphereError) {
                 console.error('Failed to fetch sphere data:', sphereError);
                 // If sphere data fetch fails, still navigate to home but with limited functionality
-                setCurrentView(Views.Home);
+                setCurrentView('/home');
                 // You could also set a flag to show a warning about limited functionality
               }
             } catch (loginError) {
               console.error('Login success handling failed:', loginError);
               setError(loginError instanceof Error ? loginError.message : 'Inloggning misslyckades');
-              setCurrentView(Views.Login);
+              setCurrentView('/login');
             }
           }
         } else {
           setIsAuthenticated(false);
           setCurrentUser(null);
-          setCurrentView(Views.Login);
+          setCurrentView('/login');
         }
       } catch (err) {
         console.error('Auth check failed:', err);
         setError(err instanceof Error ? err.message : 'Autentiseringsfel');
         setIsAuthenticated(false);
         setCurrentUser(null);
-        setCurrentView(Views.Login);
+        setCurrentView('/login');
       } finally {
         setIsLoading(false);
       }

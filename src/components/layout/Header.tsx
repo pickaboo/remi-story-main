@@ -1,7 +1,6 @@
 import React, { useState, useRef, memo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '../../types';
-import { Views } from '../../constants/viewEnum';
-import type { View } from '../../constants/viewEnum';
 import { ViewParams } from '../../types';
 import { DiaryPopover, UserMenuPopover } from '../modals';
 import { useAppContext } from '../../context/AppContext';
@@ -12,12 +11,12 @@ type ThemePreference = User['themePreference']; // Define ThemePreference type
 interface HeaderProps {
   currentUser: User | null;
   isSidebarExpanded: boolean;
-  onNavigate: (view: View, params?: ViewParams) => void;
+  onNavigate: (path: string, params?: ViewParams) => void;
   logoUrl?: string; 
   onLogout?: () => void; 
-  onAcceptInvitation: (invitationId: string) => Promise<void>; 
-  onDeclineInvitation: (invitationId: string) => Promise<void>; 
-  onSaveThemePreference: (theme: ThemePreference) => Promise<void>; // Added
+  onAcceptInvitation?: (invitationId: string) => void; 
+  onDeclineInvitation?: (invitationId: string) => void; 
+  onSaveThemePreference: (theme: User['themePreference']) => void; // Added
 }
 
 // Icons
@@ -69,33 +68,24 @@ export const Header: React.FC<HeaderProps> = memo(({
     onDeclineInvitation,
     onSaveThemePreference, // Added
 }) => {
+  const navigate = useNavigate();
   const leftOffsetClass = isSidebarExpanded ? 'left-60' : 'left-20';
   const [isDiaryPopoverOpen, setIsDiaryPopoverOpen] = useState(false);
   const diaryButtonRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuButtonRef = useRef<HTMLDivElement>(null);
-  const [isDarkMode, setIsDarkMode] = useState(() => 
-    document.documentElement.classList.contains('dark')
-  );
-  const { handleOpenBucketListModal } = useAppContext();
+  const { handleOpenBucketListModal, themePreference } = useAppContext();
 
-  // Lyssnar på tema-ändringar
-  useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          setIsDarkMode(document.documentElement.classList.contains('dark'));
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  // Determine if dark mode is active based on theme preference and system preference
+  const isDarkMode = React.useMemo(() => {
+    if (themePreference === 'dark') return true;
+    if (themePreference === 'light') return false;
+    // For 'system', check if system prefers dark mode
+    if (themePreference === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  }, [themePreference]);
 
   return (
     <header className={`bg-white/90 dark:bg-dark-bg/90 backdrop-blur-sm fixed top-0 ${leftOffsetClass} right-0 z-30 h-16 flex items-center justify-between border-b border-border-color dark:border-dark-bg/50 px-4 sm:px-6 lg:px-8 shadow-sm`} role="banner">
@@ -106,7 +96,7 @@ export const Header: React.FC<HeaderProps> = memo(({
       <div className="flex-grow text-center">
         <a 
           href="#" 
-          onClick={(e) => { e.preventDefault(); onNavigate(Views.Home);}} 
+          onClick={(e) => { e.preventDefault(); navigate('/home');}} 
           className="inline-block hover:opacity-80 transition-opacity"
           aria-label="REMI Story Hem"
         >
@@ -126,7 +116,7 @@ export const Header: React.FC<HeaderProps> = memo(({
               <div className="relative" ref={diaryButtonRef}>
                 <div className="flex rounded-lg border border-border-color dark:border-dark-bg/30 shadow-sm">
                   <button
-                    onClick={() => onNavigate(Views.Diary)}
+                    onClick={() => navigate('/diary')}
                     className="px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-dark-bg hover:bg-slate-100 dark:hover:bg-dark-bg/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary dark:focus:ring-blue-400 rounded-l-md transition-colors"
                     title="Öppna Dagbok"
                     aria-label="Öppna Dagbok"
@@ -176,9 +166,10 @@ export const Header: React.FC<HeaderProps> = memo(({
                 >
                   {currentUser.profileImageUrl ? (
                     <img
-                      src={currentUser.profileImageUrl}
+                      src={`${currentUser.profileImageUrl}?t=${currentUser.updatedAt}`}
                       alt="Profilbild"
                       className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600"
+                      key={currentUser.profileImageUrl}
                     />
                   ) : (
                     <div 
@@ -220,7 +211,6 @@ export const Header: React.FC<HeaderProps> = memo(({
                 onClick={() => {
                   const newTheme = isDarkMode ? 'light' : 'dark';
                   applyThemePreference(newTheme);
-                  setIsDarkMode(!isDarkMode);
                   // Save to localStorage
                   localStorage.setItem('themePreference', newTheme);
                   // Call the callback to save to database if user is logged in

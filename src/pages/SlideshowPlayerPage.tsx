@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ImageRecord, SlideshowProject, UserDescriptionEntry } from '../types';
-import { Views } from '../constants/viewEnum';
-import type { View } from '../constants/viewEnum';
 import { getProjectById, getImageById } from '../services/storageService';
 import { LoadingSpinner } from '../components/ui';
 import { getDownloadURL, ref } from 'firebase/storage'; // Added
@@ -151,7 +149,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
         if (document.fullscreenElement) {
           document.exitFullscreen().then(() => setIsFullScreen(false));
         } else {
-          handleNavigate(Views.SlideshowProjects); 
+          handleNavigate('/slideshow-projects'); 
         }
       }
     };
@@ -173,7 +171,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
         <h2 className="text-2xl font-semibold mb-3">Hoppsan!</h2>
         <p className="text-xl text-yellow-300 mb-6 text-center">{error || "Inga bilder att visa i detta bildspel."}</p>
         <button 
-            onClick={() => handleNavigate(Views.SlideshowProjects)} 
+            onClick={() => handleNavigate('/slideshow-projects')} 
             className="px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors duration-150"
         >
             Tillbaka till Projekt
@@ -223,7 +221,7 @@ export const SlideshowPlayerPage: React.FC<SlideshowPlayerPageProps> = ({ projec
           {isFullScreen ? 'Avsluta Fullskärm' : 'Fullskärm (F)'}
         </button>
         <button 
-            onClick={() => handleNavigate(Views.SlideshowProjects)} 
+            onClick={() => handleNavigate('/slideshow-projects')} 
             className="text-white rounded-full px-3 py-1.5 text-xs sm:text-sm hover:bg-white/20 backdrop-blur-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-white/70"
         >
           Stäng (Esc)

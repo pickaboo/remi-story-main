@@ -25,7 +25,7 @@ export * from './forms';
 
 // App components
 export * from './AppContent';
-export * from './ViewRenderer';
+
 export * from './LoadingScreen';
 export * from './ErrorScreen';
 

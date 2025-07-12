@@ -9,7 +9,6 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = () => {
-  // This page is currently superseded by FeedPage for the View.Home route in App.tsx.
   // If this HomePage.tsx were to be used directly for a route, its content would go here.
   return (
     <PageContainer title="Hem">

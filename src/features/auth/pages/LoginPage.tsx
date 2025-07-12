@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Views } from '../../../constants/viewEnum';
-import type { View } from '../../../constants/viewEnum';
+
 import { useAppContext } from '../../../context/AppContext';
 import { AuthContainer } from '../components/AuthContainer';
 import { Button, Input } from '../../../components/ui';
@@ -31,7 +30,8 @@ const AppleIcon = () => (
 );
 
 export const LoginPage: React.FC = () => {
-  const { handleNavigate, handleLoginSuccess } = useAppContext();
+  const { handleLoginSuccess } = useAppContext();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,9 +52,9 @@ export const LoginPage: React.FC = () => {
       if (user) {
         handleLoginSuccess(user);
         if (!user.emailVerified) {
-          handleNavigate(Views.EmailConfirmation);
+          navigate('/email-confirmation');
         } else {
-          handleNavigate(Views.Home);
+          navigate('/home');
         }
       } else {
         setError('Felaktig e-postadress eller lösenord. Försök igen.');
@@ -74,9 +74,9 @@ export const LoginPage: React.FC = () => {
       if (result && result.user) {
         handleLoginSuccess(result.user, result.isNewUser);
         if (!result.user.emailVerified) {
-          handleNavigate(Views.EmailConfirmation);
+          navigate('/email-confirmation');
         } else {
-          handleNavigate(Views.Home);
+          navigate('/home');
         }
       } else {
         setError(`Kunde inte logga in med ${provider}.`);
@@ -209,7 +209,7 @@ export const LoginPage: React.FC = () => {
 
       <p className="mt-8 text-center text-sm text-muted-text dark:text-slate-400">
         Inget konto?{' '}
-        <button onClick={() => handleNavigate(Views.Signup)} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
+        <button onClick={() => navigate('/signup')} className="font-medium text-primary dark:text-blue-400 hover:text-primary-hover dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-blue-400 rounded border border-transparent hover:border-primary/20 dark:hover:border-blue-400/20 px-2 py-1 transition-all duration-200 hover:bg-primary/5 dark:hover:bg-blue-400/5 active:scale-95">
           Skapa ett här
         </button>
       </p>
