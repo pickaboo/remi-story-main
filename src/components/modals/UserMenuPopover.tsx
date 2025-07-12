@@ -246,6 +246,7 @@ export const UserMenuPopover: React.FC<UserMenuPopoverProps> = memo(({
         }}
         onAvatarColorChange={async (color) => { 
           // TODO: Implement avatar color update
+          console.log('Spara ny avatarfärg:', color);
         }}
       />
       {onLogout && (
